@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .task import Task
+from typing import Optional
 
 
 class Action(abc.ABC):
-    """Implementation of a task."""
+    """Actions implement the behaviour of tasks."""
 
-    def execute(self, task: Task) -> None:
+    @abc.abstractmethod
+    def execute(self) -> Optional[int]:
         ...

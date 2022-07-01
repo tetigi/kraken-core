@@ -22,4 +22,4 @@ class Task:
 
     def execute(self) -> None:
         if self.action is not None:
-            self.action.execute(self)
+            self.action.execute()

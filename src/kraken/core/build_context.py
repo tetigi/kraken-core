@@ -101,16 +101,14 @@ class BuildContext:
 
         if targets is None:
             # Return all default tasks.
-            return [task for project in self.all_projects() for task in project.tasks if task.default.get()]
+            return [task for project in self.all_projects() for task in project.tasks if task.default]
 
-        tasks: List[Task] = []
+        tasks: list[Task] = []
         for target in targets:
 
             if ":" not in target:
                 # Select all targets with a name matching the specified target.
-                tasks.extend(
-                    task for project in self.all_projects() for task in project.tasks if task.name.get() == target
-                )
+                tasks.extend(task for project in self.all_projects() for task in project.tasks if task.name == target)
                 continue
 
             # Resolve as many components in the project hierarchy as possible.
@@ -120,15 +118,14 @@ class BuildContext:
                 project = self.root_project
                 parts.pop(0)
             while parts:
-                subprojects = {p.name.get(): p for p in project._subprojects.values()}
-                if parts[0] in subprojects:
-                    project = subprojects[parts.pop(0)]
+                if parts[0] in project.children:
+                    project = project.children[parts.pop(0)]
                 else:
                     break
 
             if not parts or parts == [""]:
                 # The project was selected, add all default tasks.
-                tasks.extend(task for task in project.tasks if task.default.get())
+                tasks.extend(task for task in project.tasks if task.default)
             elif len(parts) == 1:
                 # A specific target is selected.
                 if parts[0] not in project.tasks:

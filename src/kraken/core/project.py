@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Iterator, Mapping, Optional, Set, Type, TypeVar, Union, cast
-from collections.abc import KeysView
+from typing import TYPE_CHECKING, Generic, Iterator, Optional, Type, TypeVar, Union, cast
 
 if TYPE_CHECKING:
     from .build_context import BuildContext
@@ -78,6 +77,15 @@ class ProjectMembers(Generic[T_ProjectMember]):
             return len(self._members)
         # TODO (@niklas.rosenstein): Imperformant; maybe split tasks/projects into separate dicts?
         return sum(1 for _ in self)
+
+    def __contains__(self, value: object) -> bool:
+        _type = self._type()
+        if value in self._members:
+            if _type is not None:
+                member = self._members[cast(str, value)]
+                return isinstance(member, _type)
+            return True
+        return False
 
     def __iter__(self) -> Iterator[T_ProjectMember]:
         _type = self._type()

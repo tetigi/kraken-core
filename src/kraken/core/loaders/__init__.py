@@ -1,9 +1,11 @@
 from __future__ import annotations
-import pkg_resources
-import logging
+
 import abc
+import logging
 from pathlib import Path
 from typing import Callable, Iterable
+
+import pkg_resources
 
 from kraken.core.project import Project
 

@@ -47,3 +47,9 @@ class Task(Generic[T_Action]):
             return f":{self.name}"
         else:
             return f"{self.project.path}:{self.name}"
+
+    def finalize(self) -> None:
+        """This method is called by :meth:`BuildContext.finalize()`. It gives the task a chance update its
+        configuration before the build process is executed. Most commonly, custom task implementations will
+        initialize their :attr:`action`, as the delayed action creation is often the main reason to creating
+        a Task subclass in the first place."""

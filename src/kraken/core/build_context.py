@@ -104,11 +104,22 @@ class BuildContext:
             return [task for project in self.all_projects() for task in project.tasks if task.default]
 
         tasks: list[Task] = []
+        count = 0
+        target: str
+
+        def _check_matched() -> None:
+            nonlocal count
+            if count == len(tasks):
+                raise ValueError(f"no tasks matched selector {target!r}")
+            count = len(tasks)
+
         for target in targets:
+            count = len(tasks)
 
             if ":" not in target:
                 # Select all targets with a name matching the specified target.
                 tasks.extend(task for project in self.all_projects() for task in project.tasks if task.name == target)
+                _check_matched()
                 continue
 
             # Resolve as many components in the project hierarchy as possible.
@@ -134,5 +145,7 @@ class BuildContext:
             else:
                 # Some project in the path does not exist.
                 raise ValueError(f"project {':'.join(target.split(':')[:-1])} does not exist")
+
+            _check_matched()
 
         return tasks

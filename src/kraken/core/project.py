@@ -7,12 +7,14 @@ from kraken.core.tasks import TaskCaptureMode
 from kraken.core.utils import flatten
 
 if TYPE_CHECKING:
+    from .actions import Action
     from .build_context import BuildContext
-    from .tasks import AnyTask, T_Action, Task
+    from .tasks import AnyTask, Task
 
 ProjectMember = Union["Project", "Task"]
 T_ProjectMember = TypeVar("T_ProjectMember", bound=ProjectMember)
 T_Task = TypeVar("T_Task", bound="AnyTask")
+T_Action = TypeVar("T_Action", bound="Action")
 
 
 class Project:
@@ -73,10 +75,9 @@ class Project:
 
         from .tasks import Task
 
-        def _resolve_tasks(tasks: Iterable[AnyTask | str]) -> list[Task]:
+        def _resolve_tasks(tasks: Iterable[AnyTask | str]) -> list[AnyTask]:
             return list(
-                flatten(self.context.resolve_tasks([task])) if isinstance(task, str) else [task]
-                for task in dependencies
+                flatten(self.context.resolve_tasks([task]) if isinstance(task, str) else [task] for task in tasks)
             )
 
         task = Task(

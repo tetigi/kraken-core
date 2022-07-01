@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Type, TypeVar, Union, cast
+
+from kraken.core.tasks import TaskCaptureMode
+from kraken.core.utils import flatten
 
 if TYPE_CHECKING:
     from .build_context import BuildContext
-    from .tasks import AnyTask, Task, T_Action
+    from .tasks import AnyTask, T_Action, Task
 
 ProjectMember = Union["Project", "Task"]
 T_ProjectMember = TypeVar("T_ProjectMember", bound=ProjectMember)
@@ -56,6 +59,39 @@ class Project:
     def children(self) -> ProjectChildren:
         return ProjectChildren(self, self._members)
 
+    def do(
+        self,
+        name: str,
+        action: T_Action,
+        default: bool = True,
+        capture: TaskCaptureMode = TaskCaptureMode.FULL,
+        dependencies: Iterable[AnyTask | str] = (),
+        after: Iterable[AnyTask | str] = (),
+        before: Iterable[AnyTask | str] = (),
+    ) -> Task[T_Action]:
+        """Add a task to the project under the given name, executing the specified action."""
+
+        from .tasks import Task
+
+        def _resolve_tasks(tasks: Iterable[AnyTask | str]) -> list[Task]:
+            return list(
+                flatten(self.context.resolve_tasks([task])) if isinstance(task, str) else [task]
+                for task in dependencies
+            )
+
+        task = Task(
+            name,
+            self,
+            action,
+            dependencies=_resolve_tasks(dependencies),
+            after=_resolve_tasks(after),
+            before=_resolve_tasks(before),
+            default=default,
+            capture=capture,
+        )
+        self.tasks.add(task)
+        return task
+
 
 class ProjectMembers(Generic[T_ProjectMember]):
     """Container for the members of a project."""
@@ -98,11 +134,11 @@ class ProjectMembers(Generic[T_ProjectMember]):
         try:
             member = self._members[name]
         except KeyError:
-            raise KeyError(f"project {self._project} has no member {name!r}")
+            raise ValueError(f"{self._project} has no member {name!r}")
         _type = self._type()
         if _type is not None and not isinstance(member, _type):
-            raise KeyError(
-                f"project {self._project} member {name!r} is a {type(member).__name__} " f"but not a {_type.__name__}"
+            raise ValueError(
+                f"{self._project} member {name!r} is a {type(member).__name__} " f"but not a {_type.__name__}"
             )
         return cast(T_ProjectMember, member)
 
@@ -129,7 +165,7 @@ class ProjectTasks(ProjectMembers["AnyTask"]):
         if task.project is not self._project:
             raise RuntimeError("Task.project does not match")
         if task.name in self._members:
-            raise KeyError(f"project {self._project} already has a member {task.name!r}")
+            raise ValueError(f"{self._project} already has a member {task.name!r}")
         self._members[task.name] = task
         return task
 
@@ -143,6 +179,6 @@ class ProjectChildren(ProjectMembers["Project"]):
         if project.parent is not self._project:
             raise RuntimeError("Project.parent does not match")
         if project.name in self._members:
-            raise KeyError(f"project {self._project} already has a member {project.name!r}")
+            raise ValueError(f"{self._project} already has a member {project.name!r}")
         self._members[project.name] = project
         return project

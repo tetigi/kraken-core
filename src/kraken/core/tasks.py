@@ -31,9 +31,9 @@ class TaskCaptureMode(enum.Enum):
 class Task(Generic[T_Action]):
     """Represents a logical unit of work."""
 
-    action: T_Action
     name: str
     project: Project
+    action: T_Action
     metadata: list[Any] = dataclasses.field(default_factory=list)
     dependencies: list[AnyTask] = dataclasses.field(default_factory=list)  #: Strict dependencies
     after: list[AnyTask] = dataclasses.field(default_factory=list)  #: Optional dependencies

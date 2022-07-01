@@ -102,6 +102,35 @@ class BuildGraph:
     def get_successors(self, task: AnyTask) -> List[AnyTask]:
         return [not_none(self._get_node(task_path)).task for task_path in self._digraph.successors(task.path)]
 
+    def trim(self) -> BuildGraph:
+        """Removes all tasks from the graph that are not initially required and only connected to any other
+        task with an optional dependency."""
+
+        # Find all tasks that are not initially required and only have dependants with an optional dependency.
+        weakly_connected_tasks = set()
+        for task_path in self._digraph.nodes:
+            if not_none(self._get_node(task_path)).required:
+                continue
+            if not any(
+                not_none(self._get_edge(task_path, dependant_task_path)).strict
+                for dependant_task_path in self._digraph.successors(task_path)
+            ):
+                weakly_connected_tasks.add(task_path)
+
+        # Remove the subgraphs that are weakly connected.
+        def _remove_subgraph(task_path: str) -> None:
+            if task_path not in self._digraph.nodes:
+                return
+            for successor in list(self._digraph.predecessors(task_path)):
+                _remove_subgraph(successor)
+            self._digraph.remove_node(task_path)
+
+        for task_path in weakly_connected_tasks:
+            if task_path in self._digraph.nodes:
+                _remove_subgraph(task_path)
+
+        return self
+
     def execution_order(self) -> Iterable[AnyTask]:
         from networkx.algorithms import topological_sort  # type: ignore[import]
 

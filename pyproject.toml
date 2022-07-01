@@ -9,7 +9,7 @@ description = ""
 authors = ["Niklas Rosenstein <rosensteinniklas@gmail.com>"]
 license = "MIT"
 readme = "readme.md"
-packages = [{ include = "kraken.core", from = "src" }]
+packages = [{ include = "kraken/core", from = "src" }]
 classifiers = []
 keywords = []
 
@@ -20,7 +20,7 @@ keywords = []
 # Repository = ""
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 black = "*"
@@ -44,7 +44,7 @@ flake8 = "flake8 src/ tests/"
 fmt = "black src/ tests/ && isort src/ tests/"
 
 [tool.mypy]
-python_version = "3.6"
+python_version = "3.7"
 explicit_package_bases = true
 mypy_path = ["src"]
 namespace_packages = true

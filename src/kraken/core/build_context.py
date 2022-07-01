@@ -152,7 +152,7 @@ class BuildContext:
         return tasks
 
     def finalize(self) -> None:
-        """ Call :meth:`Task.finalize()` on all tasks. This should be called before a graph is created."""
+        """Call :meth:`Task.finalize()` on all tasks. This should be called before a graph is created."""
 
         for project in self.iter_projects():
             for task in project.tasks:

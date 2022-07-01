@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Generic, Iterator, Mapping, Optional, Set, Type, TypeVar, Union, cast
+from collections.abc import KeysView
 
 if TYPE_CHECKING:
     from .build_context import BuildContext
@@ -36,6 +37,8 @@ class Project:
     def path(self) -> str:
         if self.parent is None:
             return ":"
+        elif self.parent.parent is None:
+            return f":{self.name}"
         else:
             return f"{self.parent.path}:{self.name}"
 
@@ -69,11 +72,18 @@ class ProjectMembers(Generic[T_ProjectMember]):
     def _type() -> Optional[Type[T_ProjectMember]]:
         return None
 
-    def __iter__(self) -> Iterator[str]:
+    def __len__(self) -> int:
         _type = self._type()
-        for key, value in self._members.items():
+        if _type is None:
+            return len(self._members)
+        # TODO (@niklas.rosenstein): Imperformant; maybe split tasks/projects into separate dicts?
+        return sum(1 for _ in self)
+
+    def __iter__(self) -> Iterator[T_ProjectMember]:
+        _type = self._type()
+        for value in self._members.values():
             if _type is None or isinstance(value, _type):
-                yield key
+                yield cast(T_ProjectMember, value)
 
     def __getitem__(self, name: str) -> T_ProjectMember:
         try:
@@ -86,6 +96,17 @@ class ProjectMembers(Generic[T_ProjectMember]):
                 f"project {self._project} member {name!r} is a {type(member).__name__} " f"but not a {_type.__name__}"
             )
         return cast(T_ProjectMember, member)
+
+    def keys(self) -> set[str]:
+        _type = self._type()
+        if _type is None:
+            return cast(set[str], self._members.keys())
+        else:
+            result = set()
+            for key, value in self._members.items():
+                if _type is None or isinstance(value, _type):
+                    result.add(key)
+            return result
 
 
 class ProjectTasks(ProjectMembers["Task"]):

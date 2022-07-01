@@ -72,10 +72,11 @@ class BuildContext:
                 raise ValueError(f'no loader matched file "{file}"')
 
         project = Project(directory, directory.name, parent, self)
-        loader.load_script(file, project)
 
         if self._root_project is None:
             self._root_project = project
+
+        loader.load_script(file, project)
 
         return project
 

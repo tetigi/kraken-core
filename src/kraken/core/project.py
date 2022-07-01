@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Iterator, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Generic, Iterator, Optional, Type, TypeVar, Union, cast
 
 if TYPE_CHECKING:
     from .build_context import BuildContext
-    from .task import Task
+    from .tasks import AnyTask, Task, T_Action
 
 ProjectMember = Union["Project", "Task"]
 T_ProjectMember = TypeVar("T_ProjectMember", bound=ProjectMember)
+T_Task = TypeVar("T_Task", bound="AnyTask")
 
 
 class Project:
@@ -117,19 +118,20 @@ class ProjectMembers(Generic[T_ProjectMember]):
             return result
 
 
-class ProjectTasks(ProjectMembers["Task"]):
+class ProjectTasks(ProjectMembers["AnyTask"]):
     @staticmethod
-    def _type() -> Optional[Type[Task]]:
-        from .task import Task
+    def _type() -> Optional[Type[Any]]:
+        from .tasks import Task
 
         return Task
 
-    def add(self, task: Task) -> None:
+    def add(self, task: Task[T_Action]) -> Task[T_Action]:
         if task.project is not self._project:
             raise RuntimeError("Task.project does not match")
         if task.name in self._members:
             raise KeyError(f"project {self._project} already has a member {task.name!r}")
         self._members[task.name] = task
+        return task
 
 
 class ProjectChildren(ProjectMembers["Project"]):
@@ -137,9 +139,10 @@ class ProjectChildren(ProjectMembers["Project"]):
     def _type() -> Optional[Type[Project]]:
         return Project
 
-    def add(self, project: Project) -> None:
+    def add(self, project: Project) -> Project:
         if project.parent is not self._project:
             raise RuntimeError("Project.parent does not match")
         if project.name in self._members:
             raise KeyError(f"project {self._project} already has a member {project.name!r}")
         self._members[project.name] = project
+        return project

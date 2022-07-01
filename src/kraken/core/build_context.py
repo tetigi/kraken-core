@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Iterator, Optional
 
 if TYPE_CHECKING:
     from .project import Project
-    from .task import Task
+    from .tasks import AnyTask
 
 
 class BuildContext:
@@ -89,7 +89,7 @@ class BuildContext:
 
         yield from _recurse(self.root_project)
 
-    def resolve_tasks(self, targets: list[str] | None, relative_to: Project | None = None) -> list[Task]:
+    def resolve_tasks(self, targets: list[str] | None, relative_to: Project | None = None) -> list[AnyTask]:
         """Resolve the given project or task references in *targets* relative to the specified project, or by
         default relative to the root project. A target is a colon-separated string that behaves similar to a
         filesystem path to address projects and tasks in the hierarchy. The root project is represented with a
@@ -103,7 +103,7 @@ class BuildContext:
             # Return all default tasks.
             return [task for project in self.all_projects() for task in project.tasks if task.default]
 
-        tasks: list[Task] = []
+        tasks: list[AnyTask] = []
         count = 0
         target: str
 

@@ -24,8 +24,10 @@ Dependencies on task can be strict or non-strict. Non-strict dependencies enforc
 execution sequence of tasks, wheras strict dependencies will ensure that the dependency has been
 executed.
 
-Tasks are usually marked as "default", meaning that they be selected by default if no explicit set of
-tasks was selected to be executed.
+Tasks are usually marked as "default", meaning that they are selected by default if no task selectors are
+specified (see below on [Task selectors](#14-task-selectors)).
+
+Every task is associated with one [Action](#15-actions) that is executed for the task.
 
 ### 1.4 Task selectors
 
@@ -39,3 +41,8 @@ it can be in one of the following forms:
 Projects and tasks are structured hierarchally and fully qualified references are constructed like file system
 paths but with colons instead of slashes. For example, `:` represents the root roject, `:foo:bar` references
 task or project `bar` in project `foo` in the root project, `spam` references all tasks named `spam`.
+
+### 1.5 Actions
+
+An action is a unit of work that is executed by a task. A task's action may be set on creation or only right before
+it needs to be executed, in the `Task.finalize()` method.

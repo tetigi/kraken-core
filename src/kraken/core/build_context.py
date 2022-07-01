@@ -80,7 +80,7 @@ class BuildContext:
 
         return project
 
-    def all_projects(self) -> Iterator[Project]:
+    def iter_projects(self) -> Iterator[Project]:
         """Iterates over all projects in the context."""
 
         def _recurse(project: Project) -> Iterator[Project]:
@@ -102,7 +102,7 @@ class BuildContext:
 
         if targets is None:
             # Return all default tasks.
-            return [task for project in self.all_projects() for task in project.tasks if task.default]
+            return [task for project in self.iter_projects() for task in project.tasks if task.default]
 
         tasks: list[AnyTask] = []
         count = 0
@@ -119,7 +119,7 @@ class BuildContext:
 
             if ":" not in target:
                 # Select all targets with a name matching the specified target.
-                tasks.extend(task for project in self.all_projects() for task in project.tasks if task.name == target)
+                tasks.extend(task for project in self.iter_projects() for task in project.tasks if task.name == target)
                 _check_matched()
                 continue
 

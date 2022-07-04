@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Type, TypeVar, Union, cast, overload
 
 from kraken.core.task import TaskCaptureMode
 from kraken.core.utils import flatten
@@ -92,6 +92,19 @@ class Project:
         )
         self.tasks.add(task)
         return task
+
+    @overload
+    def to_path(self, value: Path | str) -> Path:
+        ...
+
+    @overload
+    def to_path(self, value: Path | str | None) -> Path | None:
+        ...
+
+    def to_path(self, value: Path | str) -> Path:
+        """Converts *value* to a path object. A relative path will be converted to an absolute path."""
+
+        return self.directory / value if value else None
 
 
 class ProjectMembers(Generic[T_ProjectMember]):

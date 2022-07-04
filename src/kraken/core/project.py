@@ -75,18 +75,13 @@ class Project:
 
         from .task import Task
 
-        def _resolve_tasks(tasks: Iterable[AnyTask | str]) -> list[AnyTask]:
-            return list(
-                flatten(self.context.resolve_tasks([task]) if isinstance(task, str) else [task] for task in tasks)
-            )
-
         task = Task(
             name,
             self,
             action,
-            dependencies=_resolve_tasks(dependencies),
-            after=_resolve_tasks(after),
-            before=_resolve_tasks(before),
+            dependencies=self.resolve_tasks(dependencies),
+            after=self.resolve_tasks(after),
+            before=self.resolve_tasks(before),
             default=default,
             capture=capture,
         )
@@ -105,6 +100,11 @@ class Project:
         """Converts *value* to a path object. A relative path will be converted to an absolute path."""
 
         return self.directory / value if value else None
+
+    def resolve_tasks(self, tasks: Iterable[str | Task]) -> list[Task]:
+        return list(
+            flatten(self.context.resolve_tasks([task], self) if isinstance(task, str) else [task] for task in tasks)
+        )
 
 
 class ProjectMembers(Generic[T_ProjectMember]):

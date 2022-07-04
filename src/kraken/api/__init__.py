@@ -6,7 +6,7 @@ This file serves as a proxy for Mypy type hints. Importing it in a normal Python
 from kraken.core.build_context import BuildContext
 from kraken.core.project import Project
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 ctx: BuildContext
 project: Project

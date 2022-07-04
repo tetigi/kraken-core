@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-import dataclasses
 import enum
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from typing_extensions import TypeAlias
+
+from .property import HasProperties, Property
 
 if TYPE_CHECKING:
     from .action import Action
     from .project import Project
 
-AnyTask: TypeAlias = "Task[Action | None]"
-T_Action = TypeVar("T_Action", bound="Action | None", covariant=True)
+AnyTask: TypeAlias = "Task[Action]"
+T_Action = TypeVar("T_Action", bound="Action", covariant=True)
 
 
 class TaskCaptureMode(enum.Enum):
@@ -27,19 +29,30 @@ class TaskCaptureMode(enum.Enum):
     FULL = enum.auto()
 
 
-@dataclasses.dataclass
-class Task(Generic[T_Action]):
+class Task(Generic[T_Action], HasProperties):
     """Represents a logical unit of work."""
 
     name: str
     project: Project
-    action: T_Action
-    metadata: list[Any] = dataclasses.field(default_factory=list)
-    dependencies: list[AnyTask] = dataclasses.field(default_factory=list)  #: Strict dependencies
-    after: list[AnyTask] = dataclasses.field(default_factory=list)  #: Optional dependencies
-    before: list[AnyTask] = dataclasses.field(default_factory=list)  #: Optional predecessors
+    action: Property[T_Action] = Property()
+    metadata: list[Any]
+    dependencies: list[AnyTask]  #: Strict dependencies
+    after: list[AnyTask]  #: Optional dependencies
+    before: list[AnyTask]  #: Optional predecessors
     default: bool = True
     capture: TaskCaptureMode = TaskCaptureMode.FULL
+
+    def __init__(self, name: str, project: Project, action: T_Action | None = None) -> None:
+        super().__init__()
+        self.name = name
+        self.project = project
+        self.action.on_set(lambda action: action.task.set(cast(AnyTask, self)))  # type: ignore[misc]
+        if action is not None:
+            self.action.set(action)
+        self.metadata = []
+        self.dependencies = []
+        self.after = []
+        self.before = []
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.path!r})"
@@ -51,8 +64,22 @@ class Task(Generic[T_Action]):
         else:
             return f"{self.project.path}:{self.name}"
 
+    @property
+    def build_directory(self) -> Path:
+        return self.project.build_directory / self.name
+
     def finalize(self) -> None:
         """This method is called by :meth:`BuildContext.finalize()`. It gives the task a chance update its
         configuration before the build process is executed. Most commonly, custom task implementations will
         initialize their :attr:`action`, as the delayed action creation is often the main reason to creating
-        a Task subclass in the first place."""
+        a Task subclass in the first place.
+
+        If the task generates it's :attr:`action` in this method only, it must also call :meth:`Action.finalize()`.
+        """
+
+        from .action import Action
+
+        action = self.action.get_or(None)
+        if action is not None and not isinstance(action, Task):
+            assert isinstance(action, Action), self
+            action.finalize()

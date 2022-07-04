@@ -23,6 +23,7 @@ keywords = []
 python = "^3.7"
 setuptools = ">=33.1.0"
 networkx = "^2.6.0"
+typeapi = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 black = "*"

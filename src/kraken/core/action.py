@@ -3,6 +3,9 @@ from __future__ import annotations
 import abc
 import enum
 
+from kraken.core.property import HasProperties, Property
+from kraken.core.task import AnyTask
+
 
 class ActionResult(enum.Enum):
     UP_TO_DATE = enum.auto()
@@ -11,8 +14,10 @@ class ActionResult(enum.Enum):
     FAILED = enum.auto()
 
 
-class Action(abc.ABC):
+class Action(abc.ABC, HasProperties):
     """Actions implement the behaviour of tasks."""
+
+    task: Property[AnyTask]
 
     def is_up_to_date(self) -> bool:
         """Gives the action a chance before it is executed to inform the build executor that it is up
@@ -27,6 +32,9 @@ class Action(abc.ABC):
         i.e. that the action is not executed."""
 
         return False
+
+    def finalize(self) -> None:
+        """Called before actions are executed, allowing them to finalize properties."""
 
     @abc.abstractmethod
     def execute(self) -> ActionResult:

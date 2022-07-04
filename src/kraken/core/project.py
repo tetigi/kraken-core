@@ -48,6 +48,10 @@ class Project:
             return f"{self.parent.path}:{self.name}"
 
     @property
+    def build_directory(self) -> Path:
+        return self.context.build_directory / self.path.replace(":", "/").lstrip("/")
+
+    @property
     def members(self) -> ProjectMembers[ProjectMember]:
         """Returns the superset of all members in the project."""
 
@@ -79,12 +83,12 @@ class Project:
             name,
             self,
             action,
-            dependencies=self.resolve_tasks(dependencies),
-            after=self.resolve_tasks(after),
-            before=self.resolve_tasks(before),
-            default=default,
-            capture=capture,
         )
+        task.dependencies = self.resolve_tasks(dependencies)
+        task.after = self.resolve_tasks(after)
+        task.before = self.resolve_tasks(before)
+        task.default = default
+        task.capture = capture
         self.tasks.add(task)
         return task
 

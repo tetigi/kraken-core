@@ -4,7 +4,7 @@ import dataclasses
 from pathlib import Path
 from typing import Callable
 
-from kraken.core.actions import Action, ActionResult
+from kraken.core.action import Action, ActionResult
 
 
 @dataclasses.dataclass

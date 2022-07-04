@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Iterator, Optional
 
 if TYPE_CHECKING:
     from .project import Project
-    from .tasks import AnyTask
+    from .task import AnyTask
 
 
 class BuildContext:

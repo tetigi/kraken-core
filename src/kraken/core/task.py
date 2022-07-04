@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from typing_extensions import TypeAlias
 
 if TYPE_CHECKING:
-    from .actions import Action
+    from .action import Action
     from .project import Project
 
 AnyTask: TypeAlias = "Task[Action | None]"

@@ -25,20 +25,27 @@ class PyscriptLoader(BuildScriptLoader):
         return file.suffix == ".py"
 
     def load_script(self, file: Path, project: Project) -> None:
-        module_name = "kraken.api"
+        api_module_name = "kraken.api"
 
         # Create the temporary replacement for the kraken.api module that the script will import from.
-        module: Any = types.ModuleType(module_name)
-        module.ctx = project.context
-        module.project = project
+        api_module: Any = types.ModuleType(api_module_name)
+        api_module.ctx = project.context
+        api_module.project = project
 
-        old_module = sys.modules.get(module_name)
+        # In order for @dataclass decorators to work in a Python script loaded by this build, it must be
+        # able to look up the module in sys.modules.
+        module = types.ModuleType(f"_kraken__{project.name}_{id(project)}")
+        module.__file__ = str(file)
+
+        old_module = sys.modules.get(api_module_name)
         try:
-            sys.modules[module_name] = module
+            sys.modules[api_module_name] = api_module
+            sys.modules[module.__name__] = module
             code = compile(file.read_text(), filename=file, mode="exec")
-            exec(code, {"__file__": str(file), "__name__": project.name})
+            exec(code, vars(module))
         finally:
+            del sys.modules[module.__name__]
             if old_module is None:
-                sys.modules.pop(module_name)
+                sys.modules.pop(api_module_name)
             else:
-                sys.modules[module_name] = old_module
+                sys.modules[api_module_name] = old_module

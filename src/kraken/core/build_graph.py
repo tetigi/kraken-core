@@ -5,7 +5,7 @@ from typing import Iterable, List, cast
 
 from networkx import DiGraph  # type: ignore[import]
 
-from kraken.core.tasks import AnyTask
+from kraken.core.task import AnyTask
 from kraken.core.utils import not_none
 
 

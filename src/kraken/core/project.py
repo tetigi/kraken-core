@@ -3,13 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Type, TypeVar, Union, cast
 
-from kraken.core.tasks import TaskCaptureMode
+from kraken.core.task import TaskCaptureMode
 from kraken.core.utils import flatten
 
 if TYPE_CHECKING:
-    from .actions import Action
+    from .action import Action
     from .build_context import BuildContext
-    from .tasks import AnyTask, Task
+    from .task import AnyTask, Task
 
 ProjectMember = Union["Project", "Task"]
 T_ProjectMember = TypeVar("T_ProjectMember", bound=ProjectMember)
@@ -73,7 +73,7 @@ class Project:
     ) -> Task[T_Action]:
         """Add a task to the project under the given name, executing the specified action."""
 
-        from .tasks import Task
+        from .task import Task
 
         def _resolve_tasks(tasks: Iterable[AnyTask | str]) -> list[AnyTask]:
             return list(
@@ -158,7 +158,7 @@ class ProjectMembers(Generic[T_ProjectMember]):
 class ProjectTasks(ProjectMembers["AnyTask"]):
     @staticmethod
     def _type() -> Optional[Type[Any]]:
-        from .tasks import Task
+        from .task import Task
 
         return Task
 

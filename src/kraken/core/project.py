@@ -96,12 +96,12 @@ class Project:
     def to_path(self, value: Path | str | None) -> Path | None:
         ...
 
-    def to_path(self, value: Path | str) -> Path:
+    def to_path(self, value: Path | str | None) -> Path | None:
         """Converts *value* to a path object. A relative path will be converted to an absolute path."""
 
         return self.directory / value if value else None
 
-    def resolve_tasks(self, tasks: Iterable[str | Task]) -> list[Task]:
+    def resolve_tasks(self, tasks: Iterable[str | AnyTask]) -> list[AnyTask]:
         return list(
             flatten(self.context.resolve_tasks([task], self) if isinstance(task, str) else [task] for task in tasks)
         )

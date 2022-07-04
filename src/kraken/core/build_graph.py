@@ -30,6 +30,9 @@ class BuildGraph:
         self._digraph = DiGraph()
         self._add_tasks(tasks)
 
+    def __bool__(self) -> bool:
+        return len(self._digraph.nodes) > 0
+
     # Low level internal API
 
     def _get_node(self, task_path: str) -> _Node | None:

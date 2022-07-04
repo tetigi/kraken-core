@@ -41,6 +41,9 @@ class Task(Generic[T_Action]):
     default: bool = True
     capture: TaskCaptureMode = TaskCaptureMode.FULL
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self.path!r})"
+
     @property
     def path(self) -> str:
         if self.project.parent is None:

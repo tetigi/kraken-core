@@ -62,12 +62,20 @@ class HasProperties:
             if isinstance(value, Property):
                 print("@@ init", key)
                 setattr(self, key, Property(self, key, value.get_or(NotSet.Value)))
-        # TODO (@NiklasRosenstein): Have typeapi evaluate if TYPE_CHECKING blocks.
-        # for key, value in typeapi.get_annotations(type(self)).items():
-        for key, value in type(self).__annotations__.items():
-            # if isinstance(value, str):
-            #     continue  # We do not support initializing annotations as strings
-            # hint = typeapi.of(value)
-            # if isinstance(hint, typeapi.Type) and hint.type == Property:
-            if isinstance(value, str) and "Property[" in value:
-                setattr(self, key, Property(self, key))
+
+        def _init_properties(base: type) -> None:
+
+            for child in base.__bases__:
+                _init_properties(child)
+
+            # TODO (@NiklasRosenstein): Have typeapi evaluate if TYPE_CHECKING blocks.
+            # for key, value in typeapi.get_annotations(type(self)).items():
+            for key, value in getattr(base, "__annotations__", {}).items():
+                # if isinstance(value, str):
+                #     continue  # We do not support initializing annotations as strings
+                # hint = typeapi.of(value)
+                # if isinstance(hint, typeapi.Type) and hint.type == Property:
+                if isinstance(value, str) and "Property[" in value:
+                    setattr(self, key, Property(self, key))
+
+        _init_properties(type(self))

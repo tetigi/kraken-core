@@ -1,6 +1,6 @@
 from pathlib import Path
-import pytest
 
+import pytest
 
 from kraken.core.build_context import BuildContext
 from kraken.core.project import Project

@@ -121,7 +121,7 @@ class BuildGraph:
         return self
 
     def tasks(self) -> Iterable[Task]:
-        """ Returns all tasks in an arbitrary order."""
+        """Returns all tasks in an arbitrary order."""
 
         return (not_none(self._get_node(task_path)).task for task_path in self._digraph.nodes)
 

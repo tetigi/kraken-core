@@ -61,7 +61,8 @@ class Property(Supplier[T]):
         return f"Property({self.owner}.{self.name})"
 
     def derived_from(self) -> Iterable[Supplier[Any]]:
-        return self._value.derived_from()
+        yield self._value
+        yield from self._value.derived_from()
 
     def get(self) -> T:
         try:
@@ -92,11 +93,13 @@ class Property(Supplier[T]):
 
         if not self._finalized:
             self._finalized = True
-            derived_from = list(self.derived_from())
-            try:
-                self._value = Supplier.of(self.get(), derived_from)
-            except Empty as exc:
-                self._value = Supplier.void(exc, derived_from)
+            # TODO (@NiklasRosenstein): Materializing the property value now will prevent it from being
+            #       bound later in the build, e.g. if an input property takes the value of an output property.
+            # derived_from = list(self.derived_from())
+            # try:
+            #     self._value = Supplier.of(self.get(), derived_from)
+            # except Empty as exc:
+            #     self._value = Supplier.void(exc, derived_from)
 
 
 class Object:

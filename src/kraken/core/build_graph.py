@@ -76,11 +76,8 @@ class BuildGraph:
         for task in tasks:
             self._add_node(task, required)
             for rel in task.get_relationships():
-                print(task, rel)
                 self._add_node(rel.other_task, False)
-                a, b = task, rel.other_task
-                if rel.before:
-                    a, b = b, a
+                a, b = (task, rel.other_task) if rel.before else (rel.other_task, task)
                 self._add_edge(a.path, b.path, rel.strict)
 
     # Public API

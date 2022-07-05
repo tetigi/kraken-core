@@ -5,6 +5,8 @@ import pytest
 from kraken.core.build_context import BuildContext
 from kraken.core.project import Project
 
+__version__ = "0.1.3"
+
 
 @pytest.fixture
 def context() -> BuildContext:

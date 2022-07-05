@@ -4,7 +4,7 @@ calculated lazily and track provenance of such computations. """
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Generic, Iterable, TypeVar
+from typing import Any, Callable, Generic, Iterable, Sequence, TypeVar
 
 from kraken.core.utils import NotSet
 
@@ -117,10 +117,10 @@ class Supplier(Generic[T], abc.ABC):
             stack += derived_from
 
     @staticmethod
-    def of(value: T) -> Supplier[T]:
+    def of(value: T, derived_from: Sequence[Supplier[T]] = ()) -> Supplier[T]:
         class SupplierOf(Supplier[T]):
             def derived_from(self) -> Iterable[Supplier[Any]]:
-                return ()
+                return derived_from
 
             def get(self) -> T:
                 return value
@@ -139,15 +139,15 @@ class Supplier(Generic[T], abc.ABC):
         return SupplierOfCallable()
 
     @staticmethod
-    def void() -> Supplier[T]:
+    def void(from_exc: Exception | None = None, derived_from: Sequence[Supplier[T]] = ()) -> Supplier[T]:
         """Returns a supplier that always raises :class:`Empty`."""
 
         class SupplierVoid(Supplier[T]):
             def derived_from(self) -> Iterable[Supplier[Any]]:
-                return ()
+                return derived_from
 
             def get(self) -> T:
-                raise Empty(self)
+                raise Empty(self) from from_exc
 
             def is_void(self) -> bool:
                 return True

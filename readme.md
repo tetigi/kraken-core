@@ -1,6 +1,9 @@
 # kraken-core
 
-The Kraken CORE package provides the primitives of describing a build and deriving build tasks.
+The `kraken.core` package provides the primitives of describing a build and deriving build tasks.
+
+Aside from the `kraken.core` package, this package also provides the `kraken.api` module that is
+used only at runtime by Kraken build scripts and the `kraken.testing` module for Pytest fixtures.
 
 ## How does it work?
 

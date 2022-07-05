@@ -64,25 +64,6 @@ class BuildGraph:
 
     # High level internal API
 
-    def _add_task(
-        self,
-        task: Task,
-        strict_dependencies: Iterable[Task],
-        optional_dependencies: Iterable[Task],
-        required: bool,
-    ) -> None:
-        """Internal. Adds the given task and it's strict and optional dependencies to the graph."""
-
-        self._add_node(task, required)
-
-        for dependency in strict_dependencies:
-            self._add_node(dependency, False)
-            self._add_edge(dependency.path, task.path, True)
-
-        for dependency in optional_dependencies:
-            self._add_node(dependency, False)
-            self._add_edge(dependency.path, task.path, False)
-
     def _add_tasks(self, tasks: Iterable[Task], required: bool = True) -> None:
         """Internal. Extends the internal directed graph by the given tasks.
 
@@ -95,6 +76,7 @@ class BuildGraph:
         for task in tasks:
             self._add_node(task, required)
             for rel in task.get_relationships():
+                print(task, rel)
                 self._add_node(rel.other_task, False)
                 a, b = task, rel.other_task
                 if rel.before:
@@ -137,6 +119,11 @@ class BuildGraph:
                 _remove_subgraph(task_path)
 
         return self
+
+    def tasks(self) -> Iterable[Task]:
+        """ Returns all tasks in an arbitrary order."""
+
+        return (not_none(self._get_node(task_path).task for task_path in self._digraph.nodes))
 
     def execution_order(self) -> Iterable[Task]:
         from networkx.algorithms import topological_sort  # type: ignore[import]

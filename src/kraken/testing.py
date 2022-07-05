@@ -1,6 +1,6 @@
 from pathlib import Path
-
 import pytest
+
 
 from kraken.core.build_context import BuildContext
 from kraken.core.project import Project
@@ -13,5 +13,5 @@ def context() -> BuildContext:
 
 @pytest.fixture
 def project(context: BuildContext) -> Project:
-    context.root_project = Project(Path.cwd(), "test", None, context)
+    context.root_project = Project("test", Path.cwd(), None, context)
     return context.root_project

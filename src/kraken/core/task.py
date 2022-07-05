@@ -7,7 +7,7 @@ from __future__ import annotations
 import abc
 import dataclasses
 import enum
-from typing import TYPE_CHECKING, Any, ForwardRef, Iterable, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, ForwardRef, Generic, Iterable, TypeVar, cast
 
 from kraken.core.property import Object, Property
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from kraken.core.project import Project
 
 T = TypeVar("T")
+T_Task = TypeVar("T_Task", bound="Task")
 Project = ForwardRef("Project")  # type: ignore  # noqa: F811  # Allow Task.project annotation to resolve
 
 
@@ -70,6 +71,8 @@ class Task(Object):
         for key in self.__schema__:
             property: Property[Any] = getattr(self, key)
             for supplier, _ in property.lineage():
+                if supplier is property:
+                    continue
                 if isinstance(supplier, Property) and isinstance(supplier.owner, Task):
                     yield TaskRelationship(supplier.owner, True, False)
 
@@ -89,8 +92,75 @@ class Task(Object):
 
     def finalize(self) -> None:
         """This method is called by :meth:`BuildContext.finalize()`. It gives the task a chance update its
-        configuration before the build process is executed."""
+        configuration before the build process is executed. The default implementation finalizes all non-output
+        properties, preventing them to be further mutated."""
+
+        for key in self.__schema__:
+            prop: Property[Any] = getattr(self, key)
+            if not self.__schema__[key].is_output:
+                prop.finalize()
 
     @abc.abstractmethod
     def execute(self) -> TaskResult:
         ...
+
+
+class task_factory(Generic[T_Task]):
+    """Factory functor for task implementations."""
+
+    class Auto:
+        pass
+
+    def __init__(
+        self,
+        task_type: type[T_Task],
+        name: str | None | type[Auto] = Auto,
+        default: bool = True,
+        capture: bool = True,
+    ) -> None:
+        self._name = name
+        self._default = default
+        self._capture = capture
+        self._task_type = task_type
+
+    def __repr__(self) -> str:
+        return f"task_factory({self._task_type.__name__})"
+
+    def __call__(
+        self,
+        *,
+        name: str | None = None,
+        default: bool | None = None,
+        project: Project | None = None,
+        **kwds: Any,
+    ) -> T_Task:
+
+        if project is None:
+            from kraken.api import project as _current_project
+
+            project = _current_project
+
+        if name is None:
+            if self._name is None:
+                raise TypeError(f"missing 'name' argument for {self}")
+            if self._name is task_factory.Auto:
+                name = self._get_task_name(project)
+            else:
+                name = cast(str, self._name)
+
+        if default is None:
+            default = self._default
+
+        task = project.do(name, self._task_type, default, self._capture)
+        task.update(**kwds)
+        return task
+
+    __counter: ClassVar[dict[Project, dict[str, int]]] = {}
+
+    def _get_task_name(self, project: Project) -> str:
+        """Generate a new task name."""
+
+        project_counter = self.__counter.setdefault(project, {})
+        next_value = project_counter.get(self._task_type.__name__, 0)
+        project_counter[self._task_type.__name__] = next_value + 1
+        return f"_{self._task_type.__name__}_{next_value}"

@@ -55,6 +55,10 @@ class Property(Supplier[T]):
         self.owner = owner
         self.name = name
         self._value: Supplier[T] = Supplier.void()
+        self._finalized = False
+
+    def __repr__(self) -> str:
+        return f"Property({self.owner}.{self.name})"
 
     def derived_from(self) -> Iterable[Supplier[Any]]:
         return self._value.derived_from()
@@ -66,14 +70,33 @@ class Property(Supplier[T]):
             raise Empty(self)
 
     def set(self, value: T | Supplier[T]) -> None:
+        if self._finalized:
+            raise RuntimeError(f"{self} is finalized")
         if not isinstance(value, Supplier):
             value = Supplier.of(value)
         self._value = value
 
     def setdefault(self, value: T | Supplier[T]) -> T:
+        if self._finalized:
+            raise RuntimeError(f"{self} is finalized")
         if self._value.is_void():
             self.set(value)
         return self.get()
+
+    def setfinal(self, value: T | Supplier[T]) -> None:
+        self.set(value)
+        self.finalize()
+
+    def finalize(self) -> None:
+        """Prevent further modification of the value in the property."""
+
+        if not self._finalized:
+            self._finalized = True
+            derived_from = list(self.derived_from())
+            try:
+                self._value = Supplier.of(self.get(), derived_from)
+            except Empty as exc:
+                self._value = Supplier.void(exc, derived_from)
 
 
 class Object:
@@ -129,3 +152,18 @@ class Object:
 
         for key, desc in self.__schema__.items():
             setattr(self, key, Property(self, key))
+
+    def update(self, _raise: bool = False, **property_values: Any) -> None:
+        """Assign the properties in *property_values* to the properties of the given :class:`Object`. Raises a
+        :class:`ValueError` if any of the properties in *property_values* are not in the objects' schema and if
+        *_raise* is set to `True`. Prints a warning otherwise."""
+
+        additional_keys = property_values.keys() - self.__schema__.keys()
+        if additional_keys and _raise:
+            raise ValueError(f"{type(self).__name__} does not have these properties: {additional_keys}")
+        if additional_keys:
+            warnings.warn(f"{type(self).__name__} does not have these properties: {additional_keys}", UserWarning)
+
+        for key in property_values.keys() - additional_keys:
+            prop: Property[Any] = getattr(self, key)
+            prop.set(property_values[key])

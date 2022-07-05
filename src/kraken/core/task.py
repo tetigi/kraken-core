@@ -1,85 +1,96 @@
+""" This module provides the :class:`Task` class which represents a unit of work that is configurable through
+:class:`Properties <Property>` that represent input/output parameters and are used to construct a dependency
+graph."""
+
 from __future__ import annotations
 
+import abc
+import dataclasses
 import enum
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ForwardRef, Iterable, TypeVar
 
-from typing_extensions import TypeAlias
-
-from .property import HasProperties, Property
+from kraken.core.property import Object, Property
 
 if TYPE_CHECKING:
-    from .action import Action
-    from .project import Project
+    from kraken.core.project import Project
 
-AnyTask: TypeAlias = "Task[Action]"
-T_Action = TypeVar("T_Action", bound="Action", covariant=True)
-
-
-class TaskCaptureMode(enum.Enum):
-    """Describes how the output of the task should be captured, if at all."""
-
-    #: The task output should not be captured.
-    NONE = enum.auto()
-
-    #: The task output should be captured, but always be shown in the build.
-    SEMI = enum.auto()
-
-    #: The task output should be fully captured and not shown (unless the task fails).
-    FULL = enum.auto()
+T = TypeVar("T")
+Project = ForwardRef("Project")  # type: ignore  # noqa: F811  # Allow Task.project annotation to resolve
 
 
-class Task(Generic[T_Action], HasProperties):
-    """Represents a logical unit of work."""
+@dataclasses.dataclass
+class TaskRelationship:
+    """Represents a relationship to another task."""
+
+    other_task: Task
+    strict: bool
+    before: bool
+
+
+class TaskResult(enum.Enum):
+    """Represents the possible results that a task can return from its execution."""
+
+    FAILED = enum.auto()
+    SUCCEEDED = enum.auto()
+    SKIPPED = enum.auto()
+    UP_TO_DATE = enum.auto()
+
+
+class Task(Object):
+    """A task is an isolated unit of work that is configured with properties. Every task has some common settings that
+    are not treated as properties, such as it's :attr:`name`, :attr:`default` and :attr:`capture` flag. A task is a
+    member of a :class:`Project` and can be uniquely identified with a path that is derived from its project and name.
+    """
 
     name: str
     project: Project
-    action: Property[T_Action] = Property()
-    metadata: list[Any]
-    dependencies: list[AnyTask]  #: Strict dependencies
-    after: list[AnyTask]  #: Optional dependencies
-    before: list[AnyTask]  #: Optional predecessors
-    default: bool = True
-    capture: TaskCaptureMode = TaskCaptureMode.FULL
+    default: bool = False
+    capture: bool = True
 
-    def __init__(self, name: str, project: Project, action: T_Action | None = None) -> None:
+    def __init__(self, name: str, project: Project) -> None:
         super().__init__()
         self.name = name
         self.project = project
-        self.action.on_set(lambda action: action.task.set(cast(AnyTask, self)))  # type: ignore[misc]
-        if action is not None:
-            self.action.set(action)
-        self.metadata = []
-        self.dependencies = []
-        self.after = []
-        self.before = []
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.path!r})"
+        return f"{type(self).__name__}({self.path})"
 
     @property
     def path(self) -> str:
+        """Returns the path of the task."""
+
         if self.project.parent is None:
             return f":{self.name}"
         else:
             return f"{self.project.path}:{self.name}"
 
-    @property
-    def build_directory(self) -> Path:
-        return self.project.build_directory / self.name
+    def get_relationships(self) -> Iterable[TaskRelationship]:
+        """Iterates over the relationships to other tasks based on the property provenance."""
+
+        for key in self.__schema__:
+            property: Property[Any] = getattr(self, key)
+            for supplier, _ in property.lineage():
+                if isinstance(supplier, Property) and isinstance(supplier.owner, Task):
+                    yield TaskRelationship(supplier.owner, True, False)
+
+    def is_up_to_date(self) -> bool:
+        """Gives the task a chance before it is executed to inform the build executor that it is up to date and does
+        not need to be executed. Some tasks may be able to determine this quickly so they can implement this method to
+        improve build performance and user information display."""
+
+        return False
+
+    def is_skippable(self) -> bool:
+        """Gives the task a chance before it is executed to inform the build executor that the task can be skipped.
+        This status is different from :meth:`is_up_to_date` but may lead to the same result, i.e. that the task is not
+        executed."""
+
+        return False
 
     def finalize(self) -> None:
         """This method is called by :meth:`BuildContext.finalize()`. It gives the task a chance update its
-        configuration before the build process is executed. Most commonly, custom task implementations will
-        initialize their :attr:`action`, as the delayed action creation is often the main reason to creating
-        a Task subclass in the first place.
+        configuration before the build process is executed."""
 
-        If the task generates it's :attr:`action` in this method only, it must also call :meth:`Action.finalize()`.
-        """
-
-        from .action import Action
-
-        action = self.action.get_or(None)
-        if action is not None and not isinstance(action, Task):
-            assert isinstance(action, Action), self
-            action.finalize()
+    @abc.abstractmethod
+    def execute(self) -> TaskResult:
+        ...

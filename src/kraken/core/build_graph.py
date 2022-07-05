@@ -5,13 +5,13 @@ from typing import Iterable, List, cast
 
 from networkx import DiGraph  # type: ignore[import]
 
-from kraken.core.task import AnyTask
+from kraken.core.task import Task
 from kraken.core.utils import not_none
 
 
 @dataclasses.dataclass
 class _Node:
-    task: AnyTask
+    task: Task
     required: bool
 
 
@@ -23,7 +23,7 @@ class _Edge:
 class BuildGraph:
     """Represents the build graph."""
 
-    def __init__(self, tasks: Iterable[AnyTask] = ()) -> None:
+    def __init__(self, tasks: Iterable[Task] = ()) -> None:
         """Create a new build graph from the given task list."""
 
         # Nodes have the form {'data': _Node} and edges have the form {'data': _Edge}.
@@ -41,7 +41,7 @@ class BuildGraph:
             return None
         return cast(_Node, data["data"])
 
-    def _add_node(self, task: AnyTask, required: bool) -> None:
+    def _add_node(self, task: Task, required: bool) -> None:
         """Internal. Ensures that a node for the given task exists. If *required* is True, it will override the
         existing status."""
 
@@ -66,9 +66,9 @@ class BuildGraph:
 
     def _add_task(
         self,
-        task: AnyTask,
-        strict_dependencies: Iterable[AnyTask],
-        optional_dependencies: Iterable[AnyTask],
+        task: Task,
+        strict_dependencies: Iterable[Task],
+        optional_dependencies: Iterable[Task],
         required: bool,
     ) -> None:
         """Internal. Adds the given task and it's strict and optional dependencies to the graph."""
@@ -83,7 +83,7 @@ class BuildGraph:
             self._add_node(dependency, False)
             self._add_edge(dependency.path, task.path, False)
 
-    def _add_tasks(self, tasks: Iterable[AnyTask], required: bool = True) -> None:
+    def _add_tasks(self, tasks: Iterable[Task], required: bool = True) -> None:
         """Internal. Extends the internal directed graph by the given tasks.
 
         Args:
@@ -93,16 +93,20 @@ class BuildGraph:
         """
 
         for task in tasks:
-            self._add_task(task, task.dependencies, task.after, required)
-            for dependant in task.before:
-                self._add_task(dependant, (), [task], False)
+            self._add_node(task, required)
+            for rel in task.get_relationships():
+                self._add_node(rel.other_task, False)
+                a, b = task, rel.other_task
+                if rel.before:
+                    a, b = b, a
+                self._add_edge(a.path, b.path, rel.strict)
 
     # Public API
 
-    def get_predecessors(self, task: AnyTask) -> List[AnyTask]:
+    def get_predecessors(self, task: Task) -> List[Task]:
         return [not_none(self._get_node(task_path)).task for task_path in self._digraph.predecessors(task.path)]
 
-    def get_successors(self, task: AnyTask) -> List[AnyTask]:
+    def get_successors(self, task: Task) -> List[Task]:
         return [not_none(self._get_node(task_path)).task for task_path in self._digraph.successors(task.path)]
 
     def trim(self) -> BuildGraph:
@@ -134,7 +138,7 @@ class BuildGraph:
 
         return self
 
-    def execution_order(self) -> Iterable[AnyTask]:
+    def execution_order(self) -> Iterable[Task]:
         from networkx.algorithms import topological_sort  # type: ignore[import]
 
         order = topological_sort(self._digraph)

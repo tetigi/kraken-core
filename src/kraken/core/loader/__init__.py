@@ -9,7 +9,7 @@ import pkg_resources
 
 from kraken.core.project import Project
 
-ENTRYPOINT = "kraken.core.loaders"
+ENTRYPOINT = "kraken.core.loader"
 
 logger = logging.getLogger(__name__)
 

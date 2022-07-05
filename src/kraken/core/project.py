@@ -1,45 +1,42 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Type, TypeVar, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
-from kraken.core.task import TaskCaptureMode
-from kraken.core.utils import flatten
+from .task import Task
+from .utils import flatten
 
 if TYPE_CHECKING:
-    from .action import Action
     from .build_context import BuildContext
-    from .task import AnyTask, Task
 
-ProjectMember = Union["Project", "Task"]
-T_ProjectMember = TypeVar("T_ProjectMember", bound=ProjectMember)
-T_Task = TypeVar("T_Task", bound="AnyTask")
-T_Action = TypeVar("T_Action", bound="Action")
+T_Task = TypeVar("T_Task", bound="Task")
 
 
 class Project:
-    """A project consolidates related tasks."""
+    """A project consolidates tasks related to a directory on the filesystem."""
 
-    directory: Path
     name: str
+    directory: Path
     parent: Optional[Project]
     context: BuildContext
 
-    def __init__(self, directory: Path, name: str, parent: Optional[Project], context: BuildContext) -> None:
-        self.directory = directory
+    def __init__(self, name: str, directory: Path, parent: Optional[Project], context: BuildContext) -> None:
         self.name = name
+        self.directory = directory
         self.parent = parent
         self.context = context
 
-        # We store all members that can be referenced by a fully qualified name in the same
-        # dictionary to ensure we're not accidentally allocating the same name twice.
-        self._members: dict[str, ProjectMember] = {}
+        # We store all members that can be referenced by a fully qualified name in the same dictionary to ensure
+        # we're not accidentally allocating the same name twice.
+        self._members: dict[str, Task | Project] = {}
 
     def __repr__(self) -> str:
-        return f'Project(path="{self.path}")'
+        return f"Project({self.path})"
 
     @property
     def path(self) -> str:
+        """Returns the path that uniquely identifies the project in the current build context."""
+
         if self.parent is None:
             return ":"
         elif self.parent.parent is None:
@@ -49,154 +46,62 @@ class Project:
 
     @property
     def build_directory(self) -> Path:
+        """Returns the recommended build directory for the project; this is a directory inside the context
+        build directory ammended by the project name."""
+
         return self.context.build_directory / self.path.replace(":", "/").lstrip("/")
 
-    @property
-    def members(self) -> ProjectMembers[ProjectMember]:
-        """Returns the superset of all members in the project."""
+    def tasks(self) -> Mapping[str, Task]:
+        return {t.name: t for t in self._members.values() if isinstance(t, Task)}
 
-        return ProjectMembers(self, self._members)
+    def children(self) -> Mapping[str, Project]:
+        return {p.name: p for p in self._members.values() if isinstance(p, Project)}
 
-    @property
-    def tasks(self) -> ProjectTasks:
-        return ProjectTasks(self, self._members)
-
-    @property
-    def children(self) -> ProjectChildren:
-        return ProjectChildren(self, self._members)
-
-    def do(
-        self,
-        name: str,
-        action: T_Action,
-        default: bool = True,
-        capture: TaskCaptureMode = TaskCaptureMode.FULL,
-        dependencies: Iterable[AnyTask | str] = (),
-        after: Iterable[AnyTask | str] = (),
-        before: Iterable[AnyTask | str] = (),
-    ) -> Task[T_Action]:
-        """Add a task to the project under the given name, executing the specified action."""
-
-        from .task import Task
-
-        task = Task(
-            name,
-            self,
-            action,
-        )
-        task.dependencies = self.resolve_tasks(dependencies)
-        task.after = self.resolve_tasks(after)
-        task.before = self.resolve_tasks(before)
-        task.default = default
-        task.capture = capture
-        self.tasks.add(task)
-        return task
-
-    @overload
-    def to_path(self, value: Path | str) -> Path:
-        ...
-
-    @overload
-    def to_path(self, value: Path | str | None) -> Path | None:
-        ...
-
-    def to_path(self, value: Path | str | None) -> Path | None:
-        """Converts *value* to a path object. A relative path will be converted to an absolute path."""
-
-        return self.directory / value if value else None
-
-    def resolve_tasks(self, tasks: Iterable[str | AnyTask]) -> list[AnyTask]:
+    def resolve_tasks(self, tasks: Iterable[str | Task]) -> list[Task]:
         return list(
             flatten(self.context.resolve_tasks([task], self) if isinstance(task, str) else [task] for task in tasks)
         )
 
+    def add_task(self, task: Task) -> None:
+        """Adds a task to the project.
 
-class ProjectMembers(Generic[T_ProjectMember]):
-    """Container for the members of a project."""
+        Raises:
+            ValueError: If a member with the same name already exists or if the task's project does not match
+        """
 
-    def __init__(
-        self,
-        project: "Project",
-        members: dict[str, ProjectMember],
-    ) -> None:
-        self._project = project
-        self._members = members
-
-    @staticmethod
-    def _type() -> Optional[Type[T_ProjectMember]]:
-        return None
-
-    def __len__(self) -> int:
-        _type = self._type()
-        if _type is None:
-            return len(self._members)
-        # TODO (@niklas.rosenstein): Imperformant; maybe split tasks/projects into separate dicts?
-        return sum(1 for _ in self)
-
-    def __contains__(self, value: object) -> bool:
-        _type = self._type()
-        if value in self._members:
-            if _type is not None:
-                member = self._members[cast(str, value)]
-                return isinstance(member, _type)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[T_ProjectMember]:
-        _type = self._type()
-        for value in self._members.values():
-            if _type is None or isinstance(value, _type):
-                yield cast(T_ProjectMember, value)
-
-    def __getitem__(self, name: str) -> T_ProjectMember:
-        try:
-            member = self._members[name]
-        except KeyError:
-            raise ValueError(f"{self._project} has no member {name!r}")
-        _type = self._type()
-        if _type is not None and not isinstance(member, _type):
-            raise ValueError(
-                f"{self._project} member {name!r} is a {type(member).__name__} " f"but not a {_type.__name__}"
-            )
-        return cast(T_ProjectMember, member)
-
-    def keys(self) -> set[str]:
-        _type = self._type()
-        if _type is None:
-            return cast(set[str], self._members.keys())
-        else:
-            result = set()
-            for key, value in self._members.items():
-                if _type is None or isinstance(value, _type):
-                    result.add(key)
-            return result
-
-
-class ProjectTasks(ProjectMembers["AnyTask"]):
-    @staticmethod
-    def _type() -> Optional[Type[Any]]:
-        from .task import Task
-
-        return Task
-
-    def add(self, task: Task[T_Action]) -> Task[T_Action]:
-        if task.project is not self._project:
-            raise RuntimeError("Task.project does not match")
         if task.name in self._members:
-            raise ValueError(f"{self._project} already has a member {task.name!r}")
+            raise ValueError(f"{self} already has a member {task.name!r}, cannot add {task}")
+        if task.project is not self:
+            raise ValueError(f"{task}.project mismatch")
         self._members[task.name] = task
-        return task
 
+    def add_child(self, project: Project) -> None:
+        """Adds a project as a child project.
 
-class ProjectChildren(ProjectMembers["Project"]):
-    @staticmethod
-    def _type() -> Optional[Type[Project]]:
-        return Project
+        Raises:
+            ValueError: If a member with the same name already exists or if the project's parent does not match
+        """
 
-    def add(self, project: Project) -> Project:
-        if project.parent is not self._project:
-            raise RuntimeError("Project.parent does not match")
         if project.name in self._members:
-            raise ValueError(f"{self._project} already has a member {project.name!r}")
+            raise ValueError(f"{self} already has a member {project.name!r}, cannot add {project}")
+        if project.parent is not self:
+            raise ValueError(f"{project}.parent mismatch")
         self._members[project.name] = project
-        return project
+
+    def do(
+        self,
+        name: str,
+        task_type: Type[T_Task] = cast(Any, Task),
+        default: bool = True,
+        capture: bool = True,
+    ) -> T_Task:
+        """Add a task to the project under the given name, executing the specified action."""
+
+        if name in self._members:
+            raise ValueError(f"{self} already has a member {name!r}")
+
+        task = task_type(name, self)
+        task.default = default
+        task.capture = capture
+        self.add_task(task)
+        return task

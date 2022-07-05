@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Iterator, Optional
 
 if TYPE_CHECKING:
     from .project import Project
-    from .task import AnyTask
+    from .task import Task
 
 
 class BuildContext:
@@ -45,7 +45,7 @@ class BuildContext:
                 raised.
         """
 
-        from .loaders import get_loader_implementations
+        from .loader import get_loader_implementations
         from .project import Project
 
         if file is None:
@@ -71,7 +71,7 @@ class BuildContext:
             else:
                 raise ValueError(f'no loader matched file "{file}"')
 
-        project = Project(directory, directory.name, parent, self)
+        project = Project(directory.name, directory, parent, self)
 
         if self._root_project is None:
             self._root_project = project
@@ -85,12 +85,12 @@ class BuildContext:
 
         def _recurse(project: Project) -> Iterator[Project]:
             yield project
-            for child_project in project.children:
+            for child_project in project.children().values():
                 yield from _recurse(child_project)
 
         yield from _recurse(self.root_project)
 
-    def resolve_tasks(self, targets: list[str] | None, relative_to: Project | None = None) -> list[AnyTask]:
+    def resolve_tasks(self, targets: list[str] | None, relative_to: Project | None = None) -> list[Task]:
         """Resolve the given project or task references in *targets* relative to the specified project, or by
         default relative to the root project. A target is a colon-separated string that behaves similar to a
         filesystem path to address projects and tasks in the hierarchy. The root project is represented with a
@@ -102,9 +102,9 @@ class BuildContext:
 
         if targets is None:
             # Return all default tasks.
-            return [task for project in self.iter_projects() for task in project.tasks if task.default]
+            return [task for project in self.iter_projects() for task in project.tasks().values() if task.default]
 
-        tasks: list[AnyTask] = []
+        tasks: list[Task] = []
         count = 0
         target: str
 
@@ -119,7 +119,9 @@ class BuildContext:
 
             if ":" not in target:
                 # Select all targets with a name matching the specified target.
-                tasks.extend(task for project in self.iter_projects() for task in project.tasks if task.name == target)
+                tasks.extend(
+                    task for project in self.iter_projects() for task in project.tasks().values() if task.name == target
+                )
                 _check_matched()
                 continue
 
@@ -130,19 +132,21 @@ class BuildContext:
                 project = self.root_project
                 parts.pop(0)
             while parts:
-                if parts[0] in project.children:
-                    project = project.children[parts.pop(0)]
+                project_children = project.children()
+                if parts[0] in project_children.values():
+                    project = project_children[parts.pop(0)]
                 else:
                     break
 
+            project_tasks = project.tasks()
             if not parts or parts == [""]:
                 # The project was selected, add all default tasks.
-                tasks.extend(task for task in project.tasks if task.default)
+                tasks.extend(task for task in project_tasks.values() if task.default)
             elif len(parts) == 1:
                 # A specific target is selected.
-                if parts[0] not in project.tasks:
+                if parts[0] not in project_tasks:
                     raise ValueError(f"task {target!r} does not exist")
-                tasks.append(project.tasks[parts[0]])
+                tasks.append(project_tasks[parts[0]])
             else:
                 # Some project in the path does not exist.
                 raise ValueError(f"project {':'.join(target.split(':')[:-1])} does not exist")
@@ -155,5 +159,5 @@ class BuildContext:
         """Call :meth:`Task.finalize()` on all tasks. This should be called before a graph is created."""
 
         for project in self.iter_projects():
-            for task in project.tasks:
+            for task in project.tasks().values():
                 task.finalize()

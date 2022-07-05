@@ -1,48 +1,43 @@
 # kraken-core
 
-The kraken core API provides the primitives to fully describe complex build processes of software components.
+The Kraken CORE package provides the primitives of describing a build and deriving build tasks.
 
-## 1. Concepts
+## How does it work?
 
-### 1.1 Projects
+Kraken uses **tasks** to describe units of work that can be chained and establish dependencies between each other.
+Each task has a **schema** that defines its input and output properties. When an output property is linked to the
+input property of another task, this established as dependency between the tasks.
 
-A project maps to a directory on the file system that represents a software component, usually
-comprised of many different source code and supporting files, and eventually additional other
-sub projects.
+```py
+from kraken.std.docker_gen import generate_dockerfile
+from kraken.std.docker_build import build_docker_image
+dockerfile = generate_dockerfile(source_file="Dockerfile.yml")
+build_docker_image(dockerfile=dockerfile.path, tags=["example:latest"], load=True)
+```
 
-In every build there is at least one project involved, the root project. When tasks are referenced
-by the full qualified name, the root project name is omitted from the path (similar to how the root
-directory in a file system does not have a name and is represented by a single slash).
+This populates the project with two **tasks** and connects the computed output property of one to the other,
+allowing the tasks that will run for `build_docker_image()` to pick up the dynamically generated Dockerfile that
+is written into a location in the build directory by the `generate_dockerfile()` task.
 
-### 1.2 Tasks
+<p align="center"><img src="assets/graph.png" height="225px"></p>
 
-A task is a logical unit of work that has a unique name within the project it is associated with. Tasks
-can have dependencies on other tasks or groups of tasks, even across projects. When a task is optional,
-it will only be executed if strictly required by another task.
+## Core API
 
-Dependencies on task can be strict or non-strict. Non-strict dependencies enforce an order on the
-execution sequence of tasks, wheras strict dependencies will ensure that the dependency has been
-executed.
+Kraken **tasks** are described with a schema. Each schema field has a type and may be an input or output parameter.
+Output parameters are only available once a resource is executed; Kraken will that a proper execution order is
+established such that output properties are hydrated before another resource tries to access them as an input.
 
-Tasks are usually marked as "default", meaning that they are selected by default if no task selectors are
-specified (see below on [Task selectors](#14-task-selectors)).
+```py
+from kraken.core.task import Context, Task, Property, Output, task_factory
+from typing_extensions import Annotated
 
-Every task is associated with one [Action](#15-actions) that is executed for the task.
+class GenerateDockerfileTask(Task):
+    source_file: Property[str]
+    path: Annotated[Property[str], Output]
 
-### 1.4 Task selectors
+    def execute(self, ctx: Context) -> None:
+        path = Path(self.path.setdefault(str(ctx.build_directory / "Dockerfile")))
+        path.write_text(render_dockerfile(Path(self.source_file.get()).read_text()))
 
-Without any arguments, all default tasks are selected and executed. When an explicit selection is made,
-it can be in one of the following forms:
-
-1. A fully qualified project reference
-2. A fully qualified task reference
-3. A task name to select from all projects that contain it
-
-Projects and tasks are structured hierarchally and fully qualified references are constructed like file system
-paths but with colons instead of slashes. For example, `:` represents the root roject, `:foo:bar` references
-task or project `bar` in project `foo` in the root project, `spam` references all tasks named `spam`.
-
-### 1.5 Actions
-
-An action is a unit of work that is executed by a task. A task's action may be set on creation or only right before
-it needs to be executed, in the `Task.finalize()` method.
+generate_dockerfile = task_factory(GenerateDockerfileTask)
+```

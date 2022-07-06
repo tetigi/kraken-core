@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Iterator, Optional
 
 from .pyenv import PyenvManager
 
-
 if TYPE_CHECKING:
     from .project import Project
     from .task import Task

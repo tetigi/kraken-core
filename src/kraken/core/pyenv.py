@@ -1,24 +1,27 @@
-
 """ Install additional dependencies into a Kraken build environment. """
 
 
 from __future__ import annotations
+
 import hashlib
 import logging
 import subprocess as sp
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import localimport
+
 logger = logging.getLogger(__name__)
 
 
 class PyenvManager:
-
     def __init__(self, lib_directory: Path) -> None:
         """Install any missing dependencies into a new location as per the project buildscript blocks."""
 
         self.lib_directory = lib_directory
-        self.localimport = localimport.localimport(sys.path + [str(self.lib_directory.absolute())], do_autodisable=False)
+        self.localimport = localimport.localimport(
+            sys.path + [str(self.lib_directory.absolute())], do_autodisable=False
+        )
 
     def install(self, pip_args: list[str]) -> None:
         if not pip_args:

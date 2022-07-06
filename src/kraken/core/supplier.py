@@ -128,10 +128,10 @@ class Supplier(Generic[T], abc.ABC):
         return SupplierOf()
 
     @staticmethod
-    def of_callable(func: Callable[[], T]) -> Supplier[T]:
+    def of_callable(func: Callable[[], T], derived_from: Sequence[Supplier[T]] = ()) -> Supplier[T]:
         class SupplierOfCallable(Supplier[T]):
             def derived_from(self) -> Iterable[Supplier[Any]]:
-                return ()
+                return derived_from
 
             def get(self) -> T:
                 return func()

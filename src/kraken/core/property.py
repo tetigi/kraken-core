@@ -86,9 +86,7 @@ class Property(Supplier[T]):
                 return adapter(value)
             except TypeError as exc:
                 errors.append(exc)
-        if len(errors) == 1:
-            raise errors[0]
-        raise TypeError("\n".join(map(str, errors)))
+        raise TypeError(f"{self}: " + "\n".join(map(str, errors))) from (errors[0] if len(errors) == 1 else None)
 
     def derived_from(self) -> Iterable[Supplier[Any]]:
         yield self._value
@@ -107,12 +105,11 @@ class Property(Supplier[T]):
             value = Supplier.of(self._adapt_value(value))
         self._value = value
 
-    def setdefault(self, value: T | Supplier[T]) -> T:
+    def setdefault(self, value: T | Supplier[T]) -> None:
         if self._finalized:
             raise RuntimeError(f"{self} is finalized")
         if self._value.is_void():
             self.set(value)
-        return self.get()
 
     def setfinal(self, value: T | Supplier[T]) -> None:
         self.set(value)

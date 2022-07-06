@@ -13,19 +13,36 @@ from kraken.core.project import Project
 
 from . import BuildScriptLoader
 
-DEFAULT_FILE = Path("kraken.py")
+KRAKEN_DIR = Path(".kraken")
+DEFAULT_FILES = [
+    Path("kraken.py"),
+    KRAKEN_DIR / "kraken.py",
+    KRAKEN_DIR / "build.py",
+]
+REQUIREMENTS_FILE = KRAKEN_DIR / "requirements.txt"
 
 
 class PyscriptLoader(BuildScriptLoader):
     def detect_in_project_directory(self, project_dir: Path) -> Path | None:
-        file = project_dir / DEFAULT_FILE
-        return file if file.is_file() else None
+        for file in (project_dir / f for f in DEFAULT_FILES):
+            if file.is_file():
+                return file
+        return None
 
     def match_file(self, file: Path) -> bool | Path | None:
         return file.suffix == ".py"
 
     def load_script(self, file: Path, project: Project) -> None:
         api_module_name = "kraken.api"
+
+        requirements_file = project.directory / REQUIREMENTS_FILE
+        if requirements_file.is_file():
+            pip_args = [x for x in requirements_file.read_text().splitlines() if not x.startswith("#") and x.strip()]
+            if pip_args:
+                # TODO (@NiklasRosenstein): Can we gather the requirements of included subprojects as well?
+                # TODO (@NiklasRosenstein): We only want to do the install/activate once for the root project.
+                project.context.pyenv.install(pip_args)
+                project.context.pyenv.activate()
 
         # Create the temporary replacement for the kraken.api module that the script will import from.
         api_module: Any = types.ModuleType(api_module_name)

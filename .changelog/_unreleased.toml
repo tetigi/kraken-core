@@ -1,0 +1,5 @@
+[[entries]]
+id = "920fe0e8-3852-4df3-820c-1f3595a50863"
+type = "feature"
+description = "install requirements.txt into .build/.lib directory if a .kraken/requirements.txt file exists"
+author = "@NiklasRosenstein"

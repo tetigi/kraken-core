@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterator, Optional
 
+from .pyenv import PyenvManager
+
+
 if TYPE_CHECKING:
     from .project import Project
     from .task import Task
@@ -14,6 +17,7 @@ class BuildContext:
     def __init__(self, build_directory: Path) -> None:
         self._root_project: Optional[Project] = None
         self.build_directory = build_directory
+        self.pyenv = PyenvManager(build_directory / ".lib")
 
     @property
     def root_project(self) -> Project:

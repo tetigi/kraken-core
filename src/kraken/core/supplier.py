@@ -117,7 +117,7 @@ class Supplier(Generic[T], abc.ABC):
             stack += derived_from
 
     @staticmethod
-    def of(value: T, derived_from: Sequence[Supplier[T]] = ()) -> Supplier[T]:
+    def of(value: T, derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
         class SupplierOf(Supplier[T]):
             def derived_from(self) -> Iterable[Supplier[Any]]:
                 return derived_from
@@ -128,7 +128,7 @@ class Supplier(Generic[T], abc.ABC):
         return SupplierOf()
 
     @staticmethod
-    def of_callable(func: Callable[[], T], derived_from: Sequence[Supplier[T]] = ()) -> Supplier[T]:
+    def of_callable(func: Callable[[], T], derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
         class SupplierOfCallable(Supplier[T]):
             def derived_from(self) -> Iterable[Supplier[Any]]:
                 return derived_from
@@ -139,7 +139,7 @@ class Supplier(Generic[T], abc.ABC):
         return SupplierOfCallable()
 
     @staticmethod
-    def void(from_exc: Exception | None = None, derived_from: Sequence[Supplier[T]] = ()) -> Supplier[T]:
+    def void(from_exc: Exception | None = None, derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
         """Returns a supplier that always raises :class:`Empty`."""
 
         class SupplierVoid(Supplier[T]):

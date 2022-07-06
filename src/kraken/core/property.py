@@ -132,7 +132,7 @@ class Property(Supplier[T]):
     def value_adapter(type_: type) -> Callable[[ValueAdapter], ValueAdapter]:
         """Decorator for functions that serve as a value adapter for the given *type_*."""
 
-        def decorator(func: ValueAdapter) -> ValueAdapter:
+        def decorator(func: Property.ValueAdapter) -> Property.ValueAdapter:
             Property.VALUE_ADAPTERS[type_] = func
             return func
 
@@ -176,7 +176,7 @@ class Object:
 
             # Is the hint pointing to a Property type?
             if isinstance(hint, typeapi.Type) and hint.type == Property:
-                assert len(hint.args) == 1, hint
+                assert hint.args is not None and len(hint.args) == 1, hint
 
                 # Is the inner type a union?
                 item_type = hint.args[0]

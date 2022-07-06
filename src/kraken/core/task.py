@@ -73,7 +73,7 @@ class Task(Object):
             for supplier, _ in property.lineage():
                 if supplier is property:
                     continue
-                if isinstance(supplier, Property) and isinstance(supplier.owner, Task):
+                if isinstance(supplier, Property) and isinstance(supplier.owner, Task) and supplier.owner is not self:
                     yield TaskRelationship(supplier.owner, True, False)
 
     def is_up_to_date(self) -> bool:

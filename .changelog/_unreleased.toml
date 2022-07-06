@@ -3,3 +3,9 @@ id = "920fe0e8-3852-4df3-820c-1f3595a50863"
 type = "feature"
 description = "install requirements.txt into .build/.lib directory if a .kraken/requirements.txt file exists"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "9dc07eb6-b564-4212-8d0b-f71bee8d42e4"
+type = "feature"
+description = "implement Path value adapters"
+author = "@NiklasRosenstein"

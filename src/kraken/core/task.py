@@ -62,7 +62,7 @@ class Task(Object):
         super().__init__()
         self.name = name
         self.project = project
-        self.logger = logging.getLogger(type(self).__module__ + "." + type(self).__qualname__)
+        self.logger = logging.getLogger(f'{self.path} [{type(self).__module__}.{type(self).__qualname__}]')
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.path})"

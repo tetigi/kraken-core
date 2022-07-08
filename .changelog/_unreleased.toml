@@ -9,3 +9,9 @@ id = "c3d3f28b-cfc6-41ed-a4bb-78d91c2c4199"
 type = "feature"
 description = "add `Project.metadata` and `Project.find_metadata()` which can be used by plugins to store project-global data"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "17096f81-b3a8-439b-9c5f-873504172a4c"
+type = "improvement"
+description = "improve VSCode type recognition for `Task.project` by putting `typing.ForwardRef()` for `Project` in the else block of `if TYPE_CHECKING:`"
+author = "@NiklasRosenstein"

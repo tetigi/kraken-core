@@ -48,6 +48,58 @@ class GenerateDockerfileTask(Task):
 generate_dockerfile = task_factory(GenerateDockerfileTask)
 ```
 
+### Notes on writing extensions
+
+#### Task properties
+
+The Kraken code base uses the 3.10+ type union operator `|` for type hints where possible. However, special care needs
+to be taken with this operator when defining properties on Kraken tasks. The annotations on task objects are eveluated
+and will cause errors in Python versions lower than 3.10 when using the union operator `|` even with
+`__future__.annotations` enabled.
+
+<table><tr><th>Do</th><th>Don't</th></tr>
+<tr><td>
+
+```py
+from __future__ import annotations
+from typing import Union
+from kraken.core.property import Property
+from kraken.core.task import Task
+
+
+class MyTask(Task):
+    my_prop: Property[Union[str, Path]]
+
+    def _internal_method(self, value: str | Path) -> None:
+        ...
+```
+
+</td><td>
+
+
+```py
+from __future__ import annotations
+from typing import Union
+from kraken.core.property import Property
+from kraken.core.task import Task
+
+
+class MyTask(Task):
+    my_prop: Property[str | Path]  # unsupported operand type(s) for |: 'type' and 'type'
+
+    def _internal_method(self, value: str | Path) -> None:
+        ...
+```
+
+</td></tr>
+</table>
+
+Also note that properties use "value adapters" to validate and coerce values to the property value type. Depending on
+the order of union types, this may change the semantics of the value stored in a property. For example, the value
+adapter for the `pathlib.Path` type will convert strings to a path object. If your property accepts both of these
+types, putting the `str` type first in the union will ensure that your property keeps the string a string instead of
+coercing it to a path.
+
 ## Integration testing API
 
 The `kraken.testing` module provides Pytest fixtures for integration testing Kraken extension modules. The

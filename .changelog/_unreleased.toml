@@ -15,3 +15,9 @@ id = "17096f81-b3a8-439b-9c5f-873504172a4c"
 type = "improvement"
 description = "improve VSCode type recognition for `Task.project` by putting `typing.ForwardRef()` for `Project` in the else block of `if TYPE_CHECKING:`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "9381d8ca-0b63-40fc-9404-48142b84172d"
+type = "feature"
+description = "add `kraken.core.utils.atomic_file_swap()`"
+author = "@NiklasRosenstein"

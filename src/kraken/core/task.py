@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from kraken.core.project import Project
 else:
     if sys.version_info[:2] == (3, 9):
-        Project = ForwardRef("object()")
+        Project = ForwardRef("object")
     else:
         Project = ForwardRef("kraken.core.project.Project")  # noqa: F811,E501
 

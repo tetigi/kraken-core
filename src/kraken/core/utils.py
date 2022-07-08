@@ -75,6 +75,7 @@ def atomic_file_swap(
             os.rename(path, old.name)
 
             def _revert() -> None:
+                assert isinstance(path, Path)
                 if path.is_file():
                     path.unlink()
                 os.rename(old.name, path)
@@ -82,6 +83,7 @@ def atomic_file_swap(
         else:
 
             def _revert() -> None:
+                assert isinstance(path, Path)
                 if path.is_file():
                     path.unlink()
 

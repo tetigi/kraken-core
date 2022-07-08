@@ -15,7 +15,7 @@ from kraken.core.property import Object, Property
 if TYPE_CHECKING:
     from kraken.core.project import Project
 else:
-    Project = ForwardRef("kraken.core.project.Project")  # type: ignore  # noqa: F811  # Allow Task.project annotation to resolve
+    Project = ForwardRef("kraken.core.project.Project")  # type: ignore  # noqa: F811,E501  # Allow Task.project annotation to resolve
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")

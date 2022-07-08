@@ -21,3 +21,9 @@ id = "06fbdfc3-9504-4b45-a4b9-a8423e42093e"
 type = "feature"
 description = "Add `Task.logger`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "c122782f-3761-4bdb-abe3-66755d28783e"
+type = "breaking change"
+description = "`Task.is_skippable()` and `Task.is_up_to_date()` now raise `NotImplementedError by default which is part of the API now"
+author = "@NiklasRosenstein"

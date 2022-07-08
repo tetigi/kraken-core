@@ -82,16 +82,24 @@ class Task(Object):
     def is_up_to_date(self) -> bool:
         """Gives the task a chance before it is executed to inform the build executor that it is up to date and does
         not need to be executed. Some tasks may be able to determine this quickly so they can implement this method to
-        improve build performance and user information display."""
+        improve build performance and user information display.
 
-        return False
+        Raises:
+            NotImplementedError: If the task does not support an is-up-to-date check.
+        """
+
+        raise NotImplementedError
 
     def is_skippable(self) -> bool:
         """Gives the task a chance before it is executed to inform the build executor that the task can be skipped.
         This status is different from :meth:`is_up_to_date` but may lead to the same result, i.e. that the task is not
-        executed."""
+        executed.
 
-        return False
+        Raises:
+            NotImplementedError: If the task does not support an is-skippable check.
+        """
+
+        raise NotImplementedError
 
     def finalize(self) -> None:
         """This method is called by :meth:`BuildContext.finalize()`. It gives the task a chance update its

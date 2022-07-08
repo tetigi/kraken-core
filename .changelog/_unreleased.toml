@@ -1,0 +1,5 @@
+[[entries]]
+id = "b473bf0d-3dd0-4577-806a-ac34b717ac7d"
+type = "improvement"
+description = "Look for `kraken.build.py` scripts in addition to `kraken.py`, the latter can result into issues resolving the `kraken` package as the build script can take precedence"
+author = "@NiklasRosenstein"

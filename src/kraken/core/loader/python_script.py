@@ -16,7 +16,9 @@ from . import ProjectLoader
 KRAKEN_DIR = Path(".kraken")
 DEFAULT_FILES = [
     Path("kraken.py"),
+    Path("kraken.build.py"),
     KRAKEN_DIR / "kraken.py",
+    KRAKEN_DIR / "kraken.build.py",
     KRAKEN_DIR / "build.py",
 ]
 REQUIREMENTS_FILE = KRAKEN_DIR / "requirements.txt"

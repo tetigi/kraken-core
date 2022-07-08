@@ -75,6 +75,7 @@ class Property(Supplier[T]):
         self.accepted_types = accepted_types
         self._value: Supplier[T] = Supplier.void()
         self._finalized = False
+        self._error_message: str | None = None
 
     def __repr__(self) -> str:
         return f"Property({self.owner}.{self.name})"
@@ -97,7 +98,7 @@ class Property(Supplier[T]):
         try:
             return self._value.get()
         except Empty:
-            raise Empty(self)
+            raise Empty(self, self._error_message)
 
     def set(self, value: T | Supplier[T]) -> None:
         if self._finalized:
@@ -115,6 +116,11 @@ class Property(Supplier[T]):
     def setfinal(self, value: T | Supplier[T]) -> None:
         self.set(value)
         self.finalize()
+
+    def seterror(self, message: str) -> None:
+        """Set an error message that should be included when the property is read."""
+
+        self._error_message = message
 
     def finalize(self) -> None:
         """Prevent further modification of the value in the property."""

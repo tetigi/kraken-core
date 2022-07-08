@@ -15,8 +15,15 @@ U = TypeVar("U")
 class Empty(Exception):
     """Raised when a supplier cannot provide a value."""
 
-    def __init__(self, supplier: Supplier[Any]) -> None:
+    def __init__(self, supplier: Supplier[Any], message: str | None = None) -> None:
         self.supplier = supplier
+        self.message = message
+
+    def __str__(self) -> str:
+        if self.message:
+            return f"{self.message} ({self.supplier})"
+        else:
+            return str(self.supplier)
 
 
 class Supplier(Generic[T], abc.ABC):

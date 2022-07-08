@@ -45,6 +45,9 @@ testing = ["pytest"]
 [tool.poetry.plugins."kraken.core.loader"]
 python_script = "kraken.core.loader.python_script:PythonScriptProjectLoader"
 
+[tool.poetry.plugins."pytest11"]
+kraken-testing = "kraken.testing"
+
 [tool.slap]
 typed = true
 

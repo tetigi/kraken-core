@@ -1,0 +1,5 @@
+[[entries]]
+id = "cb9f45e2-6df1-4b86-8d86-a0f5bc6bd243"
+type = "fix"
+description = "implement `kraken.testing` module properly as a Pytest plugin, add a `kraken_execute()` function for executing a build graph from tests"
+author = "@NiklasRosenstein"

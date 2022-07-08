@@ -8,6 +8,7 @@ import abc
 import dataclasses
 import enum
 import logging
+import sys
 from typing import TYPE_CHECKING, Any, ClassVar, ForwardRef, Generic, Iterable, TypeVar, cast
 
 from kraken.core.property import Object, Property
@@ -15,9 +16,10 @@ from kraken.core.property import Object, Property
 if TYPE_CHECKING:
     from kraken.core.project import Project
 else:
-    # Allow Task.project annotation to resolve. We need to use __import__() for Python 3.9, it is not sufficient
-    # to `import kraken` before this line.
-    Project = ForwardRef("__import__('kraken.core.project').core.project.Project")  # noqa: F811,E501
+    if sys.version_info[:2] == (3, 9):
+        Project = ForwardRef("object()")
+    else:
+        Project = ForwardRef("kraken.core.project.Project")  # noqa: F811,E501
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")

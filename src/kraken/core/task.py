@@ -17,6 +17,9 @@ if TYPE_CHECKING:
     from kraken.core.project import Project
 else:
     if sys.version_info[:2] == (3, 9):
+        # Type hint evaluation tries to fully resolve forward references to a type. In order to allow the property
+        # evaluation happening in the Object base class for the Task class, we need to make sure the name "Project"
+        # resolves to something valid at runtime.
         Project = ForwardRef("object")
     else:
         Project = ForwardRef("kraken.core.project.Project")  # noqa: F811,E501

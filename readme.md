@@ -47,3 +47,29 @@ class GenerateDockerfileTask(Task):
 
 generate_dockerfile = task_factory(GenerateDockerfileTask)
 ```
+
+## Integration testing API
+
+The `kraken.testing` module provides Pytest fixtures for integration testing Kraken extension modules. The
+`kraken_project` fixture provides you with access to a Kraken project object. The `kraken.testing.execute()`
+function is a rudimentary implementation to correctly execute a build graph, but it is not recommended for
+production use and should be used in tests only.
+
+__Example__
+
+```py
+def test__helm_push_to_oci_registry(kraken_project: Project, oci_registry: str) -> None:
+    """This integration test publishes a Helm chart to a local registry and checks if after publishing it, the
+    chart can be accessed via the registry."""
+
+    helm_settings(kraken_project).add_auth(oci_registry, USER_NAME, USER_PASS, insecure=True)
+    package = helm_package(chart_directory="data/example-chart")
+    helm_push(chart_tarball=package.chart_tarball, registry=f"oci://{oci_registry}/example")
+    kraken_project.context.execute([":helmPush"])
+    response = httpx.get(f"http://{oci_registry}/v2/example/example-chart/tags/list", auth=(USER_NAME, USER_PASS))
+    response.raise_for_status()
+    tags = response.json()
+    assert tags == {"name": "example/example-chart", "tags": ["0.1.0"]}
+```
+
+> This is a working example from the `kraken-std` package.

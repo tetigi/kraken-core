@@ -7,6 +7,7 @@ from __future__ import annotations
 import abc
 import dataclasses
 import enum
+import logging
 from typing import TYPE_CHECKING, Any, ClassVar, ForwardRef, Generic, Iterable, TypeVar, cast
 
 from kraken.core.property import Object, Property
@@ -47,11 +48,13 @@ class Task(Object):
     project: Project
     default: bool = False
     capture: bool = True
+    logger: logging.Logger
 
     def __init__(self, name: str, project: Project) -> None:
         super().__init__()
         self.name = name
         self.project = project
+        self.logger = logging.getLogger(type(self).__module__ + "." + type(self).__qualname__)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.path})"

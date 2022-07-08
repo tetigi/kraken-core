@@ -15,3 +15,9 @@ id = "850ac1ad-7553-4d50-8185-7d061eb67100"
 type = "feature"
 description = "Support `collections.abc.Callable` as a valid property type"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "06fbdfc3-9504-4b45-a4b9-a8423e42093e"
+type = "feature"
+description = "Add `Task.logger`"
+author = "@NiklasRosenstein"

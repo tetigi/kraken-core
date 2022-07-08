@@ -15,9 +15,9 @@ from kraken.core.property import Object, Property
 if TYPE_CHECKING:
     from kraken.core.project import Project
 else:
-    import kraken  # noqa: F401  # Need this for Python 3.9 so that the below forward ref can be resolved
-
-    Project = ForwardRef("kraken.core.project.Project")  # noqa: F811,E501  # Allow Task.project annotation to resolve
+    # Allow Task.project annotation to resolve. We need to use __import__() for Python 3.9, it is not sufficient
+    # to `import kraken` before this line.
+    Project = ForwardRef("__import__('kraken.core.project').core.project.Project")  # noqa: F811,E501
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")

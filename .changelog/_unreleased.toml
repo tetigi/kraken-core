@@ -3,3 +3,9 @@ id = "916848f3-df05-471c-ad48-fd4b89b4f5ff"
 type = "feature"
 description = "add `BuildGraph.tasks(required_only)` parameter"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "9ae08a02-5db1-450f-93ec-c280e3f8894e"
+type = "breaking change"
+description = "rename `BuildScriptLoader` to `ProjectLoader`"
+author = "@NiklasRosenstein"

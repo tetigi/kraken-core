@@ -48,31 +48,10 @@ class BuildContext:
                 raised.
         """
 
-        from .loader import get_loader_implementations
+        from .loader import detect_project_loader
         from .project import Project
 
-        if file is None:
-            if directory is None:
-                raise ValueError("need file or directory")
-            for loader in get_loader_implementations():
-                file = loader.detect_in_project_directory(directory)
-                if file:
-                    break
-            else:
-                raise ValueError(f'no loader matched project directory "{directory}"')
-        else:
-            for loader in get_loader_implementations():
-                match = loader.match_file(file)
-                if isinstance(match, Path):
-                    if directory is None:
-                        directory = match
-                    break
-                elif match:
-                    if directory is None:
-                        directory = file.parent
-                    break
-            else:
-                raise ValueError(f'no loader matched file "{file}"')
+        file, directory, loader = detect_project_loader(file, directory)
 
         project = Project(directory.name, directory, parent, self)
 

@@ -43,7 +43,7 @@ types-setuptools = "^57.4.18"
 testing = ["pytest"]
 
 [tool.poetry.plugins."kraken.core.loader"]
-pyscript = "kraken.core.loader.pyscript:PyscriptLoader"
+python_script = "kraken.core.loader.python_script:PythonScriptProjectLoader"
 
 [tool.slap]
 typed = true

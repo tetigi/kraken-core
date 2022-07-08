@@ -9,6 +9,7 @@ from .utils import flatten
 if TYPE_CHECKING:
     from .build_context import BuildContext
 
+T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")
 
 
@@ -19,12 +20,14 @@ class Project:
     directory: Path
     parent: Optional[Project]
     context: BuildContext
+    metadata: list[Any]         #: A list of arbitrary objects that are usually looked up by type.
 
     def __init__(self, name: str, directory: Path, parent: Optional[Project], context: BuildContext) -> None:
         self.name = name
         self.directory = directory
         self.parent = parent
         self.context = context
+        self.metadata = []
 
         # We store all members that can be referenced by a fully qualified name in the same dictionary to ensure
         # we're not accidentally allocating the same name twice.
@@ -105,3 +108,8 @@ class Project:
         task.capture = capture
         self.add_task(task)
         return task
+
+    def find_metadata(self, of_type: type[T]) -> T | None:
+        """ Returns the first entry in the :attr:`metadata` that is of the specified type. """
+
+        return next((x for x in self.metadata if isinstance(x, of_type)), None)

@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from kraken.core.project import Project
 else:
     import kraken  # noqa: F401  # Need this for Python 3.9 so that the below forward ref can be resolved
+
     Project = ForwardRef("kraken.core.project.Project")  # noqa: F811,E501  # Allow Task.project annotation to resolve
 
 T = TypeVar("T")

@@ -116,6 +116,11 @@ class Task(Object):
     def execute(self) -> TaskResult:
         ...
 
+    # Object
+
+    def _warn_non_existent_properties(self, keys: set[str]) -> None:
+        self.logger.warning("properties %s cannot be set because they don't exist (task %s)", keys, self.path)
+
 
 class task_factory(Generic[T_Task]):
     """Factory functor for task implementations."""

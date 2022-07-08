@@ -221,11 +221,14 @@ class Object:
         if additional_keys and _raise:
             raise ValueError(f"{type(self).__name__} does not have these properties: {additional_keys}")
         if additional_keys:
-            warnings.warn(f"{type(self).__name__} does not have these properties: {additional_keys}", UserWarning)
+            self._warn_non_existent_properties(additional_keys)
 
         for key in property_values.keys() - additional_keys:
             prop: Property[Any] = getattr(self, key)
             prop.set(property_values[key])
+
+    def _warn_non_existent_properties(self, keys: set[str]) -> None:
+        warnings.warn(f"{type(self).__name__} does not have these properties: {keys}", UserWarning)
 
 
 # Register common value adapters

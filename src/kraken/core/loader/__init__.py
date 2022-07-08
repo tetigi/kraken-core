@@ -61,7 +61,7 @@ def get_loader_implementations() -> Iterable[ProjectLoader]:
 
 
 def detect_project_loader(file: Path | None, directory: Path | None) -> tuple[Path, Path, ProjectLoader]:
-    """ Detects the loader for the given *file* or *directory*. Both may be specified, but at least one must
+    """Detects the loader for the given *file* or *directory*. Both may be specified, but at least one must
     present. If only a directory is given, the loader must report the file to load. If only a file is given,
     the loader _may_ report the respective project directory.
 

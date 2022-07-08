@@ -9,3 +9,9 @@ id = "9ae08a02-5db1-450f-93ec-c280e3f8894e"
 type = "breaking change"
 description = "rename `BuildScriptLoader` to `ProjectLoader`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "850ac1ad-7553-4d50-8185-7d061eb67100"
+type = "feature"
+description = "Support `collections.abc.Callable` as a valid property type"
+author = "@NiklasRosenstein"

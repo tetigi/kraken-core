@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import dataclasses
 import warnings
 from pathlib import Path
@@ -241,6 +242,7 @@ Property.value_adapter(list)(_type_checking_adapter(list))
 Property.value_adapter(dict)(_type_checking_adapter(dict))
 Property.value_adapter(set)(_type_checking_adapter(set))
 Property.value_adapter(type(None))(_type_checking_adapter(type(None)))
+Property.value_adapter(collections.abc.Callable)(_type_checking_adapter(collections.abc.Callable))
 
 
 @Property.value_adapter(Path)

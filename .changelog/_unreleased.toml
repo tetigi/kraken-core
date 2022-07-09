@@ -3,3 +3,9 @@ id = "a26d0556-fc97-4957-9ae0-ede5b52fb5e6"
 type = "improvement"
 description = "update `Task.logger` name"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "710234c3-170d-471f-ab60-bec8ae1a8a7d"
+type = "feature"
+description = "add `atomic_file_swap(create_dirs)` parameter"
+author = "@NiklasRosenstein"

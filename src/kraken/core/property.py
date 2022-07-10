@@ -157,7 +157,8 @@ class Object:
         schema: dict[str, PropertyDescriptor] = {}
         base: type[Object]
         for base in cls.__bases__:
-            schema.update(base.__schema__)
+            if issubclass(base, Object):
+                schema.update(base.__schema__)
 
         for key, hint in typeapi.get_annotations(cls).items():
             hint = typeapi.of(hint)

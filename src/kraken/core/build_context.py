@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterator, Optional
+from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar
 
 from .pyenv import PyenvManager
 
 if TYPE_CHECKING:
     from .project import Project
     from .task import Task
+
+T = TypeVar("T")
 
 
 class BuildContext:
@@ -149,3 +151,14 @@ class BuildContext:
         for project in self.iter_projects():
             for task in project.tasks().values():
                 task.finalize()
+
+    @staticmethod
+    def current() -> BuildContext | None:
+        """Returns the current build context if it exists."""
+
+        try:
+            from kraken.api import ctx
+
+            return ctx
+        except RuntimeError:
+            return None

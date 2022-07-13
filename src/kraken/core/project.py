@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast, overload
 
 from .task import Task
-from .utils import flatten
+from .utils import NotSet, flatten
 
 if TYPE_CHECKING:
     from .build_context import BuildContext
@@ -113,3 +113,24 @@ class Project:
         """Returns the first entry in the :attr:`metadata` that is of the specified type."""
 
         return next((x for x in self.metadata if isinstance(x, of_type)), None)
+
+    @overload
+    @staticmethod
+    def current() -> Project:
+        """Returns the current project or raises a :class:`RuntimeError`."""
+
+    @overload
+    @staticmethod
+    def current(fallback: T) -> Project | T:
+        """Returns the current project or *fallback*."""
+
+    @staticmethod
+    def current(fallback: T | NotSet = NotSet.Value) -> Project | T:
+        try:
+            from kraken.api import project
+
+            return project
+        except RuntimeError:
+            if fallback is not NotSet.Value:
+                return fallback
+            raise RuntimeError("no current project")

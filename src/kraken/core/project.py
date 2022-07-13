@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast, overload
 
-from .task import Task
+from .task import GroupTask, Task
 from .utils import NotSet, flatten
 
 if TYPE_CHECKING:
@@ -109,6 +109,18 @@ class Project:
         if capture is not None:
             task.capture = capture
         self.add_task(task)
+        return task
+
+    def group(self, name: str) -> GroupTask:
+        """Create or get a group of the given name. If a task with the given name already exists, it must refer
+        to a task of type :class:`GroupTask`, otherwise a :class:`RuntimeError` is raised."""
+
+        task = self.tasks().get(name)
+        if task is None:
+            task = self.do(name, GroupTask)
+        elif not isinstance(task, GroupTask):
+            raise RuntimeError(f"{task.path!r} must be a GroupTask, but got {type(task).__name__}")
+
         return task
 
     def find_metadata(self, of_type: type[T]) -> T | None:

@@ -188,3 +188,41 @@ class task_factory(Generic[T_Task]):
         next_value = project_counter.get(self._task_type.__name__, 0)
         project_counter[self._task_type.__name__] = next_value + 1
         return f"_{self._task_type.__name__}_{next_value}"
+
+
+class GroupTask(Task):
+    """This task can be used to group tasks under a common name. Ultimately it is just another task that depends on
+    the tasks in the group, forcing them to be executed when this task is targeted. Group tasks are not enabled
+    by default."""
+
+    tasks: list[Task]
+
+    def __init__(self, name: str, project: Project) -> None:
+        super().__init__(name, project)
+        self.tasks = []
+        self.default = False
+
+    def add(self, tasks: str | Task | Iterable[str | Task]) -> None:
+        """Add one or more tasks by name or task object to this group."""
+
+        if isinstance(tasks, (str, Task)):
+            tasks = [tasks]
+
+        for task in tasks:
+            if isinstance(task, str):
+                self.tasks += [
+                    t for t in self.project.context.resolve_tasks([task], self.project) if t not in self.tasks
+                ]
+            elif task not in self.tasks:
+                self.tasks.append(task)
+
+    def get_relationships(self) -> Iterable[TaskRelationship]:
+        for task in self.tasks:
+            yield TaskRelationship(task, True, False)
+        yield from super().get_relationships()
+
+    def is_up_to_date(self) -> bool:
+        return True
+
+    def execute(self) -> TaskResult:
+        return TaskResult.UP_TO_DATE

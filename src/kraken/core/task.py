@@ -9,7 +9,7 @@ import dataclasses
 import enum
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, ClassVar, ForwardRef, Generic, Iterable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, ForwardRef, Generic, Iterable, List, TypeVar, cast
 
 from kraken.core.property import Object, Property
 
@@ -195,7 +195,7 @@ class GroupTask(Task):
     the tasks in the group, forcing them to be executed when this task is targeted. Group tasks are not enabled
     by default."""
 
-    tasks: list[Task]
+    tasks: List[Task]
 
     def __init__(self, name: str, project: Project) -> None:
         super().__init__(name, project)

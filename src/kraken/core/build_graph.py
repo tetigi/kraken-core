@@ -33,6 +33,9 @@ class BuildGraph:
     def __bool__(self) -> bool:
         return len(self._digraph.nodes) > 0
 
+    def __len__(self) -> int:
+        return len(self._digraph.nodes)
+
     # Low level internal API
 
     def _get_node(self, task_path: str) -> _Node | None:

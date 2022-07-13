@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar, overload
 
 from .pyenv import PyenvManager
+from .utils import NotSet
 
 if TYPE_CHECKING:
     from .project import Project
@@ -152,13 +153,23 @@ class BuildContext:
             for task in project.tasks().values():
                 task.finalize()
 
+    @overload
     @staticmethod
-    def current() -> BuildContext | None:
-        """Returns the current build context if it exists."""
+    def current() -> BuildContext:
+        """Returns the current context or raises a :class:`RuntimeError`."""
 
+    @overload
+    @staticmethod
+    def current(fallback: T) -> BuildContext | T:
+        """Returns the current context or *fallback*."""
+
+    @staticmethod
+    def current(fallback: T | NotSet = NotSet.Value) -> BuildContext | T:
         try:
             from kraken.api import ctx
 
             return ctx
         except RuntimeError:
-            return None
+            if fallback is not NotSet.Value:
+                return fallback
+            raise RuntimeError("no current project")

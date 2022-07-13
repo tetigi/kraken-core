@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator, Optional
+from typing import TYPE_CHECKING, Any, Iterator, Optional
 
 from .pyenv import PyenvManager
 
@@ -17,6 +17,12 @@ class BuildContext:
         self._root_project: Optional[Project] = None
         self.build_directory = build_directory
         self.pyenv = PyenvManager(build_directory / ".lib")
+        self.metadata: list[Any] = []
+
+    def find_metadata(self, of_type: type[T]) -> T | None:
+        """Returns the first entry in the :attr:`metadata` that is of the specified type."""
+
+        return next((x for x in self.metadata if isinstance(x, of_type)), None)
 
     @property
     def root_project(self) -> Project:

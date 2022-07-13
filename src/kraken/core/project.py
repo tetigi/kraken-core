@@ -95,8 +95,8 @@ class Project:
         self,
         name: str,
         task_type: Type[T_Task] = cast(Any, Task),
-        default: bool = True,
-        capture: bool = True,
+        default: bool | None = None,
+        capture: bool | None = None,
     ) -> T_Task:
         """Add a task to the project under the given name, executing the specified action."""
 
@@ -104,8 +104,10 @@ class Project:
             raise ValueError(f"{self} already has a member {name!r}")
 
         task = task_type(name, self)
-        task.default = default
-        task.capture = capture
+        if default is not None:
+            task.default = default
+        if capture is not None:
+            task.capture = capture
         self.add_task(task)
         return task
 

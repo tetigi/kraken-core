@@ -121,7 +121,7 @@ class Task(Object):
 
     @abc.abstractmethod
     def execute(self) -> TaskResult:
-        ...
+        raise NotImplementedError
 
     # Object
 

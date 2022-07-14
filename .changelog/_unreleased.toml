@@ -1,0 +1,5 @@
+[[entries]]
+id = "cd01a258-3bb1-43b2-8ed1-a272daa4a4b0"
+type = "improvement"
+description = "`Task.execute()` default implementation now raises a `NotImplementedError`"
+author = "@NiklasRosenstein"

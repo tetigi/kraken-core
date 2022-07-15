@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar, overload
 
-from .pyenv import PyenvManager
 from .utils import NotSet
 
 if TYPE_CHECKING:
@@ -19,7 +18,6 @@ class BuildContext:
     def __init__(self, build_directory: Path) -> None:
         self._root_project: Optional[Project] = None
         self.build_directory = build_directory
-        self.pyenv = PyenvManager(build_directory / ".lib")
         self.metadata: list[Any] = []
 
     def find_metadata(self, of_type: type[T]) -> T | None:

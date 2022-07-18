@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def kraken_ctx() -> Context:
-    return Context(Path(".build"))
+    return Context(Path("build"))
 
 
 @pytest.fixture(name="kraken_ctx")

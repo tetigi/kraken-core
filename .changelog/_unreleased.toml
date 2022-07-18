@@ -15,3 +15,9 @@ id = "e32c6921-0d5d-4041-b95e-4de2ad42fa4d"
 type = "feature"
 description = "add simple CLI that can be run with `python -m kraken.core`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "8985b797-3638-42f1-9921-9b9a8a501fda"
+type = "improvement"
+description = "flush after printing in Executor to ensure that outputs are in order (sometimes an issue in CI jobs on Github and Gitlab)"
+author = "@NiklasRosenstein"

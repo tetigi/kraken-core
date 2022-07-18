@@ -150,6 +150,7 @@ class Executor:
             result = ExecutionResult(TaskResult.UP_TO_DATE, None, "")
         else:
             print(">", task.path)
+            sys.stdout.flush()
 
             # TODO (@NiklasRosenstein): Transfer values from output properties back to the main process.
             # TODO (@NiklasRosenstein): Until we actually start tasks in paralle, we don't benefit from
@@ -159,6 +160,7 @@ class Executor:
 
         if (result.status == TaskResult.FAILED or not task.capture or self.verbose) and result.output:
             print(result.output)
+            sys.stdout.flush()
 
         print(
             ">",
@@ -169,6 +171,7 @@ class Executor:
         if result.message:
             print(f" ({result.message})", end="")
         print()
+        sys.stdout.flush()
 
         self.results[task.path] = result
         return result

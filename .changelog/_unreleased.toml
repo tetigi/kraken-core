@@ -3,3 +3,9 @@ id = "9b24e0cd-b5bd-47c1-be0a-235b090162f5"
 type = "breaking change"
 description = "a rather substantial refactor to rename `BuildContext` to just `Context` and `BuildGraph` to `TaskGraph`, removed the `task_factory` class and moved its functionality mostly to `Project.do()`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "7231d9fd-b2fe-4ba7-b1f4-22985d0082b3"
+type = "breaking change"
+description = "move `kraken.testing` to `kraken.core.testing`"
+author = "@NiklasRosenstein"

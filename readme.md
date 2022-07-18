@@ -10,10 +10,8 @@ __Packages__
 
 * `kraken.api` &ndash; This module can be imported from in a `.kraken.py` build script to get access to the current
     build context and project.
-* `kraken.core` &ndash; The core API that consists of primitives to describe tasks with dependencies, which are
-    `Task`, `Project`, `Context` and various additional helper types.
-* `kraken.testing` &ndash; Provides Pytest fixtures `kraken_context` and `kraken_project` as well as utility functions
-    to build integration tests that execute a Kraken build graph.
+* `kraken.core` &ndash; The core API that consists of primitives to describe tasks with dependencies, as well as
+    Pytest fixtures.
 
 ## Concepts
 

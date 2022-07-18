@@ -12,7 +12,6 @@ readme = "readme.md"
 packages = [
     { include = "kraken/api", from = "src" },
     { include = "kraken/core", from = "src" },
-    { include = "kraken/testing", from = "src" },
 ]
 classifiers = []
 keywords = []
@@ -47,7 +46,7 @@ testing = ["pytest"]
 python_script = "kraken.core.loader.python_script:PythonScriptProjectLoader"
 
 [tool.poetry.plugins."pytest11"]
-kraken-testing = "kraken.testing"
+kraken-testing = "kraken.core.testing"
 
 [tool.slap]
 typed = true

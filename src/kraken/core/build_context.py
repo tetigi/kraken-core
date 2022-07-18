@@ -191,6 +191,7 @@ class BuildContext:
         :raise BuildError: If any task fails to execute.
         """
 
+        from .build_graph import BuildGraph
         from .executor import Executor
         from .task import TaskResult
 

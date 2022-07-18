@@ -134,3 +134,17 @@ def import_class(fqn: str, base_type: type[T] | None = None) -> type[T]:
     if base_type is not None and not issubclass(cls, base_type):
         raise TypeError(f"expected subclass of {base_type} at {fqn!r}, got {cls}")
     return cls
+
+
+def get_terminal_width(default: int = 80) -> int:
+    """Returns the terminal width through :func:`os.get_terminal_size`, falling back to the `COLUMNS`
+    environment variable. If neither is available, return *default*."""
+
+    try:
+        terminal_width = os.get_terminal_size().columns
+    except OSError:
+        try:
+            terminal_width = int(os.getenv("COLUMNS", ""))
+        except ValueError:
+            terminal_width = default
+    return terminal_width

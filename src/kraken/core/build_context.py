@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar, overload
 from .utils import NotSet
 
 if TYPE_CHECKING:
+    from .build_graph import BuildGraph
     from .project import Project
     from .task import Task
 
@@ -19,6 +20,7 @@ class BuildContext:
         self._root_project: Optional[Project] = None
         self.build_directory = build_directory
         self.metadata: list[Any] = []
+        self._finalized: bool = False
 
     def find_metadata(self, of_type: type[T]) -> T | None:
         """Returns the first entry in the :attr:`metadata` that is of the specified type."""
@@ -147,9 +149,63 @@ class BuildContext:
     def finalize(self) -> None:
         """Call :meth:`Task.finalize()` on all tasks. This should be called before a graph is created."""
 
+        self._finalized = True
         for project in self.iter_projects():
             for task in project.tasks().values():
                 task.finalize()
+
+    def get_build_graph(self, targets: list[str | Task] | None, trimmed: bool = True) -> BuildGraph:
+        """Returns the :class:`BuildGraph` that contains either all default tasks or the tasks specified with
+        the *targets* argument.
+
+        :param targets: A list of targets to resolve and to build the graph from.
+        :param trimmed: Trim the build graph down to the required tasks and their dependencies before returning.
+        :raise ValueError: If not tasks were selected.
+        """
+
+        from .build_graph import BuildGraph
+
+        targets = targets or []
+        tasks = self.resolve_tasks([t for t in targets if isinstance(t, str)]) + [
+            t for t in targets if not isinstance(t, str)
+        ]
+
+        if not tasks:
+            raise ValueError("no tasks selected")
+
+        graph = BuildGraph(tasks)
+        if trimmed:
+            graph.trim()
+
+        assert graph, "BuildGraph cannot be empty"
+        return graph
+
+    def execute(self, targets: list[str | Task] | BuildGraph | None = None, verbose: bool = False) -> None:
+        """Execute all default tasks or the tasks specified by *targets* using the default executor.
+        If :meth:`finalize` was not called already it will be called by this function before the build
+        graph is created, unless a build graph is passed in the first place.
+
+        :param targets: The list of targets to execute, or the build graph. If none specified, all default
+            tasks will be executed.
+        :param verbose: Verbosity argument passed to the executor.
+        :raise BuildError: If any task fails to execute.
+        """
+
+        from .executor import Executor
+        from .task import TaskResult
+
+        if isinstance(targets, BuildGraph):
+            assert self._finalized, "no, no, this is all wrong. you need to finalize the context first"
+            graph = targets
+        else:
+            if not self._finalized:
+                self.finalize()
+            graph = self.get_build_graph(targets)
+
+        executor = Executor(graph, verbose)
+        if not executor.execute():
+            failed_task = next((key for key, value in executor.results.items() if value.status == TaskResult.FAILED))
+            raise BuildError(f'task "{failed_task}" failed')
 
     @overload
     @staticmethod
@@ -171,3 +227,7 @@ class BuildContext:
             if fallback is not NotSet.Value:
                 return fallback
             raise RuntimeError("no current project")
+
+
+class BuildError(Exception):
+    pass

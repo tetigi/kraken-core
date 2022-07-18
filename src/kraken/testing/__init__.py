@@ -14,7 +14,7 @@ from kraken.core.loader.python_script import inject_kraken_api_module_for_projec
 from kraken.core.project import Project
 from kraken.core.task import Task
 
-__version__ = "0.2.17"
+__version__ = "0.2.18"
 logger = logging.getLogger(__name__)
 
 

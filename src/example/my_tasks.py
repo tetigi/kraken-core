@@ -1,6 +1,7 @@
 import subprocess
-from kraken.core import Project, Property, Task, TaskResult
 from pathlib import Path
+
+from kraken.core import Project, Property, Task, TaskResult
 
 
 class WriteDockerfileTask(Task):

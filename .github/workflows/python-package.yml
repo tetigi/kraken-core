@@ -19,6 +19,10 @@ jobs:
     - run: slap install -vv --no-venv-check
     - run: slap test
 
+    # Test the example. Need docker for that.
+    - uses: docker/setup-buildx-action@v2
+    - run: cd example && python -m kraken.core
+
   update-changelog:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'

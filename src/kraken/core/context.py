@@ -165,10 +165,12 @@ class Context:
 
         from .graph import TaskGraph
 
-        targets = targets or []
-        tasks = self.resolve_tasks([t for t in targets if isinstance(t, str)]) + [
-            t for t in targets if not isinstance(t, str)
-        ]
+        if targets is None:
+            tasks = self.resolve_tasks(None)
+        else:
+            tasks = self.resolve_tasks([t for t in targets if isinstance(t, str)]) + [
+                t for t in targets if not isinstance(t, str)
+            ]
 
         if not tasks:
             raise ValueError("no tasks selected")

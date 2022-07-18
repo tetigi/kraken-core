@@ -9,3 +9,9 @@ id = "7231d9fd-b2fe-4ba7-b1f4-22985d0082b3"
 type = "breaking change"
 description = "move `kraken.testing` to `kraken.core.testing`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "e32c6921-0d5d-4041-b95e-4de2ad42fa4d"
+type = "feature"
+description = "add simple CLI that can be run with `python -m kraken.core`"
+author = "@NiklasRosenstein"

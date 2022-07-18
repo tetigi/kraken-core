@@ -7,7 +7,7 @@ from .task import GroupTask, Task
 from .utils import NotSet, flatten
 
 if TYPE_CHECKING:
-    from .build_context import BuildContext
+    from .context import Context
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")
@@ -19,10 +19,10 @@ class Project:
     name: str
     directory: Path
     parent: Optional[Project]
-    context: BuildContext
+    context: Context
     metadata: list[Any]  #: A list of arbitrary objects that are usually looked up by type.
 
-    def __init__(self, name: str, directory: Path, parent: Optional[Project], context: BuildContext) -> None:
+    def __init__(self, name: str, directory: Path, parent: Optional[Project], context: Context) -> None:
         self.name = name
         self.directory = directory
         self.parent = parent
@@ -32,6 +32,11 @@ class Project:
         # We store all members that can be referenced by a fully qualified name in the same dictionary to ensure
         # we're not accidentally allocating the same name twice.
         self._members: dict[str, Task | Project] = {}
+
+        self.group("fmt")
+        self.group("lint")
+        self.group("build")
+        self.group("test")
 
     def __repr__(self) -> str:
         return f"Project({self.path})"
@@ -97,8 +102,18 @@ class Project:
         task_type: Type[T_Task] = cast(Any, Task),
         default: bool | None = None,
         capture: bool | None = None,
+        **kwargs: Any,
     ) -> T_Task:
-        """Add a task to the project under the given name, executing the specified action."""
+        """Add a task to the project under the given name, executing the specified action.
+
+        :param name: The name of the task to add.
+        :param task_type: The type of task to add.
+        :param default: Override :attr:`Task.default`.
+        :param capture: Override :attr:`Task.capture`.
+        :param kwargs: Any number of properties to set on the task. Unknown properties will be ignored
+            with a warning log.
+        :return: The created task.
+        """
 
         if name in self._members:
             raise ValueError(f"{self} already has a member {name!r}")
@@ -108,6 +123,7 @@ class Project:
             task.default = default
         if capture is not None:
             task.capture = capture
+        task.update(**kwargs)
         self.add_task(task)
         return task
 

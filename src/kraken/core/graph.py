@@ -5,7 +5,7 @@ from typing import Iterable, List, cast
 
 from networkx import DiGraph  # type: ignore[import]
 
-from kraken.core.task import Task
+from kraken.core.task import GroupTask, Task
 from kraken.core.utils import not_none
 
 
@@ -20,7 +20,7 @@ class _Edge:
     strict: bool
 
 
-class BuildGraph:
+class TaskGraph:
     """Represents the build graph."""
 
     def __init__(self, tasks: Iterable[Task] = ()) -> None:
@@ -77,9 +77,23 @@ class BuildGraph:
         """
 
         for task in tasks:
-            self._add_node(task, required)
+
+            # If a group task is required, we instead mark all tasks that this group depends on as required.
+            dependencies_required = isinstance(task, GroupTask)
+
+            self._add_node(task, not dependencies_required)
+
+            # Make sure we have all dependencies tracked in the graph.
+            self._add_tasks(
+                (rel.other_task for rel in task.get_relationships() if not rel.before),
+                dependencies_required,
+            )
+
             for rel in task.get_relationships():
-                self._add_node(rel.other_task, False)
+                if rel.before:
+                    # We may not have added this task to the graph yet.
+                    self._add_node(rel.other_task, False)
+
                 a, b = (task, rel.other_task) if rel.before else (rel.other_task, task)
                 self._add_edge(a.path, b.path, rel.strict)
 
@@ -91,7 +105,7 @@ class BuildGraph:
     def get_successors(self, task: Task) -> List[Task]:
         return [not_none(self._get_node(task_path)).task for task_path in self._digraph.successors(task.path)]
 
-    def trim(self) -> BuildGraph:
+    def trim(self) -> TaskGraph:
         """Removes all tasks from the graph that are not initially required and only connected to any other
         task with an optional dependency."""
 
@@ -106,8 +120,10 @@ class BuildGraph:
             ):
                 weakly_connected_tasks.add(task_path)
 
-        # Remove the subgraphs that are weakly connected.
+        # Remove the subgraphs that are weakly connected, but keep all required tasks and their subgraphs.
         def _remove_subgraph(task_path: str) -> None:
+            if not_none(self._get_node(task_path)).required:
+                return
             if task_path not in self._digraph.nodes:
                 return
             for successor in list(self._digraph.predecessors(task_path)):

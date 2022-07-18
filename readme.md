@@ -3,125 +3,76 @@
 [![Python application](https://github.com/kraken-build/kraken-core/actions/workflows/python-package.yml/badge.svg)](https://github.com/kraken-build/kraken-core/actions/workflows/python-package.yml)
 [![PyPI version](https://badge.fury.io/py/kraken-core.svg)](https://badge.fury.io/py/kraken-core)
 
-The `kraken.core` package provides the primitives of describing a build and deriving build tasks.
+The `kraken-core` package provides the primitives to describe a dependency graph for the purpose of task
+orchestration.
 
-Aside from the `kraken.core` package, this package also provides the `kraken.api` module that is
-used only at runtime by Kraken build scripts and the `kraken.testing` module for Pytest fixtures.
+__Packages__
 
-## How does it work?
+* `kraken.api` &ndash; This module can be imported from in a `.kraken.py` build script to get access to the current
+    build context and project.
+* `kraken.core` &ndash; The core API that consists of primitives to describe tasks with dependencies, which are
+    `Task`, `Project`, `Context` and various additional helper types.
+* `kraken.testing` &ndash; Provides Pytest fixtures `kraken_context` and `kraken_project` as well as utility functions
+    to build integration tests that execute a Kraken build graph.
 
-Kraken uses **tasks** to describe units of work that can be chained and establish dependencies between each other.
-Each task has a **schema** that defines its input and output properties. When an output property is linked to the
-input property of another task, this established as dependency between the tasks.
+## Concepts
 
-```py
-from kraken.std.docker_gen import generate_dockerfile
-from kraken.std.docker_build import build_docker_image
-dockerfile = generate_dockerfile(source_file="Dockerfile.yml")
-build_docker_image(dockerfile=dockerfile.path, tags=["example:latest"], load=True)
-```
+* __Context__: The build context is the "root object" which contains a reference to the root project as well as
+the path to a designated build directory. The context can hold metadata that is addressable globally by the Python
+type (see `Context.metadata`).
+* __Project__: A project represents a directory on the file system and tasks that are associated with the contents of
+that directory and the build script loaded from it. A project's members are named and either `Task`s or other
+`Project`s. A project is uniquely identified by it's "path" which is similar to a filesystem path only that the
+separator is a colon (`:`). The root project is identifier with just a single colon, while members of a project are
+identified by concatenating the project path with the member name (such as `:subproject:task`).
+* __Task__: A task is a unit of work that can is related to a project. Tasks can have relationships to other tasks
+that describe whether it needs to run before or after the related task. The relationship can also be strict (default)
+or optional, in which case only the order of execution is informed. Tasks have properties that when passed to
+properties of other tasks inform a strict dependency relationship.
+* __Task factory__: A task factory is a function that is a convenient utility for Kraken build scripts to define one
+or more tasks in a project. The `Project.do()` method in particular is often used to create task, allowing users to
+conveniently set task property values directly instead of interfacing with the property API.
+* __Group tasks__: Group tasks are a special kind of task that store a list of tasks as their dependencies, effectively
+grouping the tasks under their name. There is some special treatment for group tasks when the task graph is constructed,
+but otherwise they behave like normal tasks that don't actually do any work themselves. Every Kraken project always
+has the following groups by default: `fmt`, `lint`, `build` and `test`.
+* __Property__: A property is a typed container for a value. It can receive a static value or another task's property
+to inform a strict dependency relationship between the property owners. Properties have a `.set(value)`, `.get()` and
+`.get_or()` method.
+* __Task graph__: The task graph represents a fully wired graph of the tasks in a *context*. The task graph must only
+be constructed after `Context.finalize()` was called to allow tasks to perform one final update before nothing can be
+changed anymore. After constructing a graph from a set of initially required tasks, it only contains the tasks that are
+transitively required by the initial set. The graph can be further trimmed to remove weakly connected components of the
+graph (such as group tasks if they were of the initial set or dependencies that are not strictly required by any other
+task).
 
-This populates the project with two **tasks** and connects the computed output property of one to the other,
-allowing the tasks that will run for `build_docker_image()` to pick up the dynamically generated Dockerfile that
-is written into a location in the build directory by the `generate_dockerfile()` task.
+## Example
 
-<p align="center"><img src="assets/graph.png" height="225px"></p>
+Check out the [`example/`](./example/) directory.
 
-## Core API
+## Remarks for writing extensions
 
-Kraken **tasks** are described with a schema. Each schema field has a type and may be an input or output parameter.
-Output parameters are only available once a resource is executed; Kraken will that a proper execution order is
-established such that output properties are hydrated before another resource tries to access them as an input.
-
-```py
-from kraken.core.task import Context, Task, Property, Output, task_factory
-from typing_extensions import Annotated
-
-class GenerateDockerfileTask(Task):
-    source_file: Property[str]
-    path: Annotated[Property[str], Output]
-
-    def execute(self, ctx: Context) -> None:
-        path = Path(self.path.setdefault(str(ctx.build_directory / "Dockerfile")))
-        path.write_text(render_dockerfile(Path(self.source_file.get()).read_text()))
-
-generate_dockerfile = task_factory(GenerateDockerfileTask)
-```
-
-### Notes on writing extensions
-
-#### Task properties
+__Use `typing` aliases when defining Task properties for pre-3.10 compatibility__
 
 The Kraken code base uses the 3.10+ type union operator `|` for type hints where possible. However, special care needs
 to be taken with this operator when defining properties on Kraken tasks. The annotations on task objects are eveluated
 and will cause errors in Python versions lower than 3.10 when using the union operator `|` even with
 `__future__.annotations` enabled.
 
-<table><tr><th>Do</th><th>Don't</th></tr>
-<tr><td>
+The following code will cause a `TypeError` when executed even when using `from __future__ import annotations`:
 
 ```py
-from __future__ import annotations
-from typing import Union
-from kraken.core.property import Property
-from kraken.core.task import Task
-
-
-class MyTask(Task):
-    my_prop: Property[Union[str, Path]]
-
-    def _internal_method(self, value: str | Path) -> None:
-        ...
-```
-
-</td><td>
-
-
-```py
-from __future__ import annotations
-from typing import Union
-from kraken.core.property import Property
-from kraken.core.task import Task
-
-
 class MyTask(Task):
     my_prop: Property[str | Path]  # unsupported operand type(s) for |: 'type' and 'type'
-
-    def _internal_method(self, value: str | Path) -> None:
-        ...
 ```
 
-</td></tr>
-</table>
+__Property value adapters__
 
-Also note that properties use "value adapters" to validate and coerce values to the property value type. Depending on
-the order of union types, this may change the semantics of the value stored in a property. For example, the value
-adapter for the `pathlib.Path` type will convert strings to a path object. If your property accepts both of these
-types, putting the `str` type first in the union will ensure that your property keeps the string a string instead of
-coercing it to a path.
+Properties only support the types for which there is a value adapter registered. The default adapters registered in
+the `kraken.core.property` module covert most use cases such as plain data types (`bool`, `int`, `float`, `str`,
+`None`) and containers (`list`, `set`, `dict`) for which (not nested) type checking is implemented. Additionally, the
+value adapter for `pathlib.Path` will allow a `str` to be passed and automatically convert it to a path.
 
-## Integration testing API
-
-The `kraken.testing` module provides Pytest fixtures for integration testing Kraken extension modules. The
-`kraken_project` fixture provides you with access to a Kraken project object. The `kraken.testing.execute()`
-function is a rudimentary implementation to correctly execute a build graph, but it is not recommended for
-production use and should be used in tests only.
-
-__Example__
-
-```py
-def test__helm_push_to_oci_registry(kraken_project: Project, oci_registry: str) -> None:
-    """This integration test publishes a Helm chart to a local registry and checks if after publishing it, the
-    chart can be accessed via the registry."""
-
-    helm_settings(kraken_project).add_auth(oci_registry, USER_NAME, USER_PASS, insecure=True)
-    package = helm_package(chart_directory="data/example-chart")
-    helm_push(chart_tarball=package.chart_tarball, registry=f"oci://{oci_registry}/example")
-    kraken_project.context.execute([":helmPush"])
-    response = httpx.get(f"http://{oci_registry}/v2/example/example-chart/tags/list", auth=(USER_NAME, USER_PASS))
-    response.raise_for_status()
-    tags = response.json()
-    assert tags == {"name": "example/example-chart", "tags": ["0.1.0"]}
-```
-
-> This is a working example from the `kraken-std` package.
+Be aware that the order of the union members will play a role: A property declared as `Property[Union[Path, str]]`
+will always coerce strings to paths, whereas a property declared as `Property[Union[str, Path]]` will accept a string
+and not coerce it to a string.

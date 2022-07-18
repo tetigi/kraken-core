@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar, overload
 from .utils import NotSet
 
 if TYPE_CHECKING:
-    from .build_graph import BuildGraph
+    from .graph import TaskGraph
     from .project import Project
     from .task import Task
 
 T = TypeVar("T")
 
 
-class BuildContext:
+class Context:
     """This class is the single instance where all components of a build process come together."""
 
     def __init__(self, build_directory: Path) -> None:
@@ -29,12 +29,12 @@ class BuildContext:
 
     @property
     def root_project(self) -> Project:
-        assert self._root_project is not None, "BuildContext.root_project is not set"
+        assert self._root_project is not None, "Context.root_project is not set"
         return self._root_project
 
     @root_project.setter
     def root_project(self, project: Project) -> None:
-        assert self._root_project is None, "BuildContext.root_project is already set"
+        assert self._root_project is None, "Context.root_project is already set"
         self._root_project = project
 
     def load_project(
@@ -154,8 +154,8 @@ class BuildContext:
             for task in project.tasks().values():
                 task.finalize()
 
-    def get_build_graph(self, targets: list[str | Task] | None, trimmed: bool = True) -> BuildGraph:
-        """Returns the :class:`BuildGraph` that contains either all default tasks or the tasks specified with
+    def get_build_graph(self, targets: list[str | Task] | None, trimmed: bool = True) -> TaskGraph:
+        """Returns the :class:`TaskGraph` that contains either all default tasks or the tasks specified with
         the *targets* argument.
 
         :param targets: A list of targets to resolve and to build the graph from.
@@ -163,7 +163,7 @@ class BuildContext:
         :raise ValueError: If not tasks were selected.
         """
 
-        from .build_graph import BuildGraph
+        from .graph import TaskGraph
 
         targets = targets or []
         tasks = self.resolve_tasks([t for t in targets if isinstance(t, str)]) + [
@@ -173,14 +173,14 @@ class BuildContext:
         if not tasks:
             raise ValueError("no tasks selected")
 
-        graph = BuildGraph(tasks)
+        graph = TaskGraph(tasks)
         if trimmed:
             graph.trim()
 
-        assert graph, "BuildGraph cannot be empty"
+        assert graph, "TaskGraph cannot be empty"
         return graph
 
-    def execute(self, targets: list[str | Task] | BuildGraph | None = None, verbose: bool = False) -> None:
+    def execute(self, targets: list[str | Task] | TaskGraph | None = None, verbose: bool = False) -> None:
         """Execute all default tasks or the tasks specified by *targets* using the default executor.
         If :meth:`finalize` was not called already it will be called by this function before the build
         graph is created, unless a build graph is passed in the first place.
@@ -191,11 +191,11 @@ class BuildContext:
         :raise BuildError: If any task fails to execute.
         """
 
-        from .build_graph import BuildGraph
         from .executor import Executor
+        from .graph import TaskGraph
         from .task import TaskResult
 
-        if isinstance(targets, BuildGraph):
+        if isinstance(targets, TaskGraph):
             assert self._finalized, "no, no, this is all wrong. you need to finalize the context first"
             graph = targets
         else:
@@ -210,16 +210,16 @@ class BuildContext:
 
     @overload
     @staticmethod
-    def current() -> BuildContext:
+    def current() -> Context:
         """Returns the current context or raises a :class:`RuntimeError`."""
 
     @overload
     @staticmethod
-    def current(fallback: T) -> BuildContext | T:
+    def current(fallback: T) -> Context | T:
         """Returns the current context or *fallback*."""
 
     @staticmethod
-    def current(fallback: T | NotSet = NotSet.Value) -> BuildContext | T:
+    def current(fallback: T | NotSet = NotSet.Value) -> Context | T:
         try:
             from kraken.api import ctx
 

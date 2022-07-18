@@ -9,7 +9,7 @@ import dataclasses
 import enum
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, ClassVar, ForwardRef, Generic, Iterable, List, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ForwardRef, Iterable, List, TypeVar
 
 from kraken.core.property import Object, Property
 
@@ -46,7 +46,7 @@ class TaskResult(enum.Enum):
     UP_TO_DATE = enum.auto()
 
 
-class Task(Object):
+class Task(Object, abc.ABC):
     """A task is an isolated unit of work that is configured with properties. Every task has some common settings that
     are not treated as properties, such as it's :attr:`name`, :attr:`default` and :attr:`capture` flag. A task is a
     member of a :class:`Project` and can be uniquely identified with a path that is derived from its project and name.
@@ -54,8 +54,8 @@ class Task(Object):
 
     name: str
     project: Project
-    default: bool = False
-    capture: bool = True
+    default: bool = True
+    capture: bool = False
     logger: logging.Logger
 
     def __init__(self, name: str, project: Project) -> None:
@@ -110,7 +110,7 @@ class Task(Object):
         raise NotImplementedError
 
     def finalize(self) -> None:
-        """This method is called by :meth:`BuildContext.finalize()`. It gives the task a chance update its
+        """This method is called by :meth:`Context.finalize()`. It gives the task a chance update its
         configuration before the build process is executed. The default implementation finalizes all non-output
         properties, preventing them to be further mutated."""
 
@@ -127,67 +127,6 @@ class Task(Object):
 
     def _warn_non_existent_properties(self, keys: set[str]) -> None:
         self.logger.warning("properties %s cannot be set because they don't exist (task %s)", keys, self.path)
-
-
-class task_factory(Generic[T_Task]):
-    """Factory functor for task implementations."""
-
-    class Auto:
-        pass
-
-    def __init__(
-        self,
-        task_type: type[T_Task],
-        name: str | None | type[Auto] = Auto,
-        default: bool = True,
-        capture: bool = True,
-    ) -> None:
-        self._name = name
-        self._default = default
-        self._capture = capture
-        self._task_type = task_type
-
-    def __repr__(self) -> str:
-        return f"task_factory({self._task_type.__name__})"
-
-    def __call__(
-        self,
-        *,
-        name: str | None = None,
-        default: bool | None = None,
-        project: Project | None = None,
-        **kwds: Any,
-    ) -> T_Task:
-
-        if project is None:
-            from kraken.api import project as _current_project
-
-            project = _current_project
-
-        if name is None:
-            if self._name is None:
-                raise TypeError(f"missing 'name' argument for {self}")
-            if self._name is task_factory.Auto:
-                name = self._get_task_name(project)
-            else:
-                name = cast(str, self._name)
-
-        if default is None:
-            default = self._default
-
-        task = project.do(name, self._task_type, default, self._capture)
-        task.update(**kwds)
-        return task
-
-    __counter: ClassVar[dict[Project, dict[str, int]]] = {}
-
-    def _get_task_name(self, project: Project) -> str:
-        """Generate a new task name."""
-
-        project_counter = self.__counter.setdefault(project, {})
-        next_value = project_counter.get(self._task_type.__name__, 0)
-        project_counter[self._task_type.__name__] = next_value + 1
-        return f"_{self._task_type.__name__}_{next_value}"
 
 
 class GroupTask(Task):
@@ -226,3 +165,16 @@ class GroupTask(Task):
 
     def execute(self) -> TaskResult:
         return TaskResult.UP_TO_DATE
+
+
+class VoidTask(Task):
+    """This task does nothing and can always be skipped."""
+
+    def is_skippable(self) -> bool:
+        return True
+
+    def is_up_to_date(self) -> bool:
+        return True
+
+    def execute(self) -> TaskResult:
+        return TaskResult.SKIPPED

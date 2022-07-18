@@ -1,5 +1,5 @@
 """ This module provides the :class:`Executor` class which implements the correct execution of Kraken tasks
-from a :class:`BuildGraph` and printing nicely colored status details in the terminal.
+from a :class:`TaskGraph` and printing nicely colored status details in the terminal.
 
 Currently, the executor does not execute any tasks in parallel. This could be achieved in the future by using
 a :class:`ProcessPoolExecutor` that would also allow us to fully redirect the output of a task such that it
@@ -22,7 +22,7 @@ from typing import IO, AnyStr, Iterator
 
 from termcolor import colored
 
-from kraken.core.build_graph import BuildGraph
+from kraken.core.graph import TaskGraph
 from kraken.core.task import Task, TaskResult
 
 logger = logging.getLogger(__name__)
@@ -137,37 +137,38 @@ COLORS_BY_STATUS = {
 
 
 class Executor:
-    def __init__(self, graph: BuildGraph, verbose: bool = False) -> None:
+    def __init__(self, graph: TaskGraph, verbose: bool = False) -> None:
         self.graph = graph
         self.verbose = verbose
         self.results: dict[str, ExecutionResult] = {}
 
     def execute_task(self, task: Task) -> ExecutionResult:
         status = get_task_status(task)
-        print(">", task.path, colored(status.name, COLORS_BY_STATUS[status]))
         if status == TaskStatus.SKIPPABLE:
             result = ExecutionResult(TaskResult.SKIPPED, None, "")
         elif status == TaskStatus.UP_TO_DATE:
             result = ExecutionResult(TaskResult.UP_TO_DATE, None, "")
         else:
+            print(">", task.path)
+
             # TODO (@NiklasRosenstein): Transfer values from output properties back to the main process.
             # TODO (@NiklasRosenstein): Until we actually start tasks in paralle, we don't benefit from
             #       using a ProcessPoolExecutor.
             # result = self.pool.submit(_execute_task, task, True).result()
             result = _execute_task(task, task.capture and not self.verbose)
 
-            if (result.status == TaskResult.FAILED or not task.capture or self.verbose) and result.output:
-                print(result.output)
+        if (result.status == TaskResult.FAILED or not task.capture or self.verbose) and result.output:
+            print(result.output)
 
-            print(
-                "<",
-                task.path,
-                colored(result.status.name, COLORS_BY_RESULT[result.status], attrs=["bold"]),
-                end="",
-            )
-            if result.message:
-                print(f" ({result.message})", end="")
-            print()
+        print(
+            ">",
+            task.path,
+            colored(result.status.name, COLORS_BY_RESULT[result.status], attrs=["bold"]),
+            end="",
+        )
+        if result.message:
+            print(f" ({result.message})", end="")
+        print()
 
         self.results[task.path] = result
         return result

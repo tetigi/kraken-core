@@ -1,4 +1,4 @@
-__version__ = "0.2.19"
+__version__ = "0.3.0"
 
 from .context import BuildError, Context
 from .executor import Executor

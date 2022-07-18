@@ -12,7 +12,6 @@ import pytest
 from kraken.core.context import Context
 from kraken.core.loader.python_script import inject_kraken_api_module_for_project
 from kraken.core.project import Project
-from kraken.core.task import Task
 
 __version__ = "0.2.19"
 logger = logging.getLogger(__name__)
@@ -40,11 +39,3 @@ def kraken_project(kraken_ctx: Context, path: Path | None = None) -> Iterator[Pr
 def _kraken_project_fixture(kraken_ctx: Context, request: _pytest.fixtures.FixtureRequest) -> Iterator[Project]:
     with kraken_project(kraken_ctx, request.path) as project:
         yield project
-
-
-def kraken_execute(ctx: Context, targets: list[Task | str] | str) -> None:
-    """Deprecated. Use :meth:`Context.execute()` instead."""
-
-    if isinstance(targets, str):
-        targets = [targets]
-    ctx.execute(targets, True)

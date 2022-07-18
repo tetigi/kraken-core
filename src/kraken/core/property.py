@@ -62,6 +62,8 @@ class Property(Supplier[T]):
     # is not particularly sophisticated at this point and will not apply on items in nested structures.
     VALUE_ADAPTERS: ClassVar[dict[type, ValueAdapter]] = {}
 
+    output = staticmethod(output)
+
     def __init__(self, owner: Object, name: str, accepted_types: tuple[type, ...]) -> None:
 
         # Ensure that we have value adapters for every accepted type.

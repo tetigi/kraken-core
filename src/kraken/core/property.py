@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections.abc
+import copy
 import dataclasses
 import warnings
 from pathlib import Path
@@ -27,11 +28,32 @@ def output() -> Any:
             a: Property[int] = output()
     """
 
-    return Output()
+    return PropertyConfig(output=True)
 
 
-class Output:
-    """Used to annotate properties, to mark them as computed outputs.
+def config(
+    output: bool = False,
+    default: Any | NotSet = NotSet.Value,
+    default_factory: Callable[[], Any] | NotSet = NotSet.Value,
+) -> Any:
+    """Assign the result of this function as a default value to a property on the class level of an :class:`Object`
+    subclass to configure it's default value or whether it is an output property. This is an alternative to using
+    a :class:`typing.Annotated` type hint.
+
+    .. code:: Example
+
+        from kraken.core.property import Object, Property, config
+
+        class MyObj(Object):
+            a: Property[int] = config(default=42)
+    """
+
+    return PropertyConfig(output, default, default_factory)
+
+
+@dataclasses.dataclass
+class PropertyConfig:
+    """Used to annotate properties, to configure the property.
 
     .. code:: Example
 
@@ -39,16 +61,32 @@ class Output:
         from typing_extensions import Annotated
 
         class MyObj(Object):
-            a: Annotated[Property[int], Output]
+            a: Annotated[Property[int], PropertyConfig(output=True)]
     """
+
+    output: bool = False
+    default: Any | NotSet = NotSet.Value
+    default_factory: Callable[[], Any] | NotSet = NotSet.Value
 
 
 @dataclasses.dataclass
 class PropertyDescriptor:
     name: str
-    default: Any | NotSet
     is_output: bool
+    default: Any | NotSet
+    default_factory: Callable[[], Any] | NotSet
     accepted_types: tuple[type, ...]
+
+    def has_default(self) -> bool:
+        return not (self.default is NotSet.Value and self.default_factory is NotSet.Value)
+
+    def get_default(self) -> Any:
+        if self.default is not NotSet.Value:
+            return copy.deepcopy(self.default)
+        elif self.default_factory is not NotSet.Value:
+            return self.default_factory()
+        else:
+            raise RuntimeError(f"property {self.name!r} has no default value")
 
 
 class Property(Supplier[T]):
@@ -63,6 +101,7 @@ class Property(Supplier[T]):
     VALUE_ADAPTERS: ClassVar[dict[type, ValueAdapter]] = {}
 
     output = staticmethod(output)
+    config = staticmethod(config)
 
     def __init__(self, owner: Object, name: str, accepted_types: tuple[type, ...]) -> None:
 
@@ -164,24 +203,17 @@ class Object:
 
         for key, hint in typeapi.get_annotations(cls).items():
             hint = typeapi.of(hint)
-            is_output = False
+            config: PropertyConfig | None = None
 
-            # Unwrap annotatations.
+            # Unwrap annotatations, looking for a PropertyConfig annotation.
             if isinstance(hint, typeapi.Annotated):
-                is_output = Output in hint.metadata
-                if any(isinstance(x, Output) for x in hint.metadata):
-                    warnings.warn(
-                        f"Type hint for {cls.__name__}.{key} is annotated with 'Output' instance. You should pass"
-                        "the 'Output' class directly as an annotation instead. The property will still be considered "
-                        "an output property.",
-                        UserWarning,
-                    )
-                    is_output = True
+                config = next((x for x in hint.metadata if isinstance(x, PropertyConfig)), None)
                 hint = hint.wrapped
 
-            # Check if :func:`output()` was used to indicate that the property is an output property.
-            if hasattr(cls, key) and isinstance(getattr(cls, key), Output):
-                is_output = True
+            # Check if :func:`output()` or :func:`default()` was used to configure the property.
+            if hasattr(cls, key) and isinstance(getattr(cls, key), PropertyConfig):
+                assert config is None, "PropertyConfig cannot be on both an attribute and type annotation"
+                config = getattr(cls, key)
                 delattr(cls, key)
 
             # Is the hint pointing to a Property type?
@@ -198,12 +230,19 @@ class Object:
                 else:
                     raise RuntimeError(f"Property generic parameter must be a type or union, got {item_type}")
 
-                schema[key] = PropertyDescriptor(key, NotSet.Value, is_output, tuple(accepted_types))
+                config = config or PropertyConfig()
+                schema[key] = PropertyDescriptor(
+                    name=key,
+                    is_output=config.output,
+                    default=config.default,
+                    default_factory=config.default_factory,
+                    accepted_types=tuple(accepted_types),
+                )
 
             # The attribute is annotated as an output but not actually typed as a property?
-            elif is_output:
+            elif config:
                 raise RuntimeError(
-                    f"Type hint for {cls.__name__}.{key} is annotated as an 'Output' property, but not actually "
+                    f"Type hint for {cls.__name__}.{key} is annotated as a 'PropertyConfig', but not actually "
                     "typed as a 'Property'."
                 )
 
@@ -213,7 +252,10 @@ class Object:
         """Creates :class:`Properties <Property>` for every property defined in the object's schema."""
 
         for key, desc in self.__schema__.items():
-            setattr(self, key, Property(self, key, desc.accepted_types))
+            prop = Property[Any](self, key, desc.accepted_types)
+            setattr(self, key, prop)
+            if desc.has_default():
+                prop.setdefault(desc.get_default())
 
     def update(self, _raise: bool = False, **property_values: Any) -> None:
         """Assign the properties in *property_values* to the properties of the given :class:`Object`. Raises a

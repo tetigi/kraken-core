@@ -45,6 +45,10 @@ class TaskResult(enum.Enum):
     SKIPPED = enum.auto()
     UP_TO_DATE = enum.auto()
 
+    @staticmethod
+    def from_exit_code(code: int) -> TaskResult:
+        return TaskResult.SUCCEEDED if code == 0 else TaskResult.FAILED
+
 
 class Task(Object, abc.ABC):
     """A task is an isolated unit of work that is configured with properties. Every task has some common settings that

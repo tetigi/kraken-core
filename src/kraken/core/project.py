@@ -102,6 +102,7 @@ class Project:
         task_type: Type[T_Task] = cast(Any, Task),
         default: bool | None = None,
         capture: bool | None = None,
+        group: str | GroupTask | None = None,
         **kwargs: Any,
     ) -> T_Task:
         """Add a task to the project under the given name, executing the specified action.
@@ -110,6 +111,7 @@ class Project:
         :param task_type: The type of task to add.
         :param default: Override :attr:`Task.default`.
         :param capture: Override :attr:`Task.capture`.
+        :param group: Add the task to the given group in the project.
         :param kwargs: Any number of properties to set on the task. Unknown properties will be ignored
             with a warning log.
         :return: The created task.
@@ -125,6 +127,10 @@ class Project:
             task.capture = capture
         task.update(**kwargs)
         self.add_task(task)
+        if isinstance(group, str):
+            group = self.group(group)
+        if group is not None:
+            group.add(task)
         return task
 
     def group(self, name: str) -> GroupTask:

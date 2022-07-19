@@ -14,20 +14,12 @@ from kraken.core.project import Project
 
 from . import ProjectLoader
 
-KRAKEN_DIR = Path(".kraken")
-DEFAULT_FILES = [
-    Path(".kraken.py"),
-    Path("kraken.build.py"),
-    Path(".kraken.build.py"),
-    KRAKEN_DIR / "kraken.py",
-    KRAKEN_DIR / "kraken.build.py",
-    KRAKEN_DIR / "build.py",
-]
+BUILD_SCRIPT = Path(".kraken.py")
 
 
 class PythonScriptProjectLoader(ProjectLoader):
     def detect_in_project_directory(self, project_dir: Path) -> Path | None:
-        for file in (project_dir / f for f in DEFAULT_FILES):
+        for file in (project_dir / f for f in [BUILD_SCRIPT]):
             if file.is_file():
                 return file
         return None

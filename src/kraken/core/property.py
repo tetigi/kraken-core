@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import collections.abc
 import copy
 import dataclasses
 import warnings
@@ -108,7 +107,8 @@ class Property(Supplier[T]):
         # Ensure that we have value adapters for every accepted type.
         for accepted_type in accepted_types:
             if accepted_type not in self.VALUE_ADAPTERS:
-                raise ValueError(f"missing value adapter for type {accepted_type!r}")
+                if not isinstance(accepted_type, type):
+                    raise ValueError(f"missing value adapter for type {accepted_type!r}")
         assert len(accepted_types) > 0
 
         self.owner = owner
@@ -124,7 +124,13 @@ class Property(Supplier[T]):
     def _adapt_value(self, value: Any) -> Any:
         errors = []
         for accepted_type in self.accepted_types:
-            adapter = self.VALUE_ADAPTERS[accepted_type]
+            try:
+                adapter = self.VALUE_ADAPTERS[accepted_type]
+            except KeyError:
+                if isinstance(accepted_type, type):
+                    adapter = _type_checking_adapter(accepted_type)
+                else:
+                    raise
             try:
                 return adapter(value)
             except TypeError as exc:
@@ -287,18 +293,6 @@ def _type_checking_adapter(type_: type) -> Property.ValueAdapter:
 
     func.__name__ = f"check_{type_.__name__}"
     return func
-
-
-Property.value_adapter(str)(_type_checking_adapter(str))
-Property.value_adapter(int)(_type_checking_adapter(int))
-Property.value_adapter(bool)(_type_checking_adapter(bool))
-Property.value_adapter(list)(_type_checking_adapter(list))
-Property.value_adapter(dict)(_type_checking_adapter(dict))
-Property.value_adapter(set)(_type_checking_adapter(set))
-Property.value_adapter(type(None))(_type_checking_adapter(type(None)))
-Property.value_adapter(cast(type, collections.abc.Callable))(
-    _type_checking_adapter(cast(type, collections.abc.Callable))
-)
 
 
 @Property.value_adapter(Path)

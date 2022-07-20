@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 from kraken.core.property import Object, Property
 
@@ -24,7 +24,7 @@ def test__Property_default() -> None:
     a_value = ["abc"]
 
     class MyObj(Object):
-        a: Property[list[str]] = Property.config(default=a_value)
+        a: Property[List[str]] = Property.config(default=a_value)
         b: Property[int] = Property.config(default_factory=lambda: 42)
         c: Property[str]
 

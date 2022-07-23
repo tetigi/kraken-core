@@ -85,16 +85,16 @@ class TaskGraph:
 
             # Make sure we have all dependencies tracked in the graph.
             self._add_tasks(
-                (rel.other_task for rel in task.get_relationships() if not rel.before),
+                (rel.other_task for rel in task.get_relationships() if not rel.inverse),
                 dependencies_required,
             )
 
             for rel in task.get_relationships():
-                if rel.before:
+                if rel.inverse:
                     # We may not have added this task to the graph yet.
                     self._add_node(rel.other_task, False)
 
-                a, b = (task, rel.other_task) if rel.before else (rel.other_task, task)
+                a, b = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
                 self._add_edge(a.path, b.path, rel.strict)
 
     # Public API

@@ -9,7 +9,7 @@ import dataclasses
 import enum
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, ForwardRef, Iterable, List, TypeVar
+from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Sequence, TypeVar, cast
 
 from kraken.core.property import Object, Property
 
@@ -29,12 +29,15 @@ T_Task = TypeVar("T_Task", bound="Task")
 
 
 @dataclasses.dataclass
-class TaskRelationship:
+class _Relationship(Generic[T]):
     """Represents a relationship to another task."""
 
-    other_task: Task
+    other_task: T
     strict: bool
-    before: bool
+    inverse: bool
+
+
+TaskRelationship = _Relationship["Task"]
 
 
 class TaskResult(enum.Enum):
@@ -54,6 +57,11 @@ class Task(Object, abc.ABC):
     """A task is an isolated unit of work that is configured with properties. Every task has some common settings that
     are not treated as properties, such as it's :attr:`name`, :attr:`default` and :attr:`capture` flag. A task is a
     member of a :class:`Project` and can be uniquely identified with a path that is derived from its project and name.
+
+    A task can have a relationship to any number of other tasks. Relationships are directional and the direction can
+    be inverted. A strict relationship indicates that one task *must* run before the other, while a non-strict
+    relationship only dictates the order of tasks if both were to be executed (and prevents the task from being
+    executed in parallel).
     """
 
     name: str
@@ -67,6 +75,7 @@ class Task(Object, abc.ABC):
         self.name = name
         self.project = project
         self.logger = logging.getLogger(f"{self.path} [{type(self).__module__}.{type(self).__qualname__}]")
+        self.__relationships: list[_Relationship[str | Task]] = []
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.path})"
@@ -80,9 +89,43 @@ class Task(Object, abc.ABC):
         else:
             return f"{self.project.path}:{self.name}"
 
+    def add_relationship(
+        self,
+        task_or_selector: Task | Sequence[Task] | str,
+        strict: bool = True,
+        inverse: bool = False,
+    ) -> None:
+        """Add a relationship to this task that will be returned by :meth:`get_relationships`.
+
+        :param task_or_selector: A task, list of tasks or a task selector (wich may expand to multiple tasks)
+            to add as a relationship to this task. If a task selector string is specified, it will be evaluated
+            lazily when :meth:`get_relationships` is called.
+        :param strict: Whether the relationship is strict, i.e. informs a strong dependency in one or the other
+            direction. If a relationship is not strict, it informs only order of execution and parallel
+            exclusivity.
+        :param inverse: Whether to invert the relationship.
+        """
+
+        if isinstance(task_or_selector, (Task, str)):
+            self.__relationships.append(_Relationship(task_or_selector, strict, inverse))
+        elif isinstance(task_or_selector, Sequence):
+            for idx, task in enumerate(task_or_selector):
+                if not isinstance(task, Task):
+                    raise TypeError(
+                        f"task_or_selector[{idx}] must be Task | Sequence[Task] | str, got "
+                        f"{type(task_or_selector).__name__}"
+                    )
+            for task in task_or_selector:
+                self.__relationships.append(_Relationship(task, strict, inverse))
+        else:
+            raise TypeError(
+                f"task_or_selector argument must be Task | Sequence[Task] | str, got {type(task_or_selector).__name__}"
+            )
+
     def get_relationships(self) -> Iterable[TaskRelationship]:
         """Iterates over the relationships to other tasks based on the property provenance."""
 
+        # Derive dependencies through property lineage.
         for key in self.__schema__:
             property: Property[Any] = getattr(self, key)
             for supplier, _ in property.lineage():
@@ -90,6 +133,15 @@ class Task(Object, abc.ABC):
                     continue
                 if isinstance(supplier, Property) and isinstance(supplier.owner, Task) and supplier.owner is not self:
                     yield TaskRelationship(supplier.owner, True, False)
+
+        # Manually added relationships.
+        for rel in self.__relationships:
+            if isinstance(rel.other_task, str):
+                for task in self.project.context.resolve_tasks([rel.other_task], relative_to=self.project):
+                    yield TaskRelationship(task, rel.strict, rel.inverse)
+            else:
+                assert isinstance(rel.other_task, Task)
+                yield cast(TaskRelationship, rel)
 
     def is_up_to_date(self) -> bool:
         """Gives the task a chance before it is executed to inform the build executor that it is up to date and does
@@ -146,7 +198,15 @@ class GroupTask(Task):
         self.default = False
 
     def add(self, tasks: str | Task | Iterable[str | Task]) -> None:
-        """Add one or more tasks by name or task object to this group."""
+        """Add one or more tasks by name or task object to this group.
+
+        This is different from adding a task via :meth:`add_relationship` because the task is instead stored in the
+        :attr:`tasks` list which can be used to access the members of the task. Relationships for a group task can
+        still be used to express relationships between groups or tasks and groups.
+
+        Also note that :meth:`add_relationship` supports lazy evaluation of task selectors, whereas using this method
+        to add a task to the group by a selector string requires that the task already exists.
+        """
 
         if isinstance(tasks, (str, Task)):
             tasks = [tasks]

@@ -105,33 +105,17 @@ class TaskGraph:
     def _update_inactive_tasks(self) -> None:
         """Internal. Updates the inactive tasks that are not required to be executed for the target tasks."""
 
-        self._inactive_tasks.clear()
+        def _recurse_task(task_path: str, visited: set[str]) -> None:
+            visited.add(task_path)
+            for pred in self._full_graph.predecessors(task_path):
+                if not_none(self._get_edge(pred, task_path)).strict:
+                    _recurse_task(pred, visited)
 
-        # Find all tasks that are not initially required and only have dependants with an optional dependency.
-        weakly_connected_tasks = set()
-        for task_path in self._full_graph.nodes:
-            if task_path in self._target_tasks:
-                continue
-            if not any(
-                not_none(self._get_edge(task_path, dependant_task_path)).strict
-                for dependant_task_path in self._full_graph.successors(task_path)
-            ):
-                weakly_connected_tasks.add(task_path)
+        active_tasks: set[str] = set()
+        for task_path in self._target_tasks:
+            _recurse_task(task_path, active_tasks)
 
-        # Remove the subgraphs that are weakly connected, but keep all required tasks and their subgraphs.
-        def _remove_subgraph(task_path: str) -> None:
-            if task_path in self._target_tasks:
-                return
-            if task_path not in self._full_graph.nodes:
-                return
-            for successor in list(self._full_graph.predecessors(task_path)):
-                _remove_subgraph(successor)
-            self._inactive_tasks.add(task_path)
-
-        for task_path in weakly_connected_tasks:
-            if task_path in self._full_graph.nodes:
-                _remove_subgraph(task_path)
-
+        self._inactive_tasks = set(self._full_graph.nodes) - active_tasks
         self._update_target_graph()
 
     def _update_target_graph(self) -> None:

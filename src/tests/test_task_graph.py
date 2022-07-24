@@ -89,3 +89,25 @@ def test__TaskGraph__ready_on_failure(kraken_project: Project) -> None:
     graph.set_status(task_c, TaskStatus.succeeded())
     assert list(graph.ready()) == []
     assert not graph.is_complete()
+
+
+def test__TaskGraph__ready_2(kraken_project: Project) -> None:
+    """
+    ```
+    pythonBuild -----> pythonPublish -----> publish (group)
+     \\-----> build (group)
+    ```
+    """
+
+    pythonBuild = kraken_project.do("pythonBuild", VoidTask)
+    build = kraken_project.group("build")
+    pythonPublish = kraken_project.do("pythonPublish", VoidTask)
+    publish = kraken_project.group("publish")
+
+    build.add(pythonBuild)
+    pythonPublish.add_relationship(pythonBuild)
+    publish.add(pythonPublish)
+
+    graph = TaskGraph(kraken_project.context)
+    graph.set_targets([publish])
+    assert list(graph.ready()) == [pythonBuild]

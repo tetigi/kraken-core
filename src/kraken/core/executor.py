@@ -7,13 +7,13 @@ can be captured in its entirety, however it has the drawback that the task objec
 
 from __future__ import annotations
 
+import builtins
 import contextlib
-import dataclasses
-import enum
 import logging
 import os
 import sys
 import traceback
+from functools import partial
 
 # from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -23,38 +23,9 @@ from typing import IO, AnyStr, Iterator
 from termcolor import colored
 
 from kraken.core.graph import TaskGraph
-from kraken.core.task import Task, TaskResult
+from kraken.core.task import Task, TaskStatus, TaskStatusType
 
 logger = logging.getLogger(__name__)
-
-
-class TaskStatus(enum.Enum):
-    """Base on the task's methods (:meth:`Task.is_skippable` and :meth:`Task.is_up_to_date`), we derive the status
-    of the task. This is different from the :class:`TaskResult` in that it represents the state of the task before
-    its execution and how the task should be handled accordingly, wheras the :class:`TaskResult` represents the
-    result of its execution."""
-
-    SKIPPABLE = enum.auto()  #: The task can be skipped.
-    UP_TO_DATE = enum.auto()  #: The task is up to date.
-    OUTDATED = enum.auto()  #: The task is outdated.
-    QUEUED = enum.auto()  #: The task needs to run, never checks if it is up to date.
-
-
-def get_task_status(task: Task) -> TaskStatus:
-    """Derive the status of a task before it is executed."""
-
-    try:
-        if task.is_skippable():
-            return TaskStatus.SKIPPABLE
-    except NotImplementedError:
-        pass
-    try:
-        if task.is_up_to_date():
-            return TaskStatus.UP_TO_DATE
-        else:
-            return TaskStatus.OUTDATED
-    except NotImplementedError:
-        return TaskStatus.QUEUED
 
 
 @contextlib.contextmanager
@@ -90,49 +61,38 @@ def replace_stdio(
             os.dup2(stderr_save, sys.stderr.fileno())
 
 
-@dataclasses.dataclass
-class ExecutionResult:
-    status: TaskResult
-    message: str | None
-    output: str
-
-
-def _execute_task(task: Task, capture: bool) -> ExecutionResult:
-    status = TaskResult.FAILED
-    message = "unknown error"
-    output = ""
+def _execute_task(task: Task, capture: bool) -> tuple[TaskStatus, str | None]:
+    result = TaskStatus.failed("unknown error")
+    output = None
     with contextlib.ExitStack() as exit_stack:
         if capture:
             fp = exit_stack.enter_context(NamedTemporaryFile(delete=False))
             exit_stack.enter_context(replace_stdio(None, fp, fp))
             exit_stack.callback(lambda: os.remove(fp.name))
         try:
-            status = task.execute()
-            message = ""
+            execute_result = task.execute()
+            if execute_result is None:
+                result = TaskStatus.succeeded()
+            elif isinstance(execute_result, TaskStatus):
+                result = execute_result
+            else:
+                raise RuntimeError(f"{task} did not return TaskResult, got {execute_result!r} instead")
         except BaseException as exc:
-            status, message = TaskResult.FAILED, f"unhandled exception: {exc}"
+            result = TaskStatus.failed(f"unhandled exception: {exc}")
             traceback.print_exc()
         finally:
             if capture:
                 fp.close()
                 output = Path(fp.name).read_text()
-    if not isinstance(status, TaskResult):
-        raise RuntimeError(f"{task} did not return TaskResult, got {status!r} instead")
-    return ExecutionResult(status, message, output.rstrip())
+    return result, output.rstrip() if output is not None else None
 
 
 COLORS_BY_RESULT = {
-    TaskResult.FAILED: "red",
-    TaskResult.SKIPPED: "yellow",
-    TaskResult.SUCCEEDED: "green",
-    TaskResult.UP_TO_DATE: "green",
-}
-
-COLORS_BY_STATUS = {
-    TaskStatus.SKIPPABLE: "yellow",
-    TaskStatus.UP_TO_DATE: "green",
-    TaskStatus.OUTDATED: "red",
-    TaskStatus.QUEUED: "magenta",
+    TaskStatusType.PENDING: "magenta",
+    TaskStatusType.FAILED: "red",
+    TaskStatusType.SKIPPED: "yellow",
+    TaskStatusType.SUCCEEDED: "green",
+    TaskStatusType.UP_TO_DATE: "green",
 }
 
 
@@ -140,45 +100,39 @@ class Executor:
     def __init__(self, graph: TaskGraph, verbose: bool = False) -> None:
         self.graph = graph
         self.verbose = verbose
-        self.results: dict[str, ExecutionResult] = {}
 
-    def execute_task(self, task: Task) -> ExecutionResult:
-        status = get_task_status(task)
-        if status == TaskStatus.SKIPPABLE:
-            result = ExecutionResult(TaskResult.SKIPPED, None, "")
-        elif status == TaskStatus.UP_TO_DATE:
-            result = ExecutionResult(TaskResult.UP_TO_DATE, None, "")
-        else:
+    def execute_task(self, task: Task) -> None:
+        print = partial(builtins.print, flush=True)
+        status = task.prepare() or TaskStatus.pending()
+        if status.is_pending():
             print(">", task.path)
-            sys.stdout.flush()
 
             # TODO (@NiklasRosenstein): Transfer values from output properties back to the main process.
             # TODO (@NiklasRosenstein): Until we actually start tasks in paralle, we don't benefit from
             #       using a ProcessPoolExecutor.
             # result = self.pool.submit(_execute_task, task, True).result()
-            result = _execute_task(task, task.capture and not self.verbose)
+            status, output = _execute_task(task, task.capture and not self.verbose)
 
-        if (result.status == TaskResult.FAILED or not task.capture or self.verbose) and result.output:
-            print(result.output)
-            sys.stdout.flush()
+            if (status.is_failed() or not task.capture or self.verbose) and output:
+                print(output)
 
         print(
             ">",
             task.path,
-            colored(result.status.name, COLORS_BY_RESULT[result.status], attrs=["bold"]),
+            colored(status.type.name, COLORS_BY_RESULT[status.type], attrs=["bold"]),
             end="",
         )
-        if result.message:
-            print(f" ({result.message})", end="")
+        if status.message:
+            print(f" ({status.message})", end="")
         print()
-        sys.stdout.flush()
 
-        self.results[task.path] = result
-        return result
+        self.graph.set_status(task, status)
 
     def execute(self) -> bool:
-        for task in self.graph.execution_order():
-            result = self.execute_task(task)
-            if result.status == TaskResult.FAILED:
+        while not self.graph.is_complete():
+            tasks = list(self.graph.ready())
+            if not tasks:
                 return False
+            for task in tasks:
+                self.execute_task(task)
         return True

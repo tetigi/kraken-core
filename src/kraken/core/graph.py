@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Iterable, List, cast
+from typing import Iterable, Iterator, List, cast
 
-from networkx import DiGraph  # type: ignore[import]
+from networkx import DiGraph, restricted_view  # type: ignore[import]
 
-from kraken.core.task import GroupTask, Task
+from kraken.core.task import GroupTask, Task, TaskStatus
 from kraken.core.utils import not_none
 
 
@@ -21,13 +21,33 @@ class _Edge:
 
 
 class TaskGraph:
-    """Represents the build graph."""
+    """The task graph is a materialization of the relationships of tasks into a acyclic directed graph.
+
+    The graph is built recursively from one or more tasks of which the relationships are discovered. The set of tasks
+    that is passed initially to the graph are considered the "required" tasks and can be later retrieved via the
+    :meth:`tasks` by passing `required_only=True`.
+
+    The initial task set from which the graph is built and their dependencies represent the subgraph of interest that
+    is usually executed, ignoring all tasks that are not a member of this subgraph. Any such superfluous tasks can be
+    removed from the graph using the :meth:`trim` method.
+
+    When a task was executed, the executing client must be set the status of the task using the :meth:`set_status`
+    method. This will virtually remove the task from the graph for subsequent queries on the :meth:`execution_order`
+    or the :meth:`ready` tasks.
+
+    If a task status is not OK (i.e. :meth:`TaskStatus.is_failed` returns `True`), that task will block it's dependant
+    tasks from appearing in the result of :meth:`ready`, which can eventually lead the graph into a "locked" state
+    where work is pending but cannot continue because the depending work has failed.
+    """
 
     def __init__(self, tasks: Iterable[Task] = ()) -> None:
         """Create a new build graph from the given task list."""
 
         # Nodes have the form {'data': _Node} and edges have the form {'data': _Edge}.
         self._digraph = DiGraph()
+        self._results: dict[str, TaskStatus] = {}
+        self._completed_nodes: set[str] = set()
+
         self._add_tasks(tasks)
 
     def __bool__(self) -> bool:
@@ -97,6 +117,11 @@ class TaskGraph:
                 a, b = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
                 self._add_edge(a.path, b.path, rel.strict)
 
+    def _get_restricted_view(self) -> DiGraph:
+        """Returns a restricted view of the internal graph that hides all tasks that have a non-failure status."""
+
+        return restricted_view(self._digraph, self._completed_nodes, set())
+
     # Public API
 
     def get_predecessors(self, task: Task) -> List[Task]:
@@ -136,16 +161,53 @@ class TaskGraph:
 
         return self
 
-    def tasks(self, required_only: bool = False) -> Iterable[Task]:
-        """Returns all tasks in an arbitrary order."""
+    def tasks(self, required_only: bool = False, failed: bool = False) -> Iterator[Task]:
+        """Returns all tasks in an arbitrary order.
+
+        :param required_only: Return only tasks from the initial task set that the graph was built from.
+        :param failed: Return only failed tasks."""
 
         tasks = (not_none(self._get_node(task_path)).task for task_path in self._digraph.nodes)
         if required_only:
             tasks = (t for t in tasks if not_none(self._get_node(t.path)).required)
+        if failed:
+            tasks = (t for t in tasks if t.path in self._results and self._results[t.path].is_failed())
         return tasks
 
     def execution_order(self) -> Iterable[Task]:
+        """Returns all tasks in the order they need to be executed."""
+
         from networkx.algorithms import topological_sort  # type: ignore[import]
 
-        order = topological_sort(self._digraph)
+        graph = self._get_restricted_view()
+        order = topological_sort(graph)
         return (not_none(self._get_node(task_path)).task for task_path in order)
+
+    def set_status(self, task: Task, status: TaskStatus) -> None:
+        """Sets the status of a task, marking it as executed."""
+
+        if task.path in self._results:
+            raise RuntimeError(f"already have a status for task {task.path!r}")
+        self._results[task.path] = status
+        if status.is_ok():
+            self._completed_nodes.add(task.path)
+
+    def get_status(self, task: Task) -> TaskStatus | None:
+        """Return the status of a task."""
+
+        return self._results.get(task.path)
+
+    def is_complete(self) -> bool:
+        """Returns `True` if, an only if, all tasks in the graph have a non-failure result."""
+
+        return len(self._completed_nodes) == len(self._digraph.nodes)
+
+    def ready(self) -> Iterable[Task]:
+        """Returns all tasks that are ready to be executed. This can be used to constantly query the graph for new
+        available tasks as the status of tasks in the graph is updated with :meth:`set_status`. An empty list is
+        returned if no tasks are ready. At this point, if no tasks are currently running, :meth:`is_complete` can be
+        used to check if the entire task graph was executed successfully."""
+
+        graph = self._get_restricted_view()
+        root_set = (node for node in graph.nodes if graph.in_degree(node) == 0 and node not in self._results)
+        return (not_none(self._get_node(task_path)).task for task_path in root_set)

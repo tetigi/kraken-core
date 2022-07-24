@@ -8,6 +8,7 @@ import abc
 import dataclasses
 import enum
 import logging
+import shlex
 import sys
 from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Sequence, TypeVar, cast
 
@@ -40,17 +41,87 @@ class _Relationship(Generic[T]):
 TaskRelationship = _Relationship["Task"]
 
 
-class TaskResult(enum.Enum):
-    """Represents the possible results that a task can return from its execution."""
+class TaskStatusType(enum.Enum):
+    """Represents the possible statuses that a task can return from its execution."""
 
+    PENDING = enum.auto()
     FAILED = enum.auto()
     SUCCEEDED = enum.auto()
     SKIPPED = enum.auto()
     UP_TO_DATE = enum.auto()
 
+    def is_ok(self) -> bool:
+        return self not in (TaskStatusType.PENDING, TaskStatusType.FAILED)
+
+    def is_pending(self) -> bool:
+        return self == TaskStatusType.PENDING
+
+    def is_failed(self) -> bool:
+        return self == TaskStatusType.FAILED
+
+    def is_succeeded(self) -> bool:
+        return self == TaskStatusType.SUCCEEDED
+
+    def is_skipped(self) -> bool:
+        return self == TaskStatusType.SKIPPED
+
+    def is_up_to_date(self) -> bool:
+        return self == TaskStatusType.UP_TO_DATE
+
+
+@dataclasses.dataclass
+class TaskStatus:
+    """Represents a task status with a message."""
+
+    type: TaskStatusType
+    message: str | None
+
+    def is_ok(self) -> bool:
+        return self.type.is_ok()
+
+    def is_pending(self) -> bool:
+        return self.type == TaskStatusType.PENDING
+
+    def is_failed(self) -> bool:
+        return self.type == TaskStatusType.FAILED
+
+    def is_succeeded(self) -> bool:
+        return self.type == TaskStatusType.SUCCEEDED
+
+    def is_skipped(self) -> bool:
+        return self.type == TaskStatusType.SKIPPED
+
+    def is_up_to_date(self) -> bool:
+        return self.type == TaskStatusType.UP_TO_DATE
+
     @staticmethod
-    def from_exit_code(code: int) -> TaskResult:
-        return TaskResult.SUCCEEDED if code == 0 else TaskResult.FAILED
+    def pending(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.PENDING, message)
+
+    @staticmethod
+    def failed(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.FAILED, message)
+
+    @staticmethod
+    def succeeded(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.SUCCEEDED, message)
+
+    @staticmethod
+    def skipped(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.SKIPPED, message)
+
+    @staticmethod
+    def up_to_date(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.UP_TO_DATE, message)
+
+    @staticmethod
+    def from_exit_code(command: list[str] | None, code: int) -> TaskStatus:
+        return TaskStatus(
+            TaskStatusType.SUCCEEDED if code == 0 else TaskStatusType.FAILED,
+            None
+            if code == 0 or command is None
+            else 'command "' + " ".join(map(shlex.quote, command)) + f'" returned exit code {code}',
+        )
 
 
 class Task(Object, abc.ABC):
@@ -147,28 +218,6 @@ class Task(Object, abc.ABC):
                 assert isinstance(rel.other_task, Task)
                 yield cast(TaskRelationship, rel)
 
-    def is_up_to_date(self) -> bool:
-        """Gives the task a chance before it is executed to inform the build executor that it is up to date and does
-        not need to be executed. Some tasks may be able to determine this quickly so they can implement this method to
-        improve build performance and user information display.
-
-        Raises:
-            NotImplementedError: If the task does not support an is-up-to-date check.
-        """
-
-        raise NotImplementedError
-
-    def is_skippable(self) -> bool:
-        """Gives the task a chance before it is executed to inform the build executor that the task can be skipped.
-        This status is different from :meth:`is_up_to_date` but may lead to the same result, i.e. that the task is not
-        executed.
-
-        Raises:
-            NotImplementedError: If the task does not support an is-skippable check.
-        """
-
-        raise NotImplementedError
-
     def finalize(self) -> None:
         """This method is called by :meth:`Context.finalize()`. It gives the task a chance update its
         configuration before the build process is executed. The default implementation finalizes all non-output
@@ -179,8 +228,27 @@ class Task(Object, abc.ABC):
             if not self.__schema__[key].is_output:
                 prop.finalize()
 
+    def prepare(self) -> TaskStatus | None:
+        """Called before a task is executed. This is called from the main process to check for example if the task
+        is skippable or up to date. The implementation of this method should be quick to determine the task status,
+        otherwise it should be done in :meth:`execute`.
+
+        This method should not return :attr:`TaskStatusType.SUCCEEDED` or :attr:`TaskStatusType.FAILED`. If `None`
+        is returned, it is assumed that the task is :attr:`TaskStatusType.PENDING`.
+        """
+
+        return TaskStatus.pending()
+
     @abc.abstractmethod
-    def execute(self) -> TaskResult:
+    def execute(self) -> TaskStatus | None:
+        """Implements the behaviour of the task. The task can assume that all strict dependencies have been executed
+        successfully. Output properties of dependency tasks that are only written by the task's execution are now
+        accessible.
+
+        This method should not return :attr:`TaskStatusType.PENDING`. If `None` is returned, it is assumed that the
+        task is :attr:`TaskStatusType.SUCCEEDED`.
+        """
+
         raise NotImplementedError
 
     # Object
@@ -228,21 +296,18 @@ class GroupTask(Task):
             yield TaskRelationship(task, True, False)
         yield from super().get_relationships()
 
-    def is_up_to_date(self) -> bool:
-        return True
+    def prepare(self) -> TaskStatus | None:
+        return TaskStatus.skipped("is a GroupTask")
 
-    def execute(self) -> TaskResult:
-        return TaskResult.UP_TO_DATE
+    def execute(self) -> TaskStatus | None:
+        raise RuntimeError("GroupTask cannot be executed")
 
 
 class VoidTask(Task):
     """This task does nothing and can always be skipped."""
 
-    def is_skippable(self) -> bool:
-        return True
+    def prepare(self) -> TaskStatus | None:
+        return TaskStatus.skipped("is a VoidTask")
 
-    def is_up_to_date(self) -> bool:
-        return True
-
-    def execute(self) -> TaskResult:
-        return TaskResult.SKIPPED
+    def execute(self) -> TaskStatus | None:
+        raise RuntimeError("VoidTask cannot be executed")

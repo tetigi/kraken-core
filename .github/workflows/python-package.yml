@@ -23,9 +23,9 @@ jobs:
     - uses: docker/setup-buildx-action@v2
     - run: cd src/example && python -m kraken.core
 
-  update-changelog:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v2
-      - uses: python-slap/slap.cli@gha/changelog/update/v1
+  # update-changelog:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'pull_request'
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: python-slap/slap.cli@gha/changelog/update/v1

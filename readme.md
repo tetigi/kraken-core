@@ -72,11 +72,26 @@ class MyTask(Task):
 
 __Property value adapters__
 
-Properties only support the types for which there is a value adapter registered. The default adapters registered in
-the `kraken.core.property` module covert most use cases such as plain data types (`bool`, `int`, `float`, `str`,
-`None`) and containers (`list`, `set`, `dict`) for which (not nested) type checking is implemented. Additionally, the
-value adapter for `pathlib.Path` will allow a `str` to be passed and automatically convert it to a path.
+Properties will perform runtime type checking when passing a static value into it. The type checking is currently
+limited to the root data type and does not take type parameters and sub-structures into account (e.g. a `List[str]`
+property will validate that the received value is a `list` but that that it's items are `str`).
 
-Be aware that the order of the union members will play a role: A property declared as `Property[Union[Path, str]]`
-will always coerce strings to paths, whereas a property declared as `Property[Union[str, Path]]` will accept a string
-and not coerce it to a string.
+The runtime type check is not currently performed when a supplier (another property for example) is passed into 
+the property instead.
+
+In addition to type checks, "value adapters" can be registered using the `Property.value_adapter()` decorator. A
+default adapter is registered for the `Path` type which will coerce string values to path objects. This means that
+the order the order of the union members matters:
+
+```py
+a: Property[Union[str, Path]]
+b: Property[Union[Path, str]]
+
+# ...
+
+a.set("foo")
+assert a.get() == "foo"
+
+b.set("foo")
+assert b.get() == Path("foo")
+```

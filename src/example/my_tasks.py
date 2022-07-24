@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from kraken.core import Project, Property, Task, TaskResult
+from kraken.core import Project, Property, Task
 
 
 class WriteDockerfileTask(Task):
@@ -12,11 +12,10 @@ class WriteDockerfileTask(Task):
         super().__init__(name, project)
         self.dockerfile.set(self.project.build_directory / "Dockerfile")
 
-    def execute(self) -> TaskResult:
+    def execute(self) -> None:
         dockerfile = self.dockerfile.get()
         dockerfile.parent.mkdir(parents=True, exist_ok=True)
         dockerfile.write_text(self.content.get())
-        return TaskResult.SUCCEEDED
 
 
 class DockerBuildTask(Task):
@@ -28,10 +27,9 @@ class DockerBuildTask(Task):
         self.context.set(project.directory)
         project.group("build").add(self)
 
-    def execute(self) -> TaskResult:
+    def execute(self) -> None:
         command = ["docker", "build", str(self.context.get())]
         dockerfile = self.dockerfile.get_or(None)
         if dockerfile is not None:
             command += ["-f", str(dockerfile)]
         subprocess.check_call(command)
-        return TaskResult.SUCCEEDED

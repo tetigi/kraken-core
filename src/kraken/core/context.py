@@ -203,7 +203,6 @@ class Context:
 
         from .executor import Executor
         from .graph import TaskGraph
-        from .task import TaskResult
 
         if isinstance(targets, TaskGraph):
             assert self._finalized, "no, no, this is all wrong. you need to finalize the context first"
@@ -215,8 +214,12 @@ class Context:
 
         executor = Executor(graph, verbose)
         if not executor.execute():
-            failed_task = next((key for key, value in executor.results.items() if value.status == TaskResult.FAILED))
-            raise BuildError(f'task "{failed_task}" failed')
+            failed_tasks = list(graph.tasks(failed=True))
+            if len(failed_tasks) == 1:
+                message = f'task "{failed_tasks[0].path}" failed'
+            else:
+                message = "tasks " + ", ".join(f'"{task.path}"' for task in failed_tasks) + " failed"
+            raise BuildError(message)
 
     @overload
     @staticmethod

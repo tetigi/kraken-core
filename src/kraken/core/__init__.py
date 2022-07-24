@@ -7,7 +7,7 @@ from .loader import ProjectLoader, ProjectLoaderError
 from .project import Project
 from .property import Property
 from .supplier import Supplier
-from .task import GroupTask, Task, TaskRelationship, TaskResult, VoidTask
+from .task import GroupTask, Task, TaskRelationship, TaskStatus, TaskStatusType, VoidTask
 
 __all__ = [
     "BuildError",
@@ -22,6 +22,7 @@ __all__ = [
     "GroupTask",
     "Task",
     "TaskRelationship",
-    "TaskResult",
+    "TaskStatus",
+    "TaskStatusType",
     "VoidTask",
 ]

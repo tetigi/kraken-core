@@ -10,7 +10,7 @@ import enum
 import logging
 import shlex
 import sys
-from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Sequence, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Optional, Sequence, TypeVar, cast
 
 from kraken.core.property import Object, Property
 
@@ -137,7 +137,7 @@ class Task(Object, abc.ABC):
 
     name: str
     project: Project
-    description: str | None = None
+    description: Optional[str] = None
     default: bool = True
     capture: bool = False
     logger: logging.Logger

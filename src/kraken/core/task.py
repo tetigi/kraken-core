@@ -137,7 +137,11 @@ class Task(Object, abc.ABC):
         # Manually added relationships.
         for rel in self.__relationships:
             if isinstance(rel.other_task, str):
-                for task in self.project.context.resolve_tasks([rel.other_task], relative_to=self.project):
+                try:
+                    resolved_tasks = self.project.context.resolve_tasks([rel.other_task], relative_to=self.project)
+                except ValueError as exc:
+                    raise ValueError(f"in task {self.path}: {exc}")
+                for task in resolved_tasks:
                     yield TaskRelationship(task, rel.strict, rel.inverse)
             else:
                 assert isinstance(rel.other_task, Task)

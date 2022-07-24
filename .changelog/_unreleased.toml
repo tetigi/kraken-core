@@ -3,3 +3,9 @@ id = "987976f2-3729-4247-84b4-9abff032ce67"
 type = "feature"
 description = "allow adding question marks to target selectors to make it optional"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "9a9905f6-a4eb-4804-979e-050adfe297f3"
+type = "improvement"
+description = "improve `ValueError` raised when task selector is resolved in `Task.get_relationships()` to add the context of the task that the selector is resolved from"
+author = "@NiklasRosenstein"

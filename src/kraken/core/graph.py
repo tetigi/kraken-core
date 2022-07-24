@@ -5,6 +5,7 @@ from typing import Iterable, Iterator, List, cast
 
 from networkx import DiGraph, restricted_view  # type: ignore[import]
 
+from kraken.core.context import Context
 from kraken.core.task import GroupTask, Task, TaskStatus
 from kraken.core.utils import not_none
 
@@ -12,7 +13,6 @@ from kraken.core.utils import not_none
 @dataclasses.dataclass
 class _Node:
     task: Task
-    required: bool
 
 
 @dataclasses.dataclass
@@ -21,167 +21,157 @@ class _Edge:
 
 
 class TaskGraph:
-    """The task graph is a materialization of the relationships of tasks into a acyclic directed graph.
+    """The task graph represents the entirety of a Kraken context's tasks as a directed acyclic graph data structure.
 
-    The graph is built recursively from one or more tasks of which the relationships are discovered. The set of tasks
-    that is passed initially to the graph are considered the "required" tasks and can be later retrieved via the
-    :meth:`tasks` by passing `required_only=True`.
+    Internally, it stores three versions of the graph: A full graph, a target subgraph and a ready subgraph. The
+    subgraphs are implemented as views on the full graph.
 
-    The initial task set from which the graph is built and their dependencies represent the subgraph of interest that
-    is usually executed, ignoring all tasks that are not a member of this subgraph. Any such superfluous tasks can be
-    removed from the graph using the :meth:`trim` method.
-
-    When a task was executed, the executing client must be set the status of the task using the :meth:`set_status`
-    method. This will virtually remove the task from the graph for subsequent queries on the :meth:`execution_order`
-    or the :meth:`ready` tasks.
-
-    If a task status is not OK (i.e. :meth:`TaskStatus.is_failed` returns `True`), that task will block it's dependant
-    tasks from appearing in the result of :meth:`ready`, which can eventually lead the graph into a "locked" state
-    where work is pending but cannot continue because the depending work has failed.
+    1. The **full graph** stores the entire build graph of all tasks in the context.
+    2. The **target graph** stores only the relevant subgraph with the target tasks as leaf nodes set with
+       :meth:`set_targets`.
+    3. The **ready graph** excludes all successfully completed tasks from the target graph. This is used to find
+       the next set of ready tasks with :meth:`ready`. This graph is not kept in memory but created automatically
+       when needed.
     """
 
-    def __init__(self, tasks: Iterable[Task] = ()) -> None:
+    def __init__(self, context: Context) -> None:
         """Create a new build graph from the given task list."""
 
-        # Nodes have the form {'data': _Node} and edges have the form {'data': _Edge}.
-        self._digraph = DiGraph()
-        self._results: dict[str, TaskStatus] = {}
-        self._completed_nodes: set[str] = set()
+        self._context = context
 
-        self._add_tasks(tasks)
+        # Nodes have the form {'data': _Node} and edges have the form {'data': _Edge}.
+        self._full_graph = DiGraph()
+
+        # Keep track of task execution results.
+        self._results: dict[str, TaskStatus] = {}
+
+        # Here we store all tasks that make up the "initial set", i.e. the ultimate target tasks that are to be
+        # executed. We derive the subgraph to execute from this initial set in the :meth:`trim` method by deactivating
+        # tasks in :attr:`_inactive_nodes`.
+        self._target_tasks: set[str] = set()
+
+        # All deactivated tasks are stored here.
+        self._inactive_tasks: set[str] = set()
+
+        # All tasks that have a successful status are stored here.
+        self._completed_tasks: set[str] = set()
+
+        # Make sure the build graph is populated with the entire build graph.
+        for project in context.iter_projects():
+            for task in project.tasks().values():
+                if task.path not in self._full_graph.nodes:
+                    self._add_task(task)
+
+        # The restricted view is the subgraph that excludes all inactive tasks.
+        self._target_graph: DiGraph
+
+        self._update_target_graph()
 
     def __bool__(self) -> bool:
-        return len(self._digraph.nodes) > 0
+        return len(self._target_graph.nodes) > 0
 
     def __len__(self) -> int:
-        return len(self._digraph.nodes)
+        return len(self._target_graph.nodes)
 
     # Low level internal API
 
-    def _get_node(self, task_path: str) -> _Node | None:
-        data = self._digraph.nodes.get(task_path)
+    def _get_task(self, task_path: str) -> Task | None:
+        data = self._full_graph.nodes.get(task_path)
         if data is None:
             return None
-        return cast(_Node, data["data"])
+        return cast(Task, data["data"])
 
-    def _add_node(self, task: Task, required: bool) -> None:
-        """Internal. Ensures that a node for the given task exists. If *required* is True, it will override the
-        existing status."""
-
-        node = self._get_node(task.path) or _Node(task, required)
-        node.required = node.required or required
-        self._digraph.add_node(task.path, data=node)
+    def _add_task(self, task: Task) -> None:
+        self._full_graph.add_node(task.path, data=task)
+        for rel in task.get_relationships():
+            if rel.other_task.path not in self._full_graph.nodes:
+                self._add_task(rel.other_task)
+            a, b = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
+            self._add_edge(a.path, b.path, rel.strict)
 
     def _get_edge(self, task_a: str, task_b: str) -> _Edge | None:
-        data = self._digraph.edges.get((task_a, task_b))
+        data = self._full_graph.edges.get((task_a, task_b))
         if data is None:
             return None
         return cast(_Edge, data["data"])
 
     def _add_edge(self, task_a: str, task_b: str, strict: bool) -> None:
-        """Internal. Introduces an edge between two tasks."""
-
         edge = self._get_edge(task_a, task_b) or _Edge(strict)
         edge.strict = edge.strict or strict
-        self._digraph.add_edge(task_a, task_b, data=edge)
+        self._full_graph.add_edge(task_a, task_b, data=edge)
 
     # High level internal API
 
-    def _add_tasks(self, tasks: Iterable[Task], required: bool = True) -> None:
-        """Internal. Extends the internal directed graph by the given tasks.
+    def _update_inactive_tasks(self) -> None:
+        """Internal. Updates the inactive tasks that are not required to be executed for the target tasks."""
 
-        Args:
-            tasks: The tasks to add to the graph.
-            required: Whether the tasks added via this function should be marked as required (i.e. they
-                will never be ignored by the :meth:`trimmed` method).
-        """
-
-        for task in tasks:
-
-            # If a group task is required, we instead mark all tasks that this group depends on as required.
-            dependencies_required = isinstance(task, GroupTask)
-
-            self._add_node(task, not dependencies_required)
-
-            # Make sure we have all dependencies tracked in the graph.
-            self._add_tasks(
-                (rel.other_task for rel in task.get_relationships() if not rel.inverse),
-                dependencies_required,
-            )
-
-            for rel in task.get_relationships():
-                if rel.inverse:
-                    # We may not have added this task to the graph yet.
-                    self._add_node(rel.other_task, False)
-
-                a, b = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
-                self._add_edge(a.path, b.path, rel.strict)
-
-    def _get_restricted_view(self) -> DiGraph:
-        """Returns a restricted view of the internal graph that hides all tasks that have a non-failure status."""
-
-        return restricted_view(self._digraph, self._completed_nodes, set())
-
-    # Public API
-
-    def get_predecessors(self, task: Task) -> List[Task]:
-        return [not_none(self._get_node(task_path)).task for task_path in self._digraph.predecessors(task.path)]
-
-    def get_successors(self, task: Task) -> List[Task]:
-        return [not_none(self._get_node(task_path)).task for task_path in self._digraph.successors(task.path)]
-
-    def trim(self) -> TaskGraph:
-        """Removes all tasks from the graph that are not initially required and only connected to any other
-        task with an optional dependency."""
+        self._inactive_tasks.clear()
 
         # Find all tasks that are not initially required and only have dependants with an optional dependency.
         weakly_connected_tasks = set()
-        for task_path in self._digraph.nodes:
-            if not_none(self._get_node(task_path)).required:
+        for task_path in self._full_graph.nodes:
+            if task_path in self._target_tasks:
                 continue
             if not any(
                 not_none(self._get_edge(task_path, dependant_task_path)).strict
-                for dependant_task_path in self._digraph.successors(task_path)
+                for dependant_task_path in self._full_graph.successors(task_path)
             ):
                 weakly_connected_tasks.add(task_path)
 
         # Remove the subgraphs that are weakly connected, but keep all required tasks and their subgraphs.
         def _remove_subgraph(task_path: str) -> None:
-            if not_none(self._get_node(task_path)).required:
+            if task_path in self._target_tasks:
                 return
-            if task_path not in self._digraph.nodes:
+            if task_path not in self._full_graph.nodes:
                 return
-            for successor in list(self._digraph.predecessors(task_path)):
+            for successor in list(self._full_graph.predecessors(task_path)):
                 _remove_subgraph(successor)
-            self._digraph.remove_node(task_path)
+            self._inactive_tasks.add(task_path)
 
         for task_path in weakly_connected_tasks:
-            if task_path in self._digraph.nodes:
+            if task_path in self._full_graph.nodes:
                 _remove_subgraph(task_path)
 
-        return self
+        self._update_target_graph()
 
-    def tasks(self, required_only: bool = False, failed: bool = False) -> Iterator[Task]:
-        """Returns all tasks in an arbitrary order.
+    def _update_target_graph(self) -> DiGraph:
+        """Updates the target graph."""
+        self._target_graph = restricted_view(self._full_graph, self._inactive_tasks, set())
 
-        :param required_only: Return only tasks from the initial task set that the graph was built from.
-        :param failed: Return only failed tasks."""
+    def _get_ready_graph(self) -> DiGraph:
+        """Updates the ready graph."""
+        return restricted_view(self._target_graph, self._completed_tasks, set())
 
-        tasks = (not_none(self._get_node(task_path)).task for task_path in self._digraph.nodes)
-        if required_only:
-            tasks = (t for t in tasks if not_none(self._get_node(t.path)).required)
-        if failed:
-            tasks = (t for t in tasks if t.path in self._results and self._results[t.path].is_failed())
-        return tasks
+    # Public API
 
-    def execution_order(self) -> Iterable[Task]:
-        """Returns all tasks in the order they need to be executed."""
+    @property
+    def context(self) -> Context:
+        return self._context
 
-        from networkx.algorithms import topological_sort  # type: ignore[import]
+    def get_predecessors(self, task: Task) -> List[Task]:
+        """Returns the predecessors of the task in the original full build graph."""
 
-        graph = self._get_restricted_view()
-        order = topological_sort(graph)
-        return (not_none(self._get_node(task_path)).task for task_path in order)
+        return [not_none(self._get_task(task_path)) for task_path in self._full_graph.predecessors(task.path)]
+
+    def get_successors(self, task: Task) -> List[Task]:
+        """Returns the successors of the task in the original full build graph."""
+
+        return [not_none(self._get_task(task_path)) for task_path in self._full_graph.successors(task.path)]
+
+    def set_targets(self, tasks: Iterable[Task] | None) -> None:
+        """Mark the tasks given with *tasks* as required.
+
+        :param tasks: The leaf targets of the target subgraph. If set to None, the entire task graph will be used."""
+
+        self._target_tasks.clear()
+        if tasks is not None:
+            for task in tasks:
+                if isinstance(task, GroupTask):
+                    self._target_tasks.update(t.path for t in task.tasks)
+                else:
+                    self._target_tasks.add(task.path)
+        self._update_inactive_tasks()
+        self._update_target_graph()
 
     def set_status(self, task: Task, status: TaskStatus) -> None:
         """Sets the status of a task, marking it as executed."""
@@ -190,17 +180,57 @@ class TaskGraph:
             raise RuntimeError(f"already have a status for task {task.path!r}")
         self._results[task.path] = status
         if status.is_ok():
-            self._completed_nodes.add(task.path)
+            self._completed_tasks.add(task.path)
 
     def get_status(self, task: Task) -> TaskStatus | None:
         """Return the status of a task."""
 
         return self._results.get(task.path)
 
-    def is_complete(self) -> bool:
-        """Returns `True` if, an only if, all tasks in the graph have a non-failure result."""
+    def update_statuses_from(self, other_graph: TaskGraph) -> None:
+        """Merge the results from the *other_graph* into this graph. This is used when multiple separate build states
+        are merged into one graph. If the same task has a result in both graphs, the failed result will supersede the
+        successful one."""
 
-        return len(self._completed_nodes) == len(self._digraph.nodes)
+        for task in self.tasks():
+            status_a = self._results.get(task.path)
+            status_b = other_graph._results.get(task.path)
+            if status_a is not None and status_b is not None and status_a.type != status_b.type:
+                resolved_status: TaskStatus | None = status_a if status_a.is_failed() else status_b
+            else:
+                resolved_status = status_a or status_b
+            if resolved_status is not None:
+                # TODO (@NiklasRosenstein): We could avoid recomputing the target graph after the merge is complete.
+                self.set_status(task, resolved_status)
+
+    def discard_statuses(self) -> None:
+        """Discard any results from the graph, allowing you to effectively restart the execution of tasks."""
+
+        self._completed_tasks.clear()
+        self._results.clear()
+        self._update_target_graph()
+
+    def is_complete(self) -> bool:
+        """Returns `True` if, an only if, all tasks in the target subgraph have a non-failure result."""
+
+        return set(self._target_graph.nodes).issubset(self._completed_tasks)
+
+    def tasks(self, targets_only: bool = False, failed: bool = False, all: bool = False) -> Iterator[Task]:
+        """Returns the tasks in the graph in arbitrary order. By default, only tasks part of the target subgraph
+        are returned, but this can be changed with *all*.
+
+        :param targets_only: Return only target tasks (i.e. the leaf nodes of the target subgraph).
+        :param failed: Return only failed tasks.
+        :param all: Return from all tasks, not just from the tasks that need to be executed."""
+
+        tasks = (not_none(self._get_task(task_path)) for task_path in self._full_graph)
+        if not all:
+            tasks = (task for task in tasks if task.path not in self._inactive_tasks)
+        if targets_only:
+            tasks = (t for t in tasks if t.path in self._target_tasks)
+        if failed:
+            tasks = (t for t in tasks if t.path in self._results and self._results[t.path].is_failed())
+        return tasks
 
     def ready(self) -> Iterable[Task]:
         """Returns all tasks that are ready to be executed. This can be used to constantly query the graph for new
@@ -208,6 +238,18 @@ class TaskGraph:
         returned if no tasks are ready. At this point, if no tasks are currently running, :meth:`is_complete` can be
         used to check if the entire task graph was executed successfully."""
 
-        graph = self._get_restricted_view()
-        root_set = (node for node in graph.nodes if graph.in_degree(node) == 0 and node not in self._results)
-        return (not_none(self._get_node(task_path)).task for task_path in root_set)
+        ready_graph = self._get_ready_graph()
+        root_set = (
+            node for node in ready_graph.nodes if ready_graph.in_degree(node) == 0 and node not in self._results
+        )
+        return (not_none(self._get_task(task_path)) for task_path in root_set)
+
+    def execution_order(self, all: bool = False) -> Iterable[Task]:
+        """Returns all tasks in the order they need to be executed.
+
+        :param all: Return the execution order of all tasks, not just from the target subgraph."""
+
+        from networkx.algorithms import topological_sort  # type: ignore[import]
+
+        order = topological_sort(self._full_graph if all else self._get_ready_graph())
+        return (not_none(self._get_task(task_path)) for task_path in order)

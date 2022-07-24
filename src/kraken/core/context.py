@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterator, Optional, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Iterator, Optional, Sequence, TypeVar, overload
 
 from .utils import NotSet
 
@@ -162,12 +162,11 @@ class Context:
             for task in project.tasks().values():
                 task.finalize()
 
-    def get_build_graph(self, targets: list[str | Task] | None, trimmed: bool = True) -> TaskGraph:
+    def get_build_graph(self, targets: Sequence[str | Task] | None) -> TaskGraph:
         """Returns the :class:`TaskGraph` that contains either all default tasks or the tasks specified with
         the *targets* argument.
 
         :param targets: A list of targets to resolve and to build the graph from.
-        :param trimmed: Trim the build graph down to the required tasks and their dependencies before returning.
         :raise ValueError: If not tasks were selected.
         """
 
@@ -183,9 +182,8 @@ class Context:
         if not tasks:
             raise ValueError("no tasks selected")
 
-        graph = TaskGraph(tasks)
-        if trimmed:
-            graph.trim()
+        graph = TaskGraph(self)
+        graph.set_targets(tasks)
 
         assert graph, "TaskGraph cannot be empty"
         return graph

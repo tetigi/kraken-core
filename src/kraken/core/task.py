@@ -137,6 +137,7 @@ class Task(Object, abc.ABC):
 
     name: str
     project: Project
+    description: str | None = None
     default: bool = True
     capture: bool = False
     logger: logging.Logger

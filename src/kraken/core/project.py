@@ -33,10 +33,12 @@ class Project:
         # we're not accidentally allocating the same name twice.
         self._members: dict[str, Task | Project] = {}
 
-        self.group("fmt")
-        self.group("lint")
-        self.group("build")
-        self.group("test")
+        self.group("fmt", description="Tasks that perform code formatting operations.")
+        self.group("lint", description="Tasks that perform code linting.")
+        self.group("build", description="Tasks that produce build artefacts.")
+        self.group("test", description="Tasks that perform unit tests.")
+        self.group("integrationTest", description="Tasks that perform integration tests.")
+        self.group("publish", description="Tasks that publish build artefacts.")
 
     def __repr__(self) -> str:
         return f"Project({self.path})"
@@ -133,15 +135,20 @@ class Project:
             group.add(task)
         return task
 
-    def group(self, name: str) -> GroupTask:
+    def group(self, name: str, *, description: str | None = None) -> GroupTask:
         """Create or get a group of the given name. If a task with the given name already exists, it must refer
-        to a task of type :class:`GroupTask`, otherwise a :class:`RuntimeError` is raised."""
+        to a task of type :class:`GroupTask`, otherwise a :class:`RuntimeError` is raised.
+
+        :param name: The name of the group in the project.
+        :param description: If specified, set the group's description."""
 
         task = self.tasks().get(name)
         if task is None:
             task = self.do(name, GroupTask)
         elif not isinstance(task, GroupTask):
             raise RuntimeError(f"{task.path!r} must be a GroupTask, but got {type(task).__name__}")
+        if description is not None:
+            task.description = description
 
         return task
 

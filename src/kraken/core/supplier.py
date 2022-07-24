@@ -87,27 +87,7 @@ class Supplier(Generic[T], abc.ABC):
     def once(self) -> Supplier[T]:
         """Cache the value forever once :attr:`get` is called."""
 
-        this = self
-
-        class SupplierOnce(Supplier[T]):
-            _value: T | NotSet = NotSet.Value
-            _empty: Empty | None = None
-
-            def derived_from(self) -> Iterable[Supplier[Any]]:
-                yield this
-
-            def get(self) -> T:
-                if self._empty is not None:
-                    raise Empty(self) from self._empty
-                if self._value is NotSet.Value:
-                    try:
-                        self._value = this.get()
-                    except Empty as exc:
-                        self._empty = exc
-                        raise Empty(self) from exc
-                return self._value
-
-        return SupplierOnce()
+        return _SupplierOnce(self)
 
     def lineage(self) -> Iterable[tuple[Supplier[Any], list[Supplier[Any]]]]:
         """Iterates over all suppliers in the lineage.
@@ -125,38 +105,75 @@ class Supplier(Generic[T], abc.ABC):
 
     @staticmethod
     def of(value: T, derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
-        class SupplierOf(Supplier[T]):
-            def derived_from(self) -> Iterable[Supplier[Any]]:
-                return derived_from
-
-            def get(self) -> T:
-                return value
-
-        return SupplierOf()
+        return _SupplierOf(value, derived_from)
 
     @staticmethod
     def of_callable(func: Callable[[], T], derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
-        class SupplierOfCallable(Supplier[T]):
-            def derived_from(self) -> Iterable[Supplier[Any]]:
-                return derived_from
-
-            def get(self) -> T:
-                return func()
-
-        return SupplierOfCallable()
+        return _SupplierOfCallable(func, derived_from)
 
     @staticmethod
     def void(from_exc: Exception | None = None, derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
         """Returns a supplier that always raises :class:`Empty`."""
 
-        class SupplierVoid(Supplier[T]):
-            def derived_from(self) -> Iterable[Supplier[Any]]:
-                return derived_from
+        return _SupplierVoid(from_exc, derived_from)
 
-            def get(self) -> T:
-                raise Empty(self) from from_exc
 
-            def is_void(self) -> bool:
-                return True
+class _SupplierOnce(Supplier[T]):
+    _value: T | NotSet = NotSet.Value
+    _empty: Empty | None = None
 
-        return SupplierVoid()
+    def __init__(self, delegate: Supplier[T]) -> None:
+        self._delegate = delegate
+
+    def derived_from(self) -> Iterable[Supplier[Any]]:
+        yield self._delegate
+
+    def get(self) -> T:
+        if self._empty is not None:
+            raise Empty(self) from self._empty
+        if self._value is NotSet.Value:
+            try:
+                self._value = self._delegate.get()
+            except Empty as exc:
+                self._empty = exc
+                raise Empty(self) from exc
+        return self._value
+
+
+class _SupplierOfCallable(Supplier[T]):
+    def __init__(self, func: Callable[[], T], derived_from: Sequence[Supplier[Any]]) -> None:
+        self._func = func
+        self._derived_from = derived_from
+
+    def derived_from(self) -> Iterable[Supplier[Any]]:
+        return self._derived_from
+
+    def get(self) -> T:
+        return self._func()
+
+
+class _SupplierOf(Supplier[T]):
+    def __init__(self, value: T, derived_from: Sequence[Supplier[Any]]) -> None:
+        self._value = value
+        self._derived_from = derived_from
+
+    def derived_from(self) -> Iterable[Supplier[Any]]:
+        return self._derived_from
+
+    def get(self) -> T:
+        return self._value
+
+
+class _SupplierVoid(Supplier[T]):
+    def __init__(self, from_exc: Exception | None, derived_from: Sequence[Supplier[Any]]) -> None:
+        self._from_exc = from_exc
+        self._derived_from = derived_from
+
+    def derived_from(self) -> Iterable[Supplier[Any]]:
+        return self._derived_from
+
+    def get(self) -> T:
+        raise Empty(self) from self._from_exc
+
+    def is_void(self) -> bool:
+        return True

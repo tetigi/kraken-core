@@ -3,20 +3,16 @@ from kraken.core.project import Project
 from kraken.core.task import TaskStatus, VoidTask
 
 
-def test__TaskGraph__trim_tasks(kraken_project: Project) -> None:
-    """Tests if :meth:`TaskGraph.trim` works as expected with group tasks."""
-
+def test__TaskGraph__set_targets(kraken_project: Project) -> None:
     task_a = kraken_project.do("a", VoidTask)
     task_b = kraken_project.do("b", VoidTask)
 
     group = kraken_project.group("g")
     group.add([task_a, task_b])
 
-    graph = TaskGraph([group])
-    assert list(graph.tasks()) == [group, task_a, task_b]
-
-    graph.trim()
-    assert list(graph.tasks()) == [task_a, task_b]
+    graph = TaskGraph(kraken_project.context)
+    graph.set_targets([group])
+    assert set(graph.tasks()) == {task_a, task_b}
 
 
 def test__TaskGraph__ready_on_successful_completion(kraken_project: Project) -> None:
@@ -34,8 +30,10 @@ def test__TaskGraph__ready_on_successful_completion(kraken_project: Project) -> 
     task_c.add_relationship(task_b)
     task_b.add_relationship(task_a)
 
-    graph = TaskGraph([task_c])
-    assert list(graph.tasks()) == [task_c, task_b, task_a]
+    graph = TaskGraph(kraken_project.context)
+    graph.set_targets([task_c])
+
+    assert set(graph.tasks()) == {task_c, task_b, task_a}
     assert list(graph.execution_order()) == [task_a, task_b, task_c]
 
     # Complete tasks one by one.
@@ -73,14 +71,17 @@ def test__TaskGraph__ready_on_failure(kraken_project: Project) -> None:
     task_d.add_relationship(task_c)
     task_c.add_relationship(task_a)
 
-    graph = TaskGraph([task_d])
-    assert list(graph.tasks()) == [task_d, task_b, task_c, task_a]
-    assert list(graph.execution_order()) == [task_b, task_a, task_c, task_d]
-    assert list(graph.ready()) == [task_b, task_a]
+    graph = TaskGraph(kraken_project.context)
+    graph.set_targets([task_d])
+    assert set(graph.tasks()) == {task_d, task_b, task_c, task_a}
+    assert list(graph.execution_order()) == [task_a, task_b, task_c, task_d]
+    assert list(graph.ready()) == [task_a, task_b]
 
+    # After B fails we can still run A.
     graph.set_status(task_b, TaskStatus.failed())
     assert list(graph.ready()) == [task_a]
 
+    # After A is successful we can still run C.
     graph.set_status(task_a, TaskStatus.succeeded())
     assert list(graph.ready()) == [task_c]
 

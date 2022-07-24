@@ -134,7 +134,7 @@ class TaskGraph:
 
         self._update_target_graph()
 
-    def _update_target_graph(self) -> DiGraph:
+    def _update_target_graph(self) -> None:
         """Updates the target graph."""
         self._target_graph = restricted_view(self._full_graph, self._inactive_tasks, set())
 

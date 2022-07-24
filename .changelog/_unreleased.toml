@@ -1,0 +1,5 @@
+[[entries]]
+id = "987976f2-3729-4247-84b4-9abff032ce67"
+type = "feature"
+description = "allow adding question marks to target selectors to make it optional"
+author = "@NiklasRosenstein"

@@ -106,6 +106,9 @@ class Context:
             count = len(tasks)
 
         for target in targets:
+            optional = target.endswith("?")
+            if optional:
+                target = target[:-1]
             count = len(tasks)
 
             if ":" not in target:
@@ -113,7 +116,8 @@ class Context:
                 tasks.extend(
                     task for project in self.iter_projects() for task in project.tasks().values() if task.name == target
                 )
-                _check_matched()
+                if not optional:
+                    _check_matched()
                 continue
 
             # Resolve as many components in the project hierarchy as possible.
@@ -136,10 +140,14 @@ class Context:
             elif len(parts) == 1:
                 # A specific target is selected.
                 if parts[0] not in project_tasks:
+                    if optional:
+                        continue
                     raise ValueError(f"task {target!r} does not exist")
                 tasks.append(project_tasks[parts[0]])
             else:
                 # Some project in the path does not exist.
+                if optional:
+                    continue
                 raise ValueError(f"project {':'.join(target.split(':')[:-1])} does not exist")
 
             _check_matched()

@@ -43,6 +43,12 @@ changed anymore. After constructing a graph from a set of initially required tas
 transitively required by the initial set. The graph can be further trimmed to remove weakly connected components of the
 graph (such as group tasks if they were of the initial set or dependencies that are not strictly required by any other
 task).
+* __Task selector__: A task selector is an absolute or relative task or project path (example `:`, `:task`,
+`:project:task`, `task`, `project:task`). On the command line, all tasks are resolved relative to the root project.
+Within a project, absolute task paths are resolved within that project (i.e. `:` represents the current project and
+not the root project). A plain task name without a separator (`:`) selects all task with that name in all projects.
+A selector can be suffixed with a question mark to mark it as optional, allowing it to resolve to no tasks instead of
+raising an error.
 
 ## Example
 

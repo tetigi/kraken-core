@@ -21,3 +21,9 @@ id = "8926138b-c0f4-4118-a066-4ae03e207974"
 type = "feature"
 description = "Add `TaskStatusType.STARTED`"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "c12c3e9e-014a-4afe-bb5f-7ae076b69991"
+type = "feature"
+description = "add `BackgroundTask` base class"
+author = "@NiklasRosenstein"

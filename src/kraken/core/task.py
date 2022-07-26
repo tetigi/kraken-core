@@ -5,6 +5,7 @@ graph."""
 from __future__ import annotations
 
 import abc
+import contextlib
 import dataclasses
 import enum
 import logging
@@ -334,3 +335,37 @@ class VoidTask(Task):
 
     def execute(self) -> TaskStatus | None:
         pass
+
+
+class BackgroundTask(Task):
+    """This base class represents a task that starts some process in the background that keeps running which is
+    then terminated when all direct dependant tasks are completed and no work is left. A common use case for this
+    type of task is to spawn sidecar processes which are relied on by other tasks to be available during their
+    execution."""
+
+    @abc.abstractmethod
+    def start_background_task(self, exit_stack: contextlib.ExitStack) -> TaskStatus | None:
+        """Start some task or process in the background. Use the *exit_stack* to ensure cleanup of your allocated
+        resources in case of an unexpected error or when the background task is torn down. Returning not-None and
+        not :attr:`TaskStatusType.STARTED`, or causing an exception will immediately close the exit stack."""
+
+        raise NotImplementedError
+
+    # Task
+
+    def execute(self) -> TaskStatus | None:
+        self.__exit_stack = contextlib.ExitStack()
+        try:
+            status = self.start_background_task(self.__exit_stack)
+            if status is None:
+                status = TaskStatus.started()
+            elif not status.is_started():
+                self.__exit_stack.close()
+            return status
+        except BaseException:
+            self.__exit_stack.close()
+            raise
+
+    def teardown(self) -> None:
+        self.__exit_stack.close()
+        del self.__exit_stack

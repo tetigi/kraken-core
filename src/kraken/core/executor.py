@@ -97,13 +97,18 @@ COLORS_BY_RESULT = {
 
 
 class Executor:
+    """Reference implementation of an executor."""
+
     def __init__(self, graph: TaskGraph, verbose: bool = False) -> None:
         self.graph = graph
         self.verbose = verbose
+        # Here we keep track of all the tasks that still need teardown() called on them.
+        self._teardown_queue: list[tuple[Task, set[Task]]] = []
 
-    def execute_task(self, task: Task) -> None:
+    def _execute_task(self, task: Task) -> None:
         print = partial(builtins.print, flush=True)
         status = task.prepare() or TaskStatus.pending()
+        execute_called = False
         if status.is_pending():
             print(">", task.path)
 
@@ -112,6 +117,7 @@ class Executor:
             #       using a ProcessPoolExecutor.
             # result = self.pool.submit(_execute_task, task, True).result()
             status, output = _execute_task(task, task.capture and not self.verbose)
+            execute_called = True
 
             if (status.is_failed() or not task.capture or self.verbose) and output:
                 print(output)
@@ -127,12 +133,31 @@ class Executor:
         print()
 
         self.graph.set_status(task, status)
+        self._task_done(task, execute_called)
+
+    def _task_done(self, task: Task, queue: bool) -> None:
+        for other_task, successors in self._teardown_queue:
+            successors.discard(task)
+            if not successors:
+                self._teardown_task(other_task)
+        self._teardown_queue = [t for t in self._teardown_queue if t[1]]
+        if queue:
+            self._teardown_queue.append((task, set(self.graph.get_successors(task))))
+
+    def _teardown_task(self, task: Task) -> None:
+        logger.debug("teardown %s", task.path)
+        try:
+            task.teardown()
+        except BaseException:
+            logger.exception("An unhandled exception occurred while tearing down task %s", task.path)
 
     def execute(self) -> bool:
         while not self.graph.is_complete():
             tasks = list(self.graph.ready())
             if not tasks:
-                return False
+                break
             for task in tasks:
-                self.execute_task(task)
-        return True
+                self._execute_task(task)
+        for task, _successors in self._teardown_queue:
+            self._teardown_task(task)
+        return self.graph.is_complete()

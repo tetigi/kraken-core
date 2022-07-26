@@ -252,6 +252,11 @@ class Task(Object, abc.ABC):
 
         raise NotImplementedError
 
+    def teardown(self) -> None:
+        """This method is called after _all_ immediate dependants of the task have been executed. It is guaranteed to
+        be called if :meth:`execute` was called, even if the execute method of the same task errored or any other error
+        in the execution of the task graph occurred."""
+
     # Object
 
     def _warn_non_existent_properties(self, keys: set[str]) -> None:

@@ -44,11 +44,12 @@ TaskRelationship = _Relationship["Task"]
 class TaskStatusType(enum.Enum):
     """Represents the possible statuses that a task can return from its execution."""
 
-    PENDING = enum.auto()
-    FAILED = enum.auto()
-    SUCCEEDED = enum.auto()
-    SKIPPED = enum.auto()
-    UP_TO_DATE = enum.auto()
+    PENDING = enum.auto()  #: The task is pending execution (only to be returned from :meth:`Task.prepare`).
+    FAILED = enum.auto()  #: The task failed it's preparation or execution.
+    SUCCEEDED = enum.auto()  #: The task succeeded it's execution (only to be returned from :meth:`Task.execute`).
+    STARTED = enum.auto()  #: The task started a background task that needs to be torn down later.
+    SKIPPED = enum.auto()  #: The task was skipped (i.e. it is not applicable).
+    UP_TO_DATE = enum.auto()  #: The task is up to date and did not run (or not run it's usual logic).
 
     def is_ok(self) -> bool:
         return self not in (TaskStatusType.PENDING, TaskStatusType.FAILED)
@@ -61,6 +62,9 @@ class TaskStatusType(enum.Enum):
 
     def is_succeeded(self) -> bool:
         return self == TaskStatusType.SUCCEEDED
+
+    def is_started(self) -> bool:
+        return self == TaskStatusType.STARTED
 
     def is_skipped(self) -> bool:
         return self == TaskStatusType.SKIPPED
@@ -88,6 +92,9 @@ class TaskStatus:
     def is_succeeded(self) -> bool:
         return self.type == TaskStatusType.SUCCEEDED
 
+    def is_started(self) -> bool:
+        return self.type == TaskStatusType.STARTED
+
     def is_skipped(self) -> bool:
         return self.type == TaskStatusType.SKIPPED
 
@@ -105,6 +112,10 @@ class TaskStatus:
     @staticmethod
     def succeeded(message: str | None = None) -> TaskStatus:
         return TaskStatus(TaskStatusType.SUCCEEDED, message)
+
+    @staticmethod
+    def started(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.STARTED, message)
 
     @staticmethod
     def skipped(message: str | None = None) -> TaskStatus:
@@ -252,10 +263,12 @@ class Task(Object, abc.ABC):
 
         raise NotImplementedError
 
-    def teardown(self) -> None:
-        """This method is called after _all_ immediate dependants of the task have been executed. It is guaranteed to
-        be called if :meth:`execute` was called, even if the execute method of the same task errored or any other error
-        in the execution of the task graph occurred."""
+    def teardown(self) -> TaskStatus | None:
+        """This method is called only if the task returns :attr:`TaskStatusType.STARTED` from :meth:`execute`. It is
+        called if _all_ direct dependants of the task have been executed (whether successfully or not) or if no further
+        task execution is queued."""
+
+        return None
 
     # Object
 

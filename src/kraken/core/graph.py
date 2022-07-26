@@ -160,7 +160,7 @@ class TaskGraph:
     def set_status(self, task: Task, status: TaskStatus) -> None:
         """Sets the status of a task, marking it as executed."""
 
-        if task.path in self._results:
+        if task.path in self._results and not self._results[task.path].is_started():
             raise RuntimeError(f"already have a status for task {task.path!r}")
         self._results[task.path] = status
         if status.is_ok():

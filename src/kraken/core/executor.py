@@ -92,6 +92,7 @@ COLORS_BY_RESULT = {
     TaskStatusType.FAILED: "red",
     TaskStatusType.SKIPPED: "yellow",
     TaskStatusType.SUCCEEDED: "green",
+    TaskStatusType.STARTED: "green",
     TaskStatusType.UP_TO_DATE: "green",
 }
 
@@ -108,7 +109,6 @@ class Executor:
     def _execute_task(self, task: Task) -> None:
         print = partial(builtins.print, flush=True)
         status = task.prepare() or TaskStatus.pending()
-        execute_called = False
         if status.is_pending():
             print(">", task.path)
 
@@ -117,7 +117,6 @@ class Executor:
             #       using a ProcessPoolExecutor.
             # result = self.pool.submit(_execute_task, task, True).result()
             status, output = _execute_task(task, task.capture and not self.verbose)
-            execute_called = True
 
             if (status.is_failed() or not task.capture or self.verbose) and output:
                 print(output)
@@ -133,23 +132,26 @@ class Executor:
         print()
 
         self.graph.set_status(task, status)
-        self._task_done(task, execute_called)
+        self._task_done(task, status)
 
-    def _task_done(self, task: Task, queue: bool) -> None:
+    def _task_done(self, task: Task, status: TaskStatus) -> None:
         for other_task, successors in self._teardown_queue:
             successors.discard(task)
             if not successors:
                 self._teardown_task(other_task)
         self._teardown_queue = [t for t in self._teardown_queue if t[1]]
-        if queue:
+        if status.is_started():
             self._teardown_queue.append((task, set(self.graph.get_successors(task))))
 
     def _teardown_task(self, task: Task) -> None:
-        logger.debug("teardown %s", task.path)
+        print("X", task.path, end=" ")
         try:
-            task.teardown()
-        except BaseException:
+            status = task.teardown() or TaskStatus.succeeded()
+        except BaseException as exc:
             logger.exception("An unhandled exception occurred while tearing down task %s", task.path)
+            status = TaskStatus.failed(str(exc))
+        print(colored(status.type.name, COLORS_BY_RESULT[status.type], attrs=["bold"]))
+        self.graph.set_status(task, status)
 
     def execute(self) -> bool:
         while not self.graph.is_complete():

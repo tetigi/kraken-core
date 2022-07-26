@@ -15,3 +15,9 @@ id = "dca7db79-7192-4be6-9657-3829d457a07a"
 type = "feature"
 description = "`VoidTask` can now be configured to not skip execution"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "8926138b-c0f4-4118-a066-4ae03e207974"
+type = "feature"
+description = "Add `TaskStatusType.STARTED`"
+author = "@NiklasRosenstein"

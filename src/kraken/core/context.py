@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterator, Optional, Sequence, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Iterator, Optional, Sequence, TypeVar
 
-from .utils import CurrentProvider, MetadataContainer, NotSet
+from .utils import CurrentProvider, MetadataContainer
 
 if TYPE_CHECKING:
     from .graph import TaskGraph

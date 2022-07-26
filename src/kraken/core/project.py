@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
 from .task import GroupTask, Task
-from .utils import CurrentProvider, MetadataContainer, NotSet, flatten
+from .utils import CurrentProvider, MetadataContainer, flatten
 
 if TYPE_CHECKING:
     from .context import Context

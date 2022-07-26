@@ -176,7 +176,7 @@ class Property(Supplier[T]):
         if self._finalized:
             raise RuntimeError(f"{self} is finalized")
         if not callable(func):
-            raise TypeError(f'"value" must be callable')
+            raise TypeError('"value" must be callable')
         self._value = Supplier.of_callable(func, list(derived_from))
         self._derived_from = ()
 

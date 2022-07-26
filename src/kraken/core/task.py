@@ -312,8 +312,12 @@ class GroupTask(Task):
 class VoidTask(Task):
     """This task does nothing and can always be skipped."""
 
+    skip: Property[bool] = Property.default(True)
+
     def prepare(self) -> TaskStatus | None:
-        return TaskStatus.skipped("is a VoidTask")
+        if self.skip.get():
+            return TaskStatus.skipped("is a VoidTask")
+        return TaskStatus.pending()
 
     def execute(self) -> TaskStatus | None:
-        raise RuntimeError("VoidTask cannot be executed")
+        pass

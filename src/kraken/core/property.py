@@ -4,7 +4,7 @@ import copy
 import dataclasses
 import warnings
 from pathlib import Path
-from typing import Any, Callable, ClassVar, Iterable, Mapping, TypeVar, cast
+from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar, cast
 
 import typeapi
 
@@ -12,42 +12,6 @@ from kraken.core.supplier import Empty, Supplier
 from kraken.core.utils import NotSet
 
 T = TypeVar("T")
-
-
-def output() -> Any:
-    """Assign the result of this function as a default value to a property on the class level of an :class:`Object`
-    subclass to mark it as an output property. This is an alternative to using the :class:`typing.Annotated` type
-    hint.
-
-    .. code:: Example
-
-        from kraken.core.property import Object, Property, output
-
-        class MyObj(Object):
-            a: Property[int] = output()
-    """
-
-    return PropertyConfig(output=True)
-
-
-def config(
-    output: bool = False,
-    default: Any | NotSet = NotSet.Value,
-    default_factory: Callable[[], Any] | NotSet = NotSet.Value,
-) -> Any:
-    """Assign the result of this function as a default value to a property on the class level of an :class:`Object`
-    subclass to configure it's default value or whether it is an output property. This is an alternative to using
-    a :class:`typing.Annotated` type hint.
-
-    .. code:: Example
-
-        from kraken.core.property import Object, Property, config
-
-        class MyObj(Object):
-            a: Property[int] = config(default=42)
-    """
-
-    return PropertyConfig(output, default, default_factory)
 
 
 @dataclasses.dataclass
@@ -99,8 +63,53 @@ class Property(Supplier[T]):
     # is not particularly sophisticated at this point and will not apply on items in nested structures.
     VALUE_ADAPTERS: ClassVar[dict[type, ValueAdapter]] = {}
 
-    output = staticmethod(output)
-    config = staticmethod(config)
+    @staticmethod
+    def output() -> Any:
+        """Assign the result of this function as a default value to a property on the class level of an :class:`Object`
+        subclass to mark it as an output property. This is an alternative to using the :class:`typing.Annotated` type
+        hint.
+
+        .. code:: Example
+
+            from kraken.core.property import Object, Property, output
+
+            class MyObj(Object):
+                a: Property[int] = output()
+        """
+
+        return PropertyConfig(output=True)
+
+    @staticmethod
+    def config(
+        output: bool = False,
+        default: Any | NotSet = NotSet.Value,
+        default_factory: Callable[[], Any] | NotSet = NotSet.Value,
+    ) -> Any:
+        """Assign the result of this function as a default value to a property on the class level of an :class:`Object`
+        subclass to configure it's default value or whether it is an output property. This is an alternative to using
+        a :class:`typing.Annotated` type hint.
+
+        .. code:: Example
+
+            from kraken.core.property import Object, Property, config
+
+            class MyObj(Object):
+                a: Property[int] = config(default=42)
+        """
+
+        return PropertyConfig(output, default, default_factory)
+
+    @staticmethod
+    def default(value: Any) -> Any:
+        """Assign the result of this function as a default value to a property to declare it's default value."""
+
+        return PropertyConfig(False, value, NotSet.Value)
+
+    @staticmethod
+    def default_factory(func: Callable[[], Any]) -> Any:
+        """Assign the result of this function as a default value to a property to declare it's default factory."""
+
+        return PropertyConfig(False, NotSet.Value, func)
 
     def __init__(self, owner: Object, name: str, accepted_types: tuple[type, ...]) -> None:
 
@@ -115,6 +124,7 @@ class Property(Supplier[T]):
         self.name = name
         self.accepted_types = accepted_types
         self._value: Supplier[T] = Supplier.void()
+        self._derived_from: Sequence[Supplier[Any]] = ()
         self._finalized = False
         self._error_message: str | None = None
 
@@ -137,9 +147,14 @@ class Property(Supplier[T]):
                 errors.append(exc)
         raise TypeError(f"{self}: " + "\n".join(map(str, errors))) from (errors[0] if len(errors) == 1 else None)
 
+    @property
+    def value(self) -> Supplier[T]:
+        return self._value
+
     def derived_from(self) -> Iterable[Supplier[Any]]:
         yield self._value
         yield from self._value.derived_from()
+        yield from self._derived_from
 
     def get(self) -> T:
         try:
@@ -147,12 +162,23 @@ class Property(Supplier[T]):
         except Empty:
             raise Empty(self, self._error_message)
 
-    def set(self, value: T | Supplier[T]) -> None:
+    def set(self, value: T | Supplier[T], derived_from: Iterable[Supplier[Any]] = ()) -> None:
         if self._finalized:
             raise RuntimeError(f"{self} is finalized")
+        derived_from = list(derived_from)
         if not isinstance(value, Supplier):
-            value = Supplier.of(self._adapt_value(value))
+            value = Supplier.of(self._adapt_value(value), derived_from)
+            derived_from = ()
         self._value = value
+        self._derived_from = derived_from
+
+    def setcallable(self, func: Callable[[], T], derived_from: Iterable[Supplier[Any]] = ()) -> None:
+        if self._finalized:
+            raise RuntimeError(f"{self} is finalized")
+        if not callable(func):
+            raise TypeError(f'"value" must be callable')
+        self._value = Supplier.of_callable(func, list(derived_from))
+        self._derived_from = ()
 
     def setdefault(self, value: T | Supplier[T]) -> None:
         if self._finalized:
@@ -168,6 +194,9 @@ class Property(Supplier[T]):
         """Set an error message that should be included when the property is read."""
 
         self._error_message = message
+
+    def clear(self) -> None:
+        self.set(Supplier.void())
 
     def finalize(self) -> None:
         """Prevent further modification of the value in the property."""

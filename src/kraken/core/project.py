@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast, overload
 
 from .task import GroupTask, Task
-from .utils import NotSet, flatten
+from .utils import CurrentProvider, MetadataContainer, NotSet, flatten
 
 if TYPE_CHECKING:
     from .context import Context
@@ -13,7 +13,7 @@ T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")
 
 
-class Project:
+class Project(MetadataContainer, CurrentProvider["Project"]):
     """A project consolidates tasks related to a directory on the filesystem."""
 
     name: str
@@ -152,28 +152,8 @@ class Project:
 
         return task
 
-    def find_metadata(self, of_type: type[T]) -> T | None:
-        """Returns the first entry in the :attr:`metadata` that is of the specified type."""
+    @classmethod
+    def _get_current_object(cls) -> Project:
+        from kraken.api import project
 
-        return next((x for x in self.metadata if isinstance(x, of_type)), None)
-
-    @overload
-    @staticmethod
-    def current() -> Project:
-        """Returns the current project or raises a :class:`RuntimeError`."""
-
-    @overload
-    @staticmethod
-    def current(fallback: T) -> Project | T:
-        """Returns the current project or *fallback*."""
-
-    @staticmethod
-    def current(fallback: T | NotSet = NotSet.Value) -> Project | T:
-        try:
-            from kraken.api import project
-
-            return project
-        except RuntimeError:
-            if fallback is not NotSet.Value:
-                return fallback
-            raise RuntimeError("no current project")
+        return project

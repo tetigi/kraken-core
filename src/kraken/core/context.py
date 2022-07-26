@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterator, Optional, Sequence, TypeVar, overload
 
-from .utils import NotSet
+from .utils import CurrentProvider, MetadataContainer, NotSet
 
 if TYPE_CHECKING:
     from .graph import TaskGraph
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class Context:
+class Context(MetadataContainer, CurrentProvider["Context"]):
     """This class is the single instance where all components of a build process come together."""
 
     def __init__(self, build_directory: Path) -> None:
@@ -21,11 +21,6 @@ class Context:
         self.build_directory = build_directory
         self.metadata: list[Any] = []
         self._finalized: bool = False
-
-    def find_metadata(self, of_type: type[T]) -> T | None:
-        """Returns the first entry in the :attr:`metadata` that is of the specified type."""
-
-        return next((x for x in self.metadata if isinstance(x, of_type)), None)
 
     @property
     def root_project(self) -> Project:
@@ -219,26 +214,11 @@ class Context:
                 message = "tasks " + ", ".join(f'"{task.path}"' for task in failed_tasks) + " failed"
             raise BuildError(message)
 
-    @overload
-    @staticmethod
-    def current() -> Context:
-        """Returns the current context or raises a :class:`RuntimeError`."""
+    @classmethod
+    def _get_current_object(cls) -> Context:
+        from kraken.api import ctx
 
-    @overload
-    @staticmethod
-    def current(fallback: T) -> Context | T:
-        """Returns the current context or *fallback*."""
-
-    @staticmethod
-    def current(fallback: T | NotSet = NotSet.Value) -> Context | T:
-        try:
-            from kraken.api import ctx
-
-            return ctx
-        except RuntimeError:
-            if fallback is not NotSet.Value:
-                return fallback
-            raise RuntimeError("no current project")
+        return ctx
 
 
 class BuildError(Exception):

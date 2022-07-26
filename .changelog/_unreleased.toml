@@ -1,0 +1,5 @@
+[[entries]]
+id = "5e3bdc46-4b82-43b5-a20a-34b2e6b1fb68"
+type = "improvement"
+description = "Move `.find_metadata()` and `.current()` implementation on `Context` and `Project` into common base classes (`MetadataContainer` and `CurrentProvider`), add `Project.default()` and `Project.default_factory()`, add `Property.setcallable()` and `Property.clear()`"
+author = "@NiklasRosenstein"

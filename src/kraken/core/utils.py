@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import contextlib
 import enum
 import importlib
@@ -8,11 +9,25 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from typing import IO, AnyStr, BinaryIO, ContextManager, Iterable, Iterator, TextIO, TypeVar, overload
+from typing import (
+    IO,
+    Any,
+    AnyStr,
+    BinaryIO,
+    Callable,
+    ContextManager,
+    Generic,
+    Iterable,
+    Iterator,
+    TextIO,
+    TypeVar,
+    overload,
+)
 
 from typing_extensions import Literal
 
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 def flatten(it: Iterable[Iterable[T]]) -> Iterable[T]:
@@ -162,3 +177,52 @@ def is_relative_to(apath: Path, bpath: Path) -> bool:
             return False
     else:
         return apath.is_relative_to(bpath)
+
+
+class MetadataContainer:
+
+    metadata: list[Any]
+
+    def __init__(self) -> None:
+        self.metadata = []
+
+    @overload
+    def find_metadata(self, of_type: type[T]) -> T | None:
+        """Returns the first entry in the :attr:`metadata` that is of the specified type."""
+
+    @overload
+    def find_metadata(self, of_type: type[T], create: Callable[[], T]) -> T:
+        """Returns the first entry in :attr:`metadata`, or creates one."""
+
+    def find_metadata(self, of_type: type[T], create: Callable[[], T] | None = None) -> T | None:
+        obj = next((x for x in self.metadata if isinstance(x, of_type)), None)
+        if obj is None and create is not None:
+            obj = create()
+            self.metadata.append(obj)
+        return obj
+
+
+class CurrentProvider(abc.ABC, Generic[T]):
+    @overload
+    @classmethod
+    def current(cls) -> T:
+        """Returns the current context or raises a :class:`RuntimeError`."""
+
+    @overload
+    @classmethod
+    def current(cls, fallback: U) -> T | U:
+        """Returns the current context or *fallback*."""
+
+    @classmethod
+    def current(cls, fallback: U | NotSet = NotSet.Value) -> T | U:
+        try:
+            return cls._get_current_object()
+        except RuntimeError:
+            if isinstance(fallback, NotSet):
+                raise
+            return fallback
+
+    @classmethod
+    @abc.abstractmethod
+    def _get_current_object(cls) -> T:
+        raise NotImplementedError

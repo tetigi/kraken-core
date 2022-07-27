@@ -70,19 +70,7 @@ class Supplier(Generic[T], abc.ABC):
     def map(self, func: Callable[[T], U]) -> Supplier[U]:
         """Maps *func* over the value in the supplier."""
 
-        this = self
-
-        class SupplierMap(Supplier[U]):
-            def derived_from(self) -> Iterable[Supplier[Any]]:
-                yield this
-
-            def get(self) -> U:
-                try:
-                    return func(this.get())
-                except Empty:
-                    raise Empty(self)
-
-        return SupplierMap()
+        return _SupplierMap(func, self)
 
     def once(self) -> Supplier[T]:
         """Cache the value forever once :attr:`get` is called."""
@@ -116,6 +104,21 @@ class Supplier(Generic[T], abc.ABC):
         """Returns a supplier that always raises :class:`Empty`."""
 
         return _SupplierVoid(from_exc, derived_from)
+
+
+class _SupplierMap(Supplier[U], Generic[T, U]):
+    def __init__(self, func: Callable[[T], U], value: Supplier[T]) -> None:
+        self._func = func
+        self._value = value
+
+    def derived_from(self) -> Iterable[Supplier[Any]]:
+        yield self._value
+
+    def get(self) -> U:
+        try:
+            return self._func(self._value.get())
+        except Empty:
+            raise Empty(self)
 
 
 class _SupplierOnce(Supplier[T]):

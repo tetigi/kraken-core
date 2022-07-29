@@ -28,6 +28,7 @@ else:
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -350,6 +351,18 @@ class BackgroundTask(Task):
         not :attr:`TaskStatusType.STARTED`, or causing an exception will immediately close the exit stack."""
 
         raise NotImplementedError
+
+    def __del__(self) -> None:
+        try:
+            self.__exit_stack
+        except AttributeError:
+            pass
+        else:
+            logger.warning(
+                'BackgroundTask.teardown() did not get called on task "%s". This may cause some issues, such '
+                "as an error during serialization or zombie processes.",
+                self.path,
+            )
 
     # Task
 

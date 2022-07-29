@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterator, Optional, Sequence, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Sequence, TypeVar
 
-from .utils import CurrentProvider, MetadataContainer
+from kraken.core.executor import GraphExecutorObserver
+from kraken.core.utils import CurrentProvider, MetadataContainer
 
 if TYPE_CHECKING:
-    from .graph import TaskGraph
-    from .project import Project
-    from .task import Task
+    from kraken.core.executor import Graph, GraphExecutor
+    from kraken.core.graph import TaskGraph
+    from kraken.core.project import Project
+    from kraken.core.task import Task
 
 T = TypeVar("T")
 
@@ -52,8 +54,8 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
                 raised.
         """
 
-        from .loader import detect_project_loader
-        from .project import Project
+        from kraken.core.loader import detect_project_loader
+        from kraken.core.project import Project
 
         file, directory, loader = detect_project_loader(file, directory)
 
@@ -165,7 +167,7 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
         :raise ValueError: If not tasks were selected.
         """
 
-        from .graph import TaskGraph
+        from kraken.core.graph import TaskGraph
 
         if targets is None:
             tasks = self.resolve_tasks(None)
@@ -183,7 +185,13 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
         assert graph, "TaskGraph cannot be empty"
         return graph
 
-    def execute(self, targets: list[str | Task] | TaskGraph | None = None, verbose: bool = False) -> None:
+    def execute(
+        self,
+        targets: list[str | Task] | TaskGraph | None = None,
+        executor: GraphExecutor | None = None,
+        observer: GraphExecutorObserver | None = None,
+        graph_adapter: Callable[[TaskGraph], Graph] | None = None,
+    ) -> None:
         """Execute all default tasks or the tasks specified by *targets* using the default executor.
         If :meth:`finalize` was not called already it will be called by this function before the build
         graph is created, unless a build graph is passed in the first place.
@@ -191,11 +199,17 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
         :param targets: The list of targets to execute, or the build graph. If none specified, all default
             tasks will be executed.
         :param verbose: Verbosity argument passed to the executor.
+        :param executor: The executor to execute with. If not set, a default executor is used.
+        :param observer: The observer to execute with. If not set, a default observer is used.
         :raise BuildError: If any task fails to execute.
         """
 
-        from .executor import Executor
-        from .graph import TaskGraph
+        from kraken.core.executor.default import (
+            DefaultGraphExecutor,
+            DefaultPrintingExecutorObserver,
+            DefaultTaskExecutor,
+        )
+        from kraken.core.graph import TaskGraph
 
         if isinstance(targets, TaskGraph):
             assert self._finalized, "no, no, this is all wrong. you need to finalize the context first"
@@ -205,8 +219,11 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
                 self.finalize()
             graph = self.get_build_graph(targets)
 
-        executor = Executor(graph, verbose)
-        if not executor.execute():
+        executor = executor or DefaultGraphExecutor(DefaultTaskExecutor())
+        observer = observer or DefaultPrintingExecutorObserver()
+        executor.execute_graph(graph_adapter(graph) if graph_adapter else graph, observer)
+
+        if not graph.is_complete():
             failed_tasks = list(graph.tasks(failed=True))
             if len(failed_tasks) == 1:
                 message = f'task "{failed_tasks[0].path}" failed'

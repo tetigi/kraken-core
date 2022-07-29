@@ -3,11 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
-from .task import GroupTask, Task
-from .utils import CurrentProvider, MetadataContainer, flatten
+from kraken.core.task import GroupTask, Task
+from kraken.core.utils import CurrentProvider, MetadataContainer, flatten
 
 if TYPE_CHECKING:
-    from .context import Context
+    from kraken.core.context import Context
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")

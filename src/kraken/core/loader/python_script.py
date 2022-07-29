@@ -10,9 +10,8 @@ import types
 from pathlib import Path
 from typing import Any, Iterator
 
+from kraken.core.loader import ProjectLoader
 from kraken.core.project import Project
-
-from . import ProjectLoader
 
 BUILD_SCRIPT = Path(".kraken.py")
 

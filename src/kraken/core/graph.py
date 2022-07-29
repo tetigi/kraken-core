@@ -6,13 +6,9 @@ from typing import Iterable, Iterator, List, cast
 from networkx import DiGraph, restricted_view  # type: ignore[import]
 
 from kraken.core.context import Context
+from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus
 from kraken.core.utils import not_none
-
-
-@dataclasses.dataclass
-class _Node:
-    task: Task
 
 
 @dataclasses.dataclass
@@ -20,7 +16,7 @@ class _Edge:
     strict: bool
 
 
-class TaskGraph:
+class TaskGraph(Graph):
     """The task graph represents the entirety of a Kraken context's tasks as a directed acyclic graph data structure.
 
     Internally, it stores three versions of the graph: A full graph, a target subgraph and a ready subgraph. The
@@ -137,11 +133,6 @@ class TaskGraph:
 
         return [not_none(self._get_task(task_path)) for task_path in self._full_graph.predecessors(task.path)]
 
-    def get_successors(self, task: Task) -> List[Task]:
-        """Returns the successors of the task in the original full build graph."""
-
-        return [not_none(self._get_task(task_path)) for task_path in self._full_graph.successors(task.path)]
-
     def set_targets(self, tasks: Iterable[Task] | None) -> None:
         """Mark the tasks given with *tasks* as required.
 
@@ -156,15 +147,6 @@ class TaskGraph:
                     self._target_tasks.add(task.path)
         self._update_inactive_tasks()
         self._update_target_graph()
-
-    def set_status(self, task: Task, status: TaskStatus) -> None:
-        """Sets the status of a task, marking it as executed."""
-
-        if task.path in self._results and not self._results[task.path].is_started():
-            raise RuntimeError(f"already have a status for task {task.path!r}")
-        self._results[task.path] = status
-        if status.is_ok():
-            self._completed_tasks.add(task.path)
 
     def get_status(self, task: Task) -> TaskStatus | None:
         """Return the status of a task."""
@@ -194,11 +176,6 @@ class TaskGraph:
         self._results.clear()
         self._update_target_graph()
 
-    def is_complete(self) -> bool:
-        """Returns `True` if, an only if, all tasks in the target subgraph have a non-failure result."""
-
-        return set(self._target_graph.nodes).issubset(self._completed_tasks)
-
     def tasks(self, targets_only: bool = False, failed: bool = False, all: bool = False) -> Iterator[Task]:
         """Returns the tasks in the graph in arbitrary order. By default, only tasks part of the target subgraph
         are returned, but this can be changed with *all*.
@@ -216,18 +193,6 @@ class TaskGraph:
             tasks = (t for t in tasks if t.path in self._results and self._results[t.path].is_failed())
         return tasks
 
-    def ready(self) -> Iterable[Task]:
-        """Returns all tasks that are ready to be executed. This can be used to constantly query the graph for new
-        available tasks as the status of tasks in the graph is updated with :meth:`set_status`. An empty list is
-        returned if no tasks are ready. At this point, if no tasks are currently running, :meth:`is_complete` can be
-        used to check if the entire task graph was executed successfully."""
-
-        ready_graph = self._get_ready_graph()
-        root_set = (
-            node for node in ready_graph.nodes if ready_graph.in_degree(node) == 0 and node not in self._results
-        )
-        return (not_none(self._get_task(task_path)) for task_path in root_set)
-
     def execution_order(self, all: bool = False) -> Iterable[Task]:
         """Returns all tasks in the order they need to be executed.
 
@@ -237,3 +202,36 @@ class TaskGraph:
 
         order = topological_sort(self._full_graph if all else self._get_ready_graph())
         return (not_none(self._get_task(task_path)) for task_path in order)
+
+    # Graph
+
+    def ready(self) -> list[Task]:
+        """Returns all tasks that are ready to be executed. This can be used to constantly query the graph for new
+        available tasks as the status of tasks in the graph is updated with :meth:`set_status`. An empty list is
+        returned if no tasks are ready. At this point, if no tasks are currently running, :meth:`is_complete` can be
+        used to check if the entire task graph was executed successfully."""
+
+        ready_graph = self._get_ready_graph()
+        root_set = (
+            node for node in ready_graph.nodes if ready_graph.in_degree(node) == 0 and node not in self._results
+        )
+        return [not_none(self._get_task(task_path)) for task_path in root_set]
+
+    def get_successors(self, task: Task) -> list[Task]:
+        """Returns the successors of the task in the original full build graph."""
+
+        return [not_none(self._get_task(task_path)) for task_path in self._full_graph.successors(task.path)]
+
+    def set_status(self, task: Task, status: TaskStatus) -> None:
+        """Sets the status of a task, marking it as executed."""
+
+        if task.path in self._results and not self._results[task.path].is_started():
+            raise RuntimeError(f"already have a status for task {task.path!r}")
+        self._results[task.path] = status
+        if status.is_ok():
+            self._completed_tasks.add(task.path)
+
+    def is_complete(self) -> bool:
+        """Returns `True` if, an only if, all tasks in the target subgraph have a non-failure result."""
+
+        return set(self._target_graph.nodes).issubset(self._completed_tasks)

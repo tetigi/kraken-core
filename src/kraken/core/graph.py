@@ -128,10 +128,16 @@ class TaskGraph(Graph):
     def context(self) -> Context:
         return self._context
 
-    def get_predecessors(self, task: Task) -> List[Task]:
+    def get_predecessors(self, task: Task, ignore_groups: bool = False) -> List[Task]:
         """Returns the predecessors of the task in the original full build graph."""
 
-        return [not_none(self._get_task(task_path)) for task_path in self._full_graph.predecessors(task.path)]
+        result = []
+        for task in (not_none(self._get_task(task_path)) for task_path in self._full_graph.predecessors(task.path)):
+            if ignore_groups and isinstance(task, GroupTask):
+                result += task.tasks
+            else:
+                result.append(task)
+        return result
 
     def set_targets(self, tasks: Iterable[Task] | None) -> None:
         """Mark the tasks given with *tasks* as required.
@@ -217,10 +223,18 @@ class TaskGraph(Graph):
         )
         return [not_none(self._get_task(task_path)) for task_path in root_set]
 
-    def get_successors(self, task: Task) -> list[Task]:
-        """Returns the successors of the task in the original full build graph."""
+    def get_successors(self, task: Task, ignore_groups: bool = True) -> list[Task]:
+        """Returns the successors of the task in the original full build graph.
 
-        return [not_none(self._get_task(task_path)) for task_path in self._full_graph.successors(task.path)]
+        Never returns group tasks."""
+
+        result = []
+        for task in (not_none(self._get_task(task_path)) for task_path in self._full_graph.successors(task.path)):
+            if ignore_groups and isinstance(task, GroupTask):
+                result += task.tasks
+            else:
+                result.append(task)
+        return result
 
     def set_status(self, task: Task, status: TaskStatus) -> None:
         """Sets the status of a task, marking it as executed."""

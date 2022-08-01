@@ -17,6 +17,9 @@ def test__Property_value_adapter_order_is_semantically_revelant() -> None:
     prop2.set("foo/bar")
     assert prop2.get() == Path("foo/bar")
 
+    prop2.setmap(lambda s: Path(str(s).upper()))
+    assert prop2.get() == Path("FOO/BAR")
+
 
 def test__Property_default() -> None:
     """Tests that property defaults work as expected."""

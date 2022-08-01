@@ -176,9 +176,16 @@ class Property(Supplier[T]):
         if self._finalized:
             raise RuntimeError(f"{self} is finalized")
         if not callable(func):
-            raise TypeError('"value" must be callable')
+            raise TypeError('"func" must be callable')
         self._value = Supplier.of_callable(func, list(derived_from))
         self._derived_from = ()
+
+    def setmap(self, func: Callable[[T], T]) -> None:
+        if self._finalized:
+            raise RuntimeError(f"{self} is finalized")
+        if not callable(func):
+            raise TypeError('"func" must be callable')
+        self._value = self._value.map(func)
 
     def setdefault(self, value: T | Supplier[T]) -> None:
         if self._finalized:

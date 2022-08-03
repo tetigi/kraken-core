@@ -34,6 +34,8 @@ class DefaultTaskExecutor(TaskExecutor):
             elif not isinstance(status, TaskStatus):
                 return TaskStatus.failed(f"bad status: {status!r}")  # type: ignore[unreachable]
             return status
+        except KeyboardInterrupt:
+            return TaskStatus.interrupted()
         except BaseException as exc:
             traceback.print_exc()
             return TaskStatus.failed(f"unhandled exception: {exc}")
@@ -54,9 +56,12 @@ class DefaultGraphExecutor(GraphExecutor):
     def execute_graph(self, graph: Graph, observer: GraphExecutorObserver) -> None:
 
         remember = TaskRememberer()
+        interrupted = False
 
         def invoke_execute(tasks: Iterable[Task]) -> None:
             for task in tasks:
+                if interrupted:
+                    break
                 observer.before_prepare_task(task)
                 status = task.prepare() or TaskStatus.pending()
                 observer.after_prepare_task(task, status)
@@ -72,6 +77,7 @@ class DefaultGraphExecutor(GraphExecutor):
                 self._task_executor.teardown_task(task, partial(teardown_done, task))
 
         def execute_done(task: Task, status: TaskStatus) -> None:
+            nonlocal interrupted
             graph.set_status(task, status)
             observer.after_execute_task(task, status)
             if status.is_started():
@@ -80,9 +86,14 @@ class DefaultGraphExecutor(GraphExecutor):
                 #       task is done. This could be desirable behaviour.
                 remember.remember(task, set(graph.get_successors(task)))
             else:
+                if status.is_interrupted():
+                    interrupted = True
                 invoke_teardown(remember.done(task))
 
         def teardown_done(task: Task, status: TaskStatus) -> None:
+            nonlocal interrupted
+            if status.is_interrupted():
+                interrupted = True
             graph.set_status(task, status)
             observer.after_teardown_task(task, status)
             invoke_teardown(remember.done(task))
@@ -90,7 +101,7 @@ class DefaultGraphExecutor(GraphExecutor):
         observer.before_execute_graph(graph)
 
         try:
-            while not graph.is_complete():
+            while not graph.is_complete() and not interrupted:
                 tasks = graph.ready()
                 if not tasks:
                     break

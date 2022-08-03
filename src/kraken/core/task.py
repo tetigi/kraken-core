@@ -48,19 +48,26 @@ class TaskStatusType(enum.Enum):
 
     PENDING = enum.auto()  #: The task is pending execution (only to be returned from :meth:`Task.prepare`).
     FAILED = enum.auto()  #: The task failed it's preparation or execution.
+    INTERRUPTED = enum.auto()  #: The task was interrupted by the user.
     SUCCEEDED = enum.auto()  #: The task succeeded it's execution (only to be returned from :meth:`Task.execute`).
     STARTED = enum.auto()  #: The task started a background task that needs to be torn down later.
     SKIPPED = enum.auto()  #: The task was skipped (i.e. it is not applicable).
     UP_TO_DATE = enum.auto()  #: The task is up to date and did not run (or not run it's usual logic).
 
     def is_ok(self) -> bool:
-        return self not in (TaskStatusType.PENDING, TaskStatusType.FAILED)
+        return not self.is_not_ok()
+
+    def is_not_ok(self) -> bool:
+        return self in (TaskStatusType.PENDING, TaskStatusType.FAILED, TaskStatusType.INTERRUPTED)
 
     def is_pending(self) -> bool:
         return self == TaskStatusType.PENDING
 
     def is_failed(self) -> bool:
         return self == TaskStatusType.FAILED
+
+    def is_interrupted(self) -> bool:
+        return self == TaskStatusType.INTERRUPTED
 
     def is_succeeded(self) -> bool:
         return self == TaskStatusType.SUCCEEDED
@@ -85,11 +92,17 @@ class TaskStatus:
     def is_ok(self) -> bool:
         return self.type.is_ok()
 
+    def is_not_ok(self) -> bool:
+        return self.type.is_not_ok()
+
     def is_pending(self) -> bool:
         return self.type == TaskStatusType.PENDING
 
     def is_failed(self) -> bool:
         return self.type == TaskStatusType.FAILED
+
+    def is_interrupted(self) -> bool:
+        return self.type == TaskStatusType.INTERRUPTED
 
     def is_succeeded(self) -> bool:
         return self.type == TaskStatusType.SUCCEEDED
@@ -110,6 +123,10 @@ class TaskStatus:
     @staticmethod
     def failed(message: str | None = None) -> TaskStatus:
         return TaskStatus(TaskStatusType.FAILED, message)
+
+    @staticmethod
+    def interrupted(message: str | None = None) -> TaskStatus:
+        return TaskStatus(TaskStatusType.INTERRUPTED, message)
 
     @staticmethod
     def succeeded(message: str | None = None) -> TaskStatus:

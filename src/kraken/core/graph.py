@@ -168,7 +168,7 @@ class TaskGraph(Graph):
             status_a = self._results.get(task.path)
             status_b = other_graph._results.get(task.path)
             if status_a is not None and status_b is not None and status_a.type != status_b.type:
-                resolved_status: TaskStatus | None = status_a if status_a.is_failed() else status_b
+                resolved_status: TaskStatus | None = status_a if status_a.is_not_ok() else status_b
             else:
                 resolved_status = status_a or status_b
             if resolved_status is not None:

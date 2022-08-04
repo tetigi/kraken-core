@@ -141,7 +141,7 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         print(flush=True)
         print(self.format_header("Build summary"), flush=True)
         print(flush=True)
-        for task_path, status in sorted(self._status.items(), key=lambda t: t[0]):
+        for task_path, status in self._status.items():
             print(
                 " " * (len(self.execute_prefix) + 1) + task_path,
                 self.status_to_text(status),

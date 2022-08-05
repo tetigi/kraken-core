@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import logging
 from typing import Iterable, Iterator, List, cast
 
 from networkx import DiGraph, restricted_view  # type: ignore[import]
@@ -9,6 +10,8 @@ from kraken.core.context import Context
 from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus
 from kraken.core.utils import not_none
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -40,6 +43,11 @@ class TaskGraph(Graph):
 
         # Keep track of task execution results.
         self._results: dict[str, TaskStatus] = {}
+
+        # Keep track of the tasks that returned TaskStatus.STARTED. That means the task is a background task, and
+        # if the TaskGraph is deserialized from a state file to continue the build, background tasks need to be
+        # reset so they start again if another task requires them.
+        self._background_tasks: set[str] = set()
 
         # Here we store all tasks that make up the "initial set", i.e. the ultimate target tasks that are to be
         # executed. We derive the subgraph to execute from this initial set in the :meth:`trim` method by deactivating
@@ -140,7 +148,8 @@ class TaskGraph(Graph):
         return result
 
     def set_targets(self, tasks: Iterable[Task] | None) -> None:
-        """Mark the tasks given with *tasks* as required.
+        """Mark the tasks given with *tasks* as required. All immediate dependencies that are background tasks and
+        have already run will be reset to ensure they run again.
 
         :param tasks: The leaf targets of the target subgraph. If set to None, the entire task graph will be used."""
 
@@ -151,6 +160,20 @@ class TaskGraph(Graph):
                     self._target_tasks.update(t.path for t in task.tasks)
                 else:
                     self._target_tasks.add(task.path)
+
+        # Reset background tasks.
+        reset_tasks: set[str] = set()
+        for task_path in self._target_tasks:
+            task = not_none(self._get_task(task_path))
+            for pred in self.get_predecessors(task, ignore_groups=True):
+                if pred.path in self._background_tasks:
+                    self._background_tasks.discard(pred.path)
+                    self._completed_tasks.discard(pred.path)
+                    self._results.pop(pred.path, None)
+                    reset_tasks.add(pred.path)
+        if reset_tasks:
+            logger.info("Reset the status of %d background task(s): %s", len(reset_tasks), " ".join(reset_tasks))
+
         self._update_inactive_tasks()
         self._update_target_graph()
 
@@ -209,6 +232,12 @@ class TaskGraph(Graph):
         order = topological_sort(self._full_graph if all else self._get_ready_graph())
         return (not_none(self._get_task(task_path)) for task_path in order)
 
+    def get_completed_background_tasks(self) -> Iterable[Task]:
+        """Returns all completed background tasks."""
+
+        for task in self._background_tasks:
+            yield not_none(self._get_task(task))
+
     # Graph
 
     def ready(self) -> list[Task]:
@@ -242,6 +271,8 @@ class TaskGraph(Graph):
         if task.path in self._results and not self._results[task.path].is_started():
             raise RuntimeError(f"already have a status for task {task.path!r}")
         self._results[task.path] = status
+        if status.is_started():
+            self._background_tasks.add(task.path)
         if status.is_ok():
             self._completed_tasks.add(task.path)
 

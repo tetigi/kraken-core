@@ -1,0 +1,5 @@
+[[entries]]
+id = "ae31b052-0981-492c-a097-1afea19fbd1f"
+type = "deprecation"
+description = "Deprecate `Task.capture` and `Project.do(capture)` with warnings"
+author = "@NiklasRosenstein"

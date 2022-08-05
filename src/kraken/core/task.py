@@ -11,6 +11,7 @@ import enum
 import logging
 import shlex
 import sys
+import warnings
 from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Optional, Sequence, TypeVar, cast
 
 from kraken.core.property import Object, Property
@@ -169,11 +170,11 @@ class Task(Object, abc.ABC):
     project: Project
     description: Optional[str] = None
     default: bool = True
-    capture: bool = False
     logger: logging.Logger
 
     def __init__(self, name: str, project: Project) -> None:
         super().__init__()
+        self._capture = False
         self.name = name
         self.project = project
         self.logger = logging.getLogger(f"{self.path} [{type(self).__module__}.{type(self).__qualname__}]")
@@ -181,6 +182,24 @@ class Task(Object, abc.ABC):
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.path})"
+
+    @property
+    def capture(self) -> bool:
+        warnings.warn(
+            "The Task.capture attribute will be deprecated in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._capture
+
+    @capture.setter
+    def capture(self, value: bool) -> None:
+        warnings.warn(
+            "The Task.capture attribute will be deprecated in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._capture = value
 
     @property
     def path(self) -> str:

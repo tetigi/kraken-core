@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
@@ -118,6 +119,13 @@ class Project(MetadataContainer, CurrentProvider["Project"]):
             with a warning log.
         :return: The created task.
         """
+
+        if capture is not None:
+            warnings.warn(
+                "The Project.do(capture) parameter will be deprecated in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if name in self._members:
             raise ValueError(f"{self} already has a member {name!r}")

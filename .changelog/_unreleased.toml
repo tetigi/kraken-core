@@ -1,0 +1,5 @@
+[[entries]]
+id = "a23c4230-e8b6-42b3-bb9c-6dcdfbe946c7"
+type = "feature"
+description = "add `TaskGraph.tasks(pending)` parameter"
+author = "@NiklasRosenstein"

@@ -205,11 +205,18 @@ class TaskGraph(Graph):
         self._results.clear()
         self._update_target_graph()
 
-    def tasks(self, targets_only: bool = False, failed: bool = False, all: bool = False) -> Iterator[Task]:
+    def tasks(
+        self,
+        targets_only: bool = False,
+        pending: bool = False,
+        failed: bool = False,
+        all: bool = False,
+    ) -> Iterator[Task]:
         """Returns the tasks in the graph in arbitrary order. By default, only tasks part of the target subgraph
         are returned, but this can be changed with *all*.
 
         :param targets_only: Return only target tasks (i.e. the leaf nodes of the target subgraph).
+        :param pending: Return only pending tasks.
         :param failed: Return only failed tasks.
         :param all: Return from all tasks, not just from the tasks that need to be executed."""
 
@@ -218,6 +225,8 @@ class TaskGraph(Graph):
             tasks = (task for task in tasks if task.path not in self._inactive_tasks)
         if targets_only:
             tasks = (t for t in tasks if t.path in self._target_tasks)
+        if pending:
+            tasks = (t for t in tasks if t.path not in self._results)
         if failed:
             tasks = (t for t in tasks if t.path in self._results and self._results[t.path].is_failed())
         return tasks

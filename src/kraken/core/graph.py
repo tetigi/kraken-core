@@ -161,10 +161,12 @@ class TaskGraph(Graph):
                 else:
                     self._target_tasks.add(task.path)
 
+        self._update_inactive_tasks()
+        self._update_target_graph()
+
         # Reset background tasks.
         reset_tasks: set[str] = set()
-        for task_path in self._target_tasks:
-            task = not_none(self._get_task(task_path))
+        for task in self.tasks(pending=True):
             for pred in self.get_predecessors(task, ignore_groups=True):
                 if pred.path in self._background_tasks:
                     self._background_tasks.discard(pred.path)
@@ -173,9 +175,6 @@ class TaskGraph(Graph):
                     reset_tasks.add(pred.path)
         if reset_tasks:
             logger.info("Reset the status of %d background task(s): %s", len(reset_tasks), " ".join(reset_tasks))
-
-        self._update_inactive_tasks()
-        self._update_target_graph()
 
     def get_status(self, task: Task) -> TaskStatus | None:
         """Return the status of a task."""

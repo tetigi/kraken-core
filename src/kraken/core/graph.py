@@ -232,12 +232,6 @@ class TaskGraph(Graph):
         order = topological_sort(self._full_graph if all else self._get_ready_graph())
         return (not_none(self._get_task(task_path)) for task_path in order)
 
-    def get_completed_background_tasks(self) -> Iterable[Task]:
-        """Returns all completed background tasks."""
-
-        for task in self._background_tasks:
-            yield not_none(self._get_task(task))
-
     # Graph
 
     def ready(self) -> list[Task]:

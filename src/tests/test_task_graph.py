@@ -12,7 +12,8 @@ def test__TaskGraph__set_targets(kraken_project: Project) -> None:
 
     graph = TaskGraph(kraken_project.context)
     graph.set_targets([group])
-    assert set(graph.tasks()) == {task_a, task_b}
+    assert set(graph.tasks()) == {group, task_a, task_b}
+    assert set(graph.tasks(targets_only=True)) == {group}
 
 
 def test__TaskGraph__ready_on_successful_completion(kraken_project: Project) -> None:

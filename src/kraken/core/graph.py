@@ -156,11 +156,7 @@ class TaskGraph(Graph):
         self._target_tasks.clear()
         if tasks is not None:
             for task in tasks:
-                if isinstance(task, GroupTask):
-                    self._target_tasks.update(t.path for t in task.tasks)
-                else:
-                    self._target_tasks.add(task.path)
-
+                self._target_tasks.add(task.path)
         self._update_inactive_tasks()
         self._update_target_graph()
 

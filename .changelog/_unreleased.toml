@@ -1,0 +1,5 @@
+[[entries]]
+id = "a7b5441c-3048-43c7-b547-a2cda371fccf"
+type = "improvement"
+description = "Add `Project.group(default)` parameter and mark the groups `lint` and `test` as default."
+author = "@NiklasRosenstein"

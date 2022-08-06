@@ -35,9 +35,9 @@ class Project(MetadataContainer, CurrentProvider["Project"]):
         self._members: dict[str, Task | Project] = {}
 
         self.group("fmt", description="Tasks that perform code formatting operations.")
-        self.group("lint", description="Tasks that perform code linting.")
+        self.group("lint", description="Tasks that perform code linting.", default=False)
         self.group("build", description="Tasks that produce build artefacts.")
-        self.group("test", description="Tasks that perform unit tests.")
+        self.group("test", description="Tasks that perform unit tests.", default=False)
         self.group("integrationTest", description="Tasks that perform integration tests.")
         self.group("publish", description="Tasks that publish build artefacts.")
 
@@ -143,12 +143,13 @@ class Project(MetadataContainer, CurrentProvider["Project"]):
             group.add(task)
         return task
 
-    def group(self, name: str, *, description: str | None = None) -> GroupTask:
+    def group(self, name: str, *, description: str | None = None, default: bool | None = None) -> GroupTask:
         """Create or get a group of the given name. If a task with the given name already exists, it must refer
         to a task of type :class:`GroupTask`, otherwise a :class:`RuntimeError` is raised.
 
         :param name: The name of the group in the project.
-        :param description: If specified, set the group's description."""
+        :param description: If specified, set the group's description.
+        :param default: Whether the task group is run by default."""
 
         task = self.tasks().get(name)
         if task is None:
@@ -157,6 +158,8 @@ class Project(MetadataContainer, CurrentProvider["Project"]):
             raise RuntimeError(f"{task.path!r} must be a GroupTask, but got {type(task).__name__}")
         if description is not None:
             task.description = description
+        if default is not None:
+            task.default = default
 
         return task
 

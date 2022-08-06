@@ -35,9 +35,9 @@ class Project(MetadataContainer, CurrentProvider["Project"]):
         self._members: dict[str, Task | Project] = {}
 
         self.group("fmt", description="Tasks that perform code formatting operations.")
-        self.group("lint", description="Tasks that perform code linting.", default=False)
+        self.group("lint", description="Tasks that perform code linting.", default=True)
         self.group("build", description="Tasks that produce build artefacts.")
-        self.group("test", description="Tasks that perform unit tests.", default=False)
+        self.group("test", description="Tasks that perform unit tests.", default=True)
         self.group("integrationTest", description="Tasks that perform integration tests.")
         self.group("publish", description="Tasks that publish build artefacts.")
 

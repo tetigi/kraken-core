@@ -129,7 +129,11 @@ class Property(Supplier[T]):
         self._error_message: str | None = None
 
     def __repr__(self) -> str:
-        return f"Property({self.owner}.{self.name})"
+        try:
+            owner_fmt = str(self.owner)
+        except Exception:
+            owner_fmt = type(self.owner).__name__ + "(<exception during fmt>)"
+        return f"Property({owner_fmt}.{self.name})"
 
     def _adapt_value(self, value: Any) -> Any:
         errors = []

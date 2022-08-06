@@ -1,0 +1,5 @@
+[[entries]]
+id = "51093178-3eb5-42a8-a08a-482f3442d7f3"
+type = "improvement"
+description = "Fix a potential error when a bad value is passed to `Property.default()` on construction of the object where it cannot be properly formatted as a string yet because some attributes may not be set; `Property.__repr__()` now catches an exception of formatting it's owner"
+author = "@NiklasRosenstein"

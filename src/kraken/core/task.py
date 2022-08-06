@@ -12,9 +12,11 @@ import logging
 import shlex
 import sys
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Optional, Sequence, TypeVar, cast
 
 from kraken.core.property import Object, Property
+from kraken.core.supplier import Empty
 
 if TYPE_CHECKING:
     from kraken.core.project import Project
@@ -267,6 +269,31 @@ class Task(Object, abc.ABC):
             else:
                 assert isinstance(rel.other_task, Task)
                 yield cast(TaskRelationship, rel)
+
+    def get_description(self) -> str | None:
+        """Return the task's description. The default implementation formats the :attr:`description` string with the
+        task's properties. Any Path property will be converted to a relative string to assist the reader."""
+
+        class _MappingProxy:
+            def __getitem__(_, key: str) -> Any:
+                if key not in type(self).__schema__:
+                    return f"%({key})s"
+                prop = getattr(self, key)
+                try:
+                    value = prop.get()
+                except Empty:
+                    return "<empty>"
+                else:
+                    if isinstance(value, Path):
+                        try:
+                            value = value.relative_to(Path.cwd())
+                        except ValueError:
+                            pass
+                    return value
+
+        if self.description:
+            return self.description % _MappingProxy()
+        return None
 
     def finalize(self) -> None:
         """This method is called by :meth:`Context.finalize()`. It gives the task a chance update its

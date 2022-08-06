@@ -9,3 +9,9 @@ id = "38db4964-3fec-42ca-a331-66461b7476a3"
 type = "breaking change"
 description = "`Task.default` is now disabled by default"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "138393e7-f504-4e62-b80b-dcaddac58b18"
+type = "feature"
+description = "Add `Task.get_description()`"
+author = "@NiklasRosenstein"

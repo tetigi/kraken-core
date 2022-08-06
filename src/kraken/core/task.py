@@ -169,7 +169,7 @@ class Task(Object, abc.ABC):
     name: str
     project: Project
     description: Optional[str] = None
-    default: bool = True
+    default: bool = False
     logger: logging.Logger
 
     def __init__(self, name: str, project: Project) -> None:

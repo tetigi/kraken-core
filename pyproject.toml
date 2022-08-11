@@ -55,8 +55,8 @@ typed = true
 check = "slap check"
 mypy = "dmypy run src/"
 pytest = "pytest src/tests/ -vv"
-black = "black --check src/ -v"
-isort = "isort --check-only src/ -v"
+black = "black --check src/"
+isort = "isort --check-only src/"
 flake8 = "flake8 src/"
 
 [tool.slap.run]
@@ -65,6 +65,7 @@ fmt = "black src/ && isort src/"
 [tool.mypy]
 python_version = "3.7"
 explicit_package_bases = true
+exclude = [ "src/kraken/_vendor" ]
 mypy_path = ["src"]
 namespace_packages = true
 pretty = true
@@ -75,6 +76,11 @@ warn_no_return = true
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "kraken._vendor.networkx.*"
+ignore_errors = true
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "kraken._vendor.dill.*"

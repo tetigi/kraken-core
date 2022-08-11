@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Iterator, TextIO
 
-from termcolor import colored
+from kraken._vendor.termcolor import colored
 
 REGEX_ANSI_ESCAPE = re.compile(
     r"""

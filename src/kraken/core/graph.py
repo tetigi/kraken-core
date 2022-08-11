@@ -233,7 +233,7 @@ class TaskGraph(Graph):
 
         :param all: Return the execution order of all tasks, not just from the target subgraph."""
 
-        from networkx.algorithms import topological_sort  # type: ignore[import]
+        from kraken._vendor.networkx.algorithms import topological_sort  # type: ignore[import]
 
         order = topological_sort(self._full_graph if all else self._get_ready_graph())
         return (not_none(self._get_task(task_path)) for task_path in order)

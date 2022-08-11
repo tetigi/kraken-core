@@ -35,7 +35,6 @@ We're vendoring a number of third party packages for the purpose of reducing the
 at installation time. This is particularly relevant for using Kraken in continuous integration systems to improve
 resolve times and PEX size.
 
-* `dill`
 * `networkx`
 * `nr.io.graphviz`
 * `nr.python.environment`

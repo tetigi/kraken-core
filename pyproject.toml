@@ -10,8 +10,10 @@ authors = ["Niklas Rosenstein <rosensteinniklas@gmail.com>"]
 license = "MIT"
 readme = "readme.md"
 packages = [
-    { include = "kraken/core", from = "src" },
     { include = "kraken/cli", from = "src" },
+    { include = "kraken/core", from = "src" },
+    { include = "kraken/lib", from = "src" },
+    { include = "kraken/test", from = "src" },
     { include = "kraken/util", from = "src" },
 ]
 classifiers = []
@@ -41,11 +43,8 @@ types-setuptools = "^57.4.18"
 [tool.poetry.extras]
 testing = ["pytest"]
 
-[tool.poetry.plugins."kraken.core.loader"]
-python_script = "kraken.core.loader.python_script:PythonScriptProjectLoader"
-
 [tool.poetry.plugins."pytest11"]
-kraken-testing = "kraken.core.testing"
+"kraken.test" = "kraken.test"
 
 [tool.poetry.scripts]
 kraken = "kraken.cli.main:_entrypoint"
@@ -77,6 +76,10 @@ warn_no_return = true
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "dill"
+ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"

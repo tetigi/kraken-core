@@ -416,14 +416,12 @@ def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
 
     style_default = {"penwidth": "3"}
     style_goal = {"fillcolor": "lawngreen"}
-    style_task = {}
     style_select = {"fillcolor": "darkgoldenrod1"}
     style_group = {"shape": "ellipse"}
-    style_edge_strict = {}
     style_edge_non_strict = {"style": "dashed"}
 
     writer.subgraph("cluster_#legend", label="Legend")
-    writer.node("#task", label="task", **style_task)
+    writer.node("#task", label="task")
     writer.node("#group", label="group task", **style_group)
     writer.node("#default", label="would run by default", **style_default)
     writer.node("#selected", label="will run", **style_select)
@@ -438,7 +436,7 @@ def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
     for task in graph.tasks(all=viz_options.all):
         style = {}
         style.update(style_default if task.default else {})
-        style.update(style_group if isinstance(task, GroupTask) else style_task)
+        style.update(style_group if isinstance(task, GroupTask) else {})
         style.update(style_select if task in selected_tasks else {})
         style.update(style_goal if task in goal_tasks else {})
 
@@ -447,7 +445,7 @@ def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
             writer.edge(
                 predecessor.path,
                 task.path,
-                **(style_edge_strict if graph.get_edge(predecessor, task).strict else style_edge_non_strict),
+                **({} if graph.get_edge(predecessor, task).strict else style_edge_non_strict),
             )
 
     writer.end()

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import importlib
-from typing import TypeVar, overload
+import sys
+from typing import Iterable, Iterator, TypeVar, overload
 
 T = TypeVar("T")
 
@@ -25,3 +27,15 @@ def import_class(fqn: str, base_type: type[T] | None = None) -> type[T]:
     if base_type is not None and not issubclass(cls, base_type):
         raise TypeError(f"expected subclass of {base_type} at {fqn!r}, got {cls}")
     return cls
+
+
+@contextlib.contextmanager
+def append_to_sys_path(path: Iterable[str]) -> Iterator[None]:
+    """Temporarily append to `sys.path`."""
+
+    prev_path = sys.path[:]
+    try:
+        sys.path += path
+        yield
+    finally:
+        sys.path[:] = prev_path

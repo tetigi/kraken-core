@@ -4,7 +4,6 @@ Eulerian circuits and graphs.
 from itertools import combinations
 
 from ... import networkx as nx
-
 from ..utils import arbitrary_element, not_implemented_for
 
 __all__ = [
@@ -24,11 +23,6 @@ def is_eulerian(G):
     circuit* is a closed walk that includes each edge of a graph exactly
     once.
 
-    Graphs with isolated vertices (i.e. vertices with zero degree) are not
-    considered to have Eulerian circuits. Therefore, if the graph is not
-    connected (or not strongly connected, for directed graphs), this function
-    returns False.
-
     Parameters
     ----------
     G : NetworkX graph
@@ -43,18 +37,10 @@ def is_eulerian(G):
     >>> nx.is_eulerian(nx.petersen_graph())
     False
 
-    If you prefer to allow graphs with isolated vertices to have Eulerian circuits,
-    you can first remove such vertices and then call `is_eulerian` as below example shows.
-
-    >>> G = nx.Graph([(0, 1), (1, 2), (0, 2)])
-    >>> G.add_node(3)
-    >>> nx.is_eulerian(G)
-    False
-
-    >>> G.remove_nodes_from(list(nx.isolates(G)))
-    >>> nx.is_eulerian(G)
-    True
-
+    Notes
+    -----
+    If the graph is not connected (or not strongly connected, for
+    directed graphs), this function returns False.
 
     """
     if G.is_directed():
@@ -72,11 +58,6 @@ def is_semieulerian(G):
     """Return True iff `G` is semi-Eulerian.
 
     G is semi-Eulerian if it has an Eulerian path but no Eulerian circuit.
-
-    See Also
-    --------
-    has_eulerian_path
-    is_eulerian
     """
     return has_eulerian_path(G) and not is_eulerian(G)
 
@@ -93,7 +74,7 @@ def _find_path_start(G):
         return arbitrary_element(G)
 
     if G.is_directed():
-        v1, v2 = (v for v in G if G.in_degree(v) != G.out_degree(v))
+        v1, v2 = [v for v in G if G.in_degree(v) != G.out_degree(v)]
         # Determines which is the 'start' node (as opposed to the 'end')
         if G.out_degree(v1) > G.in_degree(v1):
             return v1
@@ -243,8 +224,8 @@ def has_eulerian_path(G, source=None):
         - at most one vertex has out_degree - in_degree = 1,
         - at most one vertex has in_degree - out_degree = 1,
         - every other vertex has equal in_degree and out_degree,
-        - and all of its vertices belong to a single connected
-          component of the underlying undirected graph.
+        - and all of its vertices with nonzero degree belong to a
+          single connected component of the underlying undirected graph.
 
     If `source` is not None, an Eulerian path starting at `source` exists if no
     other node has out_degree - in_degree = 1. This is equivalent to either
@@ -253,15 +234,12 @@ def has_eulerian_path(G, source=None):
 
     An undirected graph has an Eulerian path iff:
         - exactly zero or two vertices have odd degree,
-        - and all of its vertices belong to a single connected component.
+        - and all of its vertices with nonzero degree belong to a
+        - single connected component.
 
     If `source` is not None, an Eulerian path starting at `source` exists if
     either there exists an Eulerian circuit or `source` has an odd degree and the
     conditions above hold.
-
-    Graphs with isolated vertices (i.e. vertices with zero degree) are not considered
-    to have an Eulerian path. Therefore, if the graph is not connected (or not strongly
-    connected, for directed graphs), this function returns False.
 
     Parameters
     ----------
@@ -275,20 +253,6 @@ def has_eulerian_path(G, source=None):
     -------
     Bool : True if G has an Eulerian path.
 
-    Example
-    -------
-    If you prefer to allow graphs with isolated vertices to have Eulerian path,
-    you can first remove such vertices and then call `has_eulerian_path` as below example shows.
-
-    >>> G = nx.Graph([(0, 1), (1, 2), (0, 2)])
-    >>> G.add_node(3)
-    >>> nx.has_eulerian_path(G)
-    False
-
-    >>> G.remove_nodes_from(list(nx.isolates(G)))
-    >>> nx.has_eulerian_path(G)
-    True
-
     See Also
     --------
     is_eulerian
@@ -298,6 +262,11 @@ def has_eulerian_path(G, source=None):
         return True
 
     if G.is_directed():
+        # Remove isolated nodes (if any) without altering the input graph
+        nodes_remove = [v for v in G if G.in_degree[v] == 0 and G.out_degree[v] == 0]
+        if nodes_remove:
+            G = G.copy()
+            G.remove_nodes_from(nodes_remove)
         ins = G.in_degree
         outs = G.out_degree
         # Since we know it is not eulerian, outs - ins must be 1 for source

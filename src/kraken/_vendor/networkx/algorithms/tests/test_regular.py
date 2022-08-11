@@ -1,7 +1,7 @@
 import pytest
-
 from .... import networkx
 from .... import networkx as nx
+
 from ....networkx.algorithms import regular as reg
 from ....networkx import generators as gen
 

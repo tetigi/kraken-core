@@ -1,5 +1,4 @@
 import pytest
-
 from ..... import networkx as nx
 from .....networkx import NetworkXNotImplemented
 

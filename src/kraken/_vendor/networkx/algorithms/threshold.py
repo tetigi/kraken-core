@@ -2,7 +2,6 @@
 Threshold Graphs - Creation, manipulation and identification.
 """
 from math import sqrt
-
 from ... import networkx as nx
 from ...networkx.utils import py_random_state
 
@@ -232,7 +231,7 @@ def creation_sequence_to_weights(creation_sequence):
     # Now scale weights
     if prev == "d":
         w += 1
-    wscale = 1 / w
+    wscale = 1.0 / float(w)
     return [ww * wscale for ww in wseq]
     # return wseq
 
@@ -493,7 +492,7 @@ def cluster_sequence(creation_sequence):
             cseq.append(0)
             continue
         max_size = (deg * (deg - 1)) // 2
-        cseq.append(tri / max_size)
+        cseq.append(float(tri) / float(max_size))
     return cseq
 
 
@@ -522,7 +521,7 @@ def density(creation_sequence):
     N = len(creation_sequence)
     two_size = sum(degree_sequence(creation_sequence))
     two_possible = N * (N - 1)
-    den = two_size / two_possible
+    den = two_size / float(two_possible)
     return den
 
 
@@ -548,7 +547,7 @@ def degree_correlation(creation_sequence):
         for dj in rdi:
             degj = ds[dj]
             s1 += degj * degi
-            s2 += degi**2 + degj**2
+            s2 += degi ** 2 + degj ** 2
             s3 += degi + degj
             m += 1
     denom = 2 * m * s2 - s3 * s3
@@ -557,7 +556,7 @@ def degree_correlation(creation_sequence):
         if numer == 0:
             return 1
         raise ValueError(f"Zero Denominator but Numerator is {numer}")
-    return numer / denom
+    return numer / float(denom)
 
 
 def shortest_path(creation_sequence, u, v):
@@ -773,7 +772,7 @@ def spectral_projection(u, eigenpairs):
     coeff = []
     evect = eigenpairs[1]
     for ev in evect:
-        c = sum(evv * uv for (evv, uv) in zip(ev, u))
+        c = sum([evv * uv for (evv, uv) in zip(ev, u)])
         coeff.append(c)
     return coeff
 

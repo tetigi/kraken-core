@@ -1,15 +1,14 @@
 """
     Unit tests for bipartite edgelists.
 """
-import io
-import os
-import tempfile
-
 import pytest
+import io
+import tempfile
+import os
 
 from ..... import networkx as nx
+from .....networkx.utils import nodes_equal, edges_equal, graphs_equal
 from .....networkx.algorithms import bipartite
-from .....networkx.utils import edges_equal, graphs_equal, nodes_equal
 
 
 class TestEdgelist:

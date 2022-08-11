@@ -1,8 +1,6 @@
-import pytest
-
 from ..... import networkx as nx
 from .....networkx.algorithms import bipartite
-from .....networkx.utils import edges_equal, nodes_equal
+from .....networkx.utils import nodes_equal, edges_equal
 
 
 class TestBipartiteProject:
@@ -53,10 +51,6 @@ class TestBipartiteProject:
 
     def test_path_weighted_projected_graph(self):
         G = nx.path_graph(4)
-
-        with pytest.raises(nx.NetworkXAlgorithmError):
-            bipartite.weighted_projected_graph(G, [1, 2, 3, 3])
-
         P = bipartite.weighted_projected_graph(G, [1, 3])
         assert nodes_equal(list(P), [1, 3])
         assert edges_equal(list(P.edges()), [(1, 3)])
@@ -375,7 +369,7 @@ class TestBipartiteWeightedProjection:
         def jaccard(G, u, v):
             unbrs = set(G[u])
             vnbrs = set(G[v])
-            return len(unbrs & vnbrs) / len(unbrs | vnbrs)
+            return float(len(unbrs & vnbrs)) / len(unbrs | vnbrs)
 
         def my_weight(G, u, v, weight="weight"):
             w = 0

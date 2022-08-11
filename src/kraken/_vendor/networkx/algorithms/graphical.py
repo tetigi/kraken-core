@@ -1,7 +1,6 @@
 """Test sequences for graphiness.
 """
 import heapq
-
 from ... import networkx as nx
 
 __all__ = [

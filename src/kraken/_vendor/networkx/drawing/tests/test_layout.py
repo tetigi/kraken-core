@@ -1,7 +1,7 @@
 """Unit tests for layout functions."""
-import pytest
-
 from .... import networkx as nx
+
+import pytest
 
 np = pytest.importorskip("numpy")
 pytest.importorskip("scipy")
@@ -14,6 +14,17 @@ class TestLayout:
         cls.Gs = nx.Graph()
         nx.add_path(cls.Gs, "abcdef")
         cls.bigG = nx.grid_2d_graph(25, 25)  # > 500 nodes for sparse
+
+    @staticmethod
+    def collect_node_distances(positions):
+        distances = []
+        prev_val = None
+        for k in positions:
+            if prev_val is not None:
+                diff = positions[k] - prev_val
+                distances.append((diff @ diff) ** 0.5)
+            prev_val = positions[k]
+        return distances
 
     def test_spring_fixed_without_pos(self):
         G = nx.path_graph(4)
@@ -151,7 +162,7 @@ class TestLayout:
         assert pos.shape == (6, 2)
 
     def test_adjacency_interface_scipy(self):
-        A = nx.to_scipy_sparse_array(self.Gs, dtype="d")
+        A = nx.to_scipy_sparse_matrix(self.Gs, dtype="d")
         pos = nx.drawing.layout._sparse_fruchterman_reingold(A)
         assert pos.shape == (6, 2)
         pos = nx.drawing.layout._sparse_spectral(A)
@@ -356,29 +367,20 @@ class TestLayout:
         # intuitively, the total distance from the start and end nodes
         # via each node in between (transiting through each) will be less,
         # assuming rescaling does not occur on the computed node positions
-        pos_standard = np.array(list(nx.spiral_layout(G, resolution=0.35).values()))
-        pos_tighter = np.array(list(nx.spiral_layout(G, resolution=0.34).values()))
-        distances = np.linalg.norm(pos_standard[:-1] - pos_standard[1:], axis=1)
-        distances_tighter = np.linalg.norm(pos_tighter[:-1] - pos_tighter[1:], axis=1)
+        pos_standard = nx.spiral_layout(G, resolution=0.35)
+        pos_tighter = nx.spiral_layout(G, resolution=0.34)
+        distances = self.collect_node_distances(pos_standard)
+        distances_tighter = self.collect_node_distances(pos_tighter)
         assert sum(distances) > sum(distances_tighter)
 
         # return near-equidistant points after the first value if set to true
-        pos_equidistant = np.array(list(nx.spiral_layout(G, equidistant=True).values()))
-        distances_equidistant = np.linalg.norm(
-            pos_equidistant[:-1] - pos_equidistant[1:], axis=1
-        )
-        assert np.allclose(
-            distances_equidistant[1:], distances_equidistant[-1], atol=0.01
-        )
-
-    def test_spiral_layout_equidistant(self):
-        G = nx.path_graph(10)
-        pos = nx.spiral_layout(G, equidistant=True)
-        # Extract individual node positions as an array
-        p = np.array(list(pos.values()))
-        # Elementwise-distance between node positions
-        dist = np.linalg.norm(p[1:] - p[:-1], axis=1)
-        assert np.allclose(np.diff(dist), 0, atol=1e-3)
+        pos_equidistant = nx.spiral_layout(G, equidistant=True)
+        distances_equidistant = self.collect_node_distances(pos_equidistant)
+        for d in range(1, len(distances_equidistant) - 1):
+            # test similarity to two decimal places
+            assert distances_equidistant[d] == pytest.approx(
+                distances_equidistant[d + 1], abs=1e-2
+            )
 
     def test_rescale_layout_dict(self):
         G = nx.empty_graph()
@@ -393,53 +395,6 @@ class TestLayout:
         G = nx.empty_graph(3)
         vpos = {0: (0, 0), 1: (1, 1), 2: (0.5, 0.5)}
         s_vpos = nx.rescale_layout_dict(vpos)
-
-        expectation = {
-            0: np.array((-1, -1)),
-            1: np.array((1, 1)),
-            2: np.array((0, 0)),
-        }
-        for k, v in expectation.items():
-            assert (s_vpos[k] == v).all()
+        assert s_vpos == {0: (-1, -1), 1: (1, 1), 2: (0, 0)}
         s_vpos = nx.rescale_layout_dict(vpos, scale=2)
-
-        expectation = {
-            0: np.array((-2, -2)),
-            1: np.array((2, 2)),
-            2: np.array((0, 0)),
-        }
-        for k, v in expectation.items():
-            assert (s_vpos[k] == v).all()
-
-
-def test_multipartite_layout_nonnumeric_partition_labels():
-    """See gh-5123."""
-    G = nx.Graph()
-    G.add_node(0, subset="s0")
-    G.add_node(1, subset="s0")
-    G.add_node(2, subset="s1")
-    G.add_node(3, subset="s1")
-    G.add_edges_from([(0, 2), (0, 3), (1, 2)])
-    pos = nx.multipartite_layout(G)
-    assert len(pos) == len(G)
-
-
-def test_multipartite_layout_layer_order():
-    """Return the layers in sorted order if the layers of the multipartite
-    graph are sortable. See gh-5691"""
-    G = nx.Graph()
-    for node, layer in zip(("a", "b", "c", "d", "e"), (2, 3, 1, 2, 4)):
-        G.add_node(node, subset=layer)
-
-    # Horizontal alignment, therefore y-coord determines layers
-    pos = nx.multipartite_layout(G, align="horizontal")
-
-    # Nodes "a" and "d" are in the same layer
-    assert pos["a"][-1] == pos["d"][-1]
-    # positions should be sorted according to layer
-    assert pos["c"][-1] < pos["a"][-1] < pos["b"][-1] < pos["e"][-1]
-
-    # Make sure that multipartite_layout still works when layers are not sortable
-    G.nodes["a"]["subset"] = "layer_0"  # Can't sort mixed strs/ints
-    pos_nosort = nx.multipartite_layout(G)  # smoke test: this should not raise
-    assert pos_nosort.keys() == pos.keys()
+        assert s_vpos == {0: (-2, -2), 1: (2, 2), 2: (0, 0)}

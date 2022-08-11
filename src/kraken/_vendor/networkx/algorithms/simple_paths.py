@@ -1,9 +1,10 @@
-from heapq import heappop, heappush
+from heapq import heappush, heappop
 from itertools import count
 
 from ... import networkx as nx
+from ...networkx.utils import not_implemented_for
+from ...networkx.utils import pairwise
 from ...networkx.algorithms.shortest_paths.weighted import _weight_function
-from ...networkx.utils import not_implemented_for, pairwise
 
 __all__ = [
     "all_simple_paths",
@@ -206,11 +207,6 @@ def all_simple_paths(G, source, target, cutoff=None):
     number of simple paths in a graph can be very large, e.g. $O(n!)$ in
     the complete graph of order $n$.
 
-    This function does not check that a path exists between `source` and
-    `target`. For large graphs, this may result in very long runtimes.
-    Consider using `has_path` to check that a path exists between `source` and
-    `target` before calling this function on large graphs.
-
     References
     ----------
     .. [1] R. Sedgewick, "Algorithms in C, Part 5: Graph Algorithms",
@@ -218,7 +214,7 @@ def all_simple_paths(G, source, target, cutoff=None):
 
     See Also
     --------
-    all_shortest_paths, shortest_path, has_path
+    all_shortest_paths, shortest_path
 
     """
     if source not in G:
@@ -228,8 +224,8 @@ def all_simple_paths(G, source, target, cutoff=None):
     else:
         try:
             targets = set(target)
-        except TypeError as err:
-            raise nx.NodeNotFound(f"target node {target} not in graph") from err
+        except TypeError as e:
+            raise nx.NodeNotFound(f"target node {target} not in graph") from e
     if source in targets:
         return _empty_generator()
     if cutoff is None:
@@ -829,8 +825,6 @@ def _bidirectional_dijkstra(
     if ignore_nodes and (source in ignore_nodes or target in ignore_nodes):
         raise nx.NetworkXNoPath(f"No path between {source} and {target}.")
     if source == target:
-        if source not in G:
-            raise nx.NodeNotFound(f"Node {source} not in graph")
         return (0, [source])
 
     # handle either directed or undirected

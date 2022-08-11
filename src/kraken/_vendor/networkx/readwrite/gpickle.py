@@ -4,10 +4,6 @@ Pickled Graphs
 **************
 Read and write NetworkX graphs as Python pickles.
 
-.. warning::
-    The pickle library is not secure and can be used to create arbitray objects. 
-    Only unpickle data you trust - see :doc:`library/pickle` for additional information.
-
 "The pickle module implements a fundamental, but powerful algorithm
 for serializing and de-serializing a Python object
 structure. "Pickling" is the process whereby a Python object hierarchy
@@ -27,10 +23,10 @@ See https://docs.python.org/3/library/pickle.html
 
 __all__ = ["read_gpickle", "write_gpickle"]
 
+from ...networkx.utils import open_file
+
 import pickle
 import warnings
-
-from ...networkx.utils import open_file
 
 
 @open_file(1, mode="wb")

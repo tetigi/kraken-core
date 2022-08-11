@@ -1,5 +1,5 @@
-from .... import networkx as nx
 from ....networkx.utils import reverse_cuthill_mckee_ordering
+from .... import networkx as nx
 
 
 def test_reverse_cuthill_mckee():

@@ -1,7 +1,6 @@
 """Basic algorithms for breadth-first searching the nodes of a graph."""
-from collections import deque
-
 from .... import networkx as nx
+from collections import deque
 
 __all__ = [
     "bfs_edges",
@@ -384,37 +383,28 @@ def descendants_at_distance(G, source, distance):
     -------
     set()
         The descendants of `source` in `G` at the given `distance` from `source`
-
-    Examples
-    --------
-    >>> G = nx.path_graph(5)
-    >>> nx.descendants_at_distance(G, 2, 2)
-    {0, 4}
-    >>> H = nx.DiGraph()
-    >>> H.add_edges_from([(0, 1), (0, 2), (1, 3), (1, 4), (2, 5), (2, 6)])
-    >>> nx.descendants_at_distance(H, 0, 2)
-    {3, 4, 5, 6}
-    >>> nx.descendants_at_distance(H, 5, 0)
-    {5}
-    >>> nx.descendants_at_distance(H, 5, 1)
-    set()
     """
     if not G.has_node(source):
         raise nx.NetworkXError(f"The node {source} is not in the graph.")
     current_distance = 0
-    current_layer = {source}
+    queue = {source}
     visited = {source}
 
-    # this is basically BFS, except that the current layer only stores the nodes at
+    # this is basically BFS, except that the queue only stores the nodes at
     # current_distance from source at each iteration
-    while current_distance < distance:
-        next_layer = set()
-        for node in current_layer:
-            for child in G[node]:
-                if child not in visited:
-                    visited.add(child)
-                    next_layer.add(child)
-        current_layer = next_layer
+    while queue:
+        if current_distance == distance:
+            return queue
+
         current_distance += 1
 
-    return current_layer
+        next_vertices = set()
+        for vertex in queue:
+            for child in G[vertex]:
+                if child not in visited:
+                    visited.add(child)
+                    next_vertices.add(child)
+
+        queue = next_vertices
+
+    return set()

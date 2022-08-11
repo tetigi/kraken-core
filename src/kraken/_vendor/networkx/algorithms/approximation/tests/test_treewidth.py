@@ -1,14 +1,9 @@
-import itertools
-
 from ..... import networkx as nx
-from .....networkx.algorithms.approximation import (
-    treewidth_min_degree,
-    treewidth_min_fill_in,
-)
-from .....networkx.algorithms.approximation.treewidth import (
-    MinDegreeHeuristic,
-    min_fill_in_heuristic,
-)
+from .....networkx.algorithms.approximation import treewidth_min_degree
+from .....networkx.algorithms.approximation import treewidth_min_fill_in
+from .....networkx.algorithms.approximation.treewidth import min_fill_in_heuristic
+from .....networkx.algorithms.approximation.treewidth import MinDegreeHeuristic
+import itertools
 
 
 def is_tree_decomp(graph, decomp):

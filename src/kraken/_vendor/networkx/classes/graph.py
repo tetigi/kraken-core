@@ -8,37 +8,14 @@ Self-loops are allowed but multiple edges are not (see MultiGraph).
 For directed graphs see DiGraph and MultiDiGraph.
 """
 from copy import deepcopy
-from functools import cached_property
 
 from ... import networkx as nx
-from ...networkx import convert as convert
 from ...networkx.classes.coreviews import AdjacencyView
-from ...networkx.classes.reportviews import DegreeView, EdgeView, NodeView
+from ...networkx.classes.reportviews import NodeView, EdgeView, DegreeView
 from ...networkx.exception import NetworkXError
+from ...networkx import convert as convert
 
 __all__ = ["Graph"]
-
-
-class _CachedPropertyResetterAdj:
-    """Data Descriptor class for _adj that resets ``adj`` cached_property when needed
-
-    This assumes that the ``cached_property`` ``G.adj`` should be reset whenever
-    ``G._adj`` is set to a new value.
-
-    This object sits on a class and ensures that any instance of that
-    class clears its cached property "adj" whenever the underlying
-    instance attribute "_adj" is set to a new object. It only affects
-    the set process of the obj._adj attribute. All get/del operations
-    act as they normally would.
-
-    For info on Data Descriptors see: https://docs.python.org/3/howto/descriptor.html
-    """
-
-    def __set__(self, obj, value):
-        od = obj.__dict__
-        od["_adj"] = value
-        if "adj" in od:
-            del od["adj"]
 
 
 class Graph:
@@ -62,8 +39,8 @@ class Graph:
         Data to initialize graph. If None (default) an empty
         graph is created.  The data can be any format that is supported
         by the to_networkx_graph() function, currently including edge list,
-        dict of dicts, dict of lists, NetworkX graph, 2D NumPy array, SciPy
-        sparse matrix, or PyGraphviz graph.
+        dict of dicts, dict of lists, NetworkX graph, NumPy matrix
+        or 2d ndarray, SciPy sparse matrix, or PyGraphviz graph.
 
     attr : keyword arguments, optional (default= no attributes)
         Attributes to add to graph as key=value pairs.
@@ -286,8 +263,6 @@ class Graph:
     a dictionary-like object.
     """
 
-    _adj = _CachedPropertyResetterAdj()
-
     node_dict_factory = dict
     node_attr_dict_factory = dict
     adjlist_outer_dict_factory = dict
@@ -320,8 +295,8 @@ class Graph:
             Data to initialize graph. If None (default) an empty
             graph is created.  The data can be an edge list, or any
             NetworkX graph object.  If the corresponding optional Python
-            packages are installed the data can also be a 2D NumPy array, a
-            SciPy sparse matrix, or a PyGraphviz graph.
+            packages are installed the data can also be a NumPy matrix
+            or 2d ndarray, a SciPy sparse matrix, or a PyGraphviz graph.
 
         attr : keyword arguments, optional (default= no attributes)
             Attributes to add to graph as key=value pairs.
@@ -344,6 +319,13 @@ class Graph:
         {'day': 'Friday'}
 
         """
+        self.graph_attr_dict_factory = self.graph_attr_dict_factory
+        self.node_dict_factory = self.node_dict_factory
+        self.node_attr_dict_factory = self.node_attr_dict_factory
+        self.adjlist_outer_dict_factory = self.adjlist_outer_dict_factory
+        self.adjlist_inner_dict_factory = self.adjlist_inner_dict_factory
+        self.edge_attr_dict_factory = self.edge_attr_dict_factory
+
         self.graph = self.graph_attr_dict_factory()  # dictionary for graph attributes
         self._node = self.node_dict_factory()  # empty node attribute dict
         self._adj = self.adjlist_outer_dict_factory()  # empty adjacency dict
@@ -353,7 +335,7 @@ class Graph:
         # load graph attributes (must be after convert)
         self.graph.update(attr)
 
-    @cached_property
+    @property
     def adj(self):
         """Graph adjacency object holding the neighbors of each node.
 
@@ -635,8 +617,8 @@ class Graph:
         try:
             nbrs = list(adj[n])  # list handles self-loops (allows mutation)
             del self._node[n]
-        except KeyError as err:  # NetworkXError if n not in self
-            raise NetworkXError(f"The node {n} is not in the graph.") from err
+        except KeyError as e:  # NetworkXError if n not in self
+            raise NetworkXError(f"The node {n} is not in the graph.") from e
         for u in nbrs:
             del adj[u][n]  # remove all edges n-u in graph
         del adj[n]  # now remove node
@@ -676,7 +658,7 @@ class Graph:
             except KeyError:
                 pass
 
-    @cached_property
+    @property
     def nodes(self):
         """A NodeView of the Graph as G.nodes or G.nodes().
 
@@ -767,7 +749,12 @@ class Graph:
             {0: 1, 1: 2, 2: 3}
 
         """
-        return NodeView(self)
+        nodes = NodeView(self)
+        # Lazy View creation: overload the (class) property on the instance
+        # Then future G.nodes use the existing View
+        # setattr doesn't work because attribute already exists
+        self.__dict__["nodes"] = nodes
+        return nodes
 
     def number_of_nodes(self):
         """Returns the number of nodes in the graph.
@@ -1030,8 +1017,8 @@ class Graph:
             del self._adj[u][v]
             if u != v:  # self-loop needs only one entry removed
                 del self._adj[v][u]
-        except KeyError as err:
-            raise NetworkXError(f"The edge {u}-{v} is not in the graph") from err
+        except KeyError as e:
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph") from e
 
     def remove_edges_from(self, ebunch):
         """Remove all edges specified in ebunch.
@@ -1264,10 +1251,10 @@ class Graph:
         """
         try:
             return iter(self._adj[n])
-        except KeyError as err:
-            raise NetworkXError(f"The node {n} is not in the graph.") from err
+        except KeyError as e:
+            raise NetworkXError(f"The node {n} is not in the graph.") from e
 
-    @cached_property
+    @property
     def edges(self):
         """An EdgeView of the Graph as G.edges or G.edges().
 
@@ -1286,7 +1273,7 @@ class Graph:
         Parameters
         ----------
         nbunch : single node, container, or all nodes (default= all nodes)
-            The view will only report edges from these nodes.
+            The view will only report edges incident to these nodes.
         data : string or bool, optional (default=False)
             The edge attribute returned in 3-tuple (u, v, ddict[data]).
             If True, return edge attribute dict in 3-tuple (u, v, ddict).
@@ -1317,9 +1304,9 @@ class Graph:
         EdgeDataView([(0, 1, {}), (1, 2, {}), (2, 3, {'weight': 5})])
         >>> G.edges.data("weight", default=1)
         EdgeDataView([(0, 1, 1), (1, 2, 1), (2, 3, 5)])
-        >>> G.edges([0, 3])  # only edges from these nodes
+        >>> G.edges([0, 3])  # only edges incident to these nodes
         EdgeDataView([(0, 1), (3, 2)])
-        >>> G.edges(0)  # only edges from node 0
+        >>> G.edges(0)  # only edges incident to a single node (use G.adj[0]?)
         EdgeDataView([(0, 1)])
         """
         return EdgeView(self)
@@ -1390,7 +1377,7 @@ class Graph:
         """
         return iter(self._adj.items())
 
-    @cached_property
+    @property
     def degree(self):
         """A DegreeView for the Graph as G.degree or G.degree().
 
@@ -1413,10 +1400,12 @@ class Graph:
 
         Returns
         -------
-        DegreeView or int
-            If multiple nodes are requested (the default), returns a `DegreeView`
-            mapping nodes to their degree.
-            If a single node is requested, returns the degree of the node as an integer.
+        If a single node is requested
+        deg : int
+            Degree of the node
+
+        OR if multiple nodes are requested
+        nd_view : A DegreeView object capable of iterating (node, degree) pairs
 
         Examples
         --------
@@ -1922,8 +1911,8 @@ class Graph:
                     for n in nlist:
                         if n in adj:
                             yield n
-                except TypeError as err:
-                    exc, message = err, err.args[0]
+                except TypeError as e:
+                    exc, message = e, e.args[0]
                     # capture error for non-sequence/iterator nbunch.
                     if "iter" in message:
                         exc = NetworkXError(

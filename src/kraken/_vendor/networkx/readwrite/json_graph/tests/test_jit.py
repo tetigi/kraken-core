@@ -1,7 +1,5 @@
 import json
-
 import pytest
-
 from ..... import networkx as nx
 from .....networkx.readwrite.json_graph import jit_data, jit_graph
 

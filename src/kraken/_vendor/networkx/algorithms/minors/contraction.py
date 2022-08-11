@@ -1,5 +1,8 @@
 """Provides functions for computing minors of a graph."""
-from itertools import chain, combinations, permutations, product
+from itertools import chain
+from itertools import combinations
+from itertools import permutations
+from itertools import product
 
 from .... import networkx as nx
 from ....networkx import density
@@ -531,7 +534,7 @@ def contracted_nodes(G, u, v, self_loops=True, copy=True):
 identified_nodes = contracted_nodes
 
 
-def contracted_edge(G, edge, self_loops=True, copy=True):
+def contracted_edge(G, edge, self_loops=True):
     """Returns the graph that results from contracting the specified edge.
 
     Edge contraction identifies the two endpoints of the edge as a single node
@@ -551,10 +554,6 @@ def contracted_edge(G, edge, self_loops=True, copy=True):
        If this is True, any edges (including `edge`) joining the
        endpoints of `edge` in `G` become self-loops on the new node in the
        returned graph.
-
-    copy : Boolean (default True)
-        If this is True, a the contraction will be performed on a copy of `G`,
-        otherwise the contraction will happen in place.
 
     Returns
     -------
@@ -597,4 +596,4 @@ def contracted_edge(G, edge, self_loops=True, copy=True):
     u, v = edge[:2]
     if not G.has_edge(u, v):
         raise ValueError(f"Edge {edge} does not exist in graph G; cannot contract it")
-    return contracted_nodes(G, u, v, self_loops=self_loops, copy=copy)
+    return contracted_nodes(G, u, v, self_loops=self_loops)

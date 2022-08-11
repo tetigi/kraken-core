@@ -7,7 +7,6 @@ Algorithms for a breadth-first traversal of edges in a graph.
 
 """
 from collections import deque
-
 from .... import networkx as nx
 
 FORWARD = "forward"

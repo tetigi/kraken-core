@@ -28,7 +28,6 @@ var json = [
 
 import json
 import warnings
-
 from .... import networkx as nx
 from ....networkx.utils.decorators import not_implemented_for
 

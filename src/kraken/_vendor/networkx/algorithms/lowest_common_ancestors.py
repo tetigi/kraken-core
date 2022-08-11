@@ -4,7 +4,11 @@ from collections.abc import Mapping, Set
 from itertools import chain, count
 
 from ... import networkx as nx
-from ...networkx.utils import UnionFind, arbitrary_element, not_implemented_for
+from ...networkx.utils import (
+    arbitrary_element,
+    not_implemented_for,
+    UnionFind,
+)
 
 __all__ = [
     "all_pairs_lowest_common_ancestor",
@@ -269,7 +273,7 @@ def all_pairs_lowest_common_ancestor(G, pairs=None):
     ancestors = {}
     for v in dag:
         if pairs is None or v in pairset:
-            my_ancestors = nx.ancestors(G, v)
+            my_ancestors = nx.dag.ancestors(dag, v)
             my_ancestors.add(v)
             ancestors[v] = sorted(my_ancestors, key=euler_tour_pos.get)
 

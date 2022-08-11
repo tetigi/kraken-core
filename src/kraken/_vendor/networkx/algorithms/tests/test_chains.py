@@ -1,5 +1,6 @@
 """Unit tests for the chain decomposition functions."""
-from itertools import cycle, islice
+from itertools import cycle
+from itertools import islice
 
 from .... import networkx as nx
 

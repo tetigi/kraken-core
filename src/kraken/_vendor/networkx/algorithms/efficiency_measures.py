@@ -2,7 +2,6 @@
 
 from ... import networkx as nx
 from ...networkx.exception import NetworkXNoPath
-
 from ..utils import not_implemented_for
 
 __all__ = ["efficiency", "local_efficiency", "global_efficiency"]

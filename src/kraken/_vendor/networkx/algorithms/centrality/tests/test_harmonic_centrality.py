@@ -2,7 +2,6 @@
 Tests for degree centrality.
 """
 import pytest
-
 from ..... import networkx as nx
 from .....networkx.algorithms.centrality import harmonic_centrality
 

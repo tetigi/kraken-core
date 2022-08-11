@@ -39,9 +39,9 @@ edges included in the matching is minimal.
 import collections
 import itertools
 
-from .... import networkx as nx
-from ....networkx.algorithms.bipartite import sets as bipartite_sets
 from ....networkx.algorithms.bipartite.matrix import biadjacency_matrix
+from ....networkx.algorithms.bipartite import sets as bipartite_sets
+from .... import networkx as nx
 
 __all__ = [
     "maximum_matching",

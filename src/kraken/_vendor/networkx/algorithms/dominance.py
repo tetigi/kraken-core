@@ -3,7 +3,6 @@ Dominance algorithms.
 """
 
 from functools import reduce
-
 from ... import networkx as nx
 from ...networkx.utils import not_implemented_for
 

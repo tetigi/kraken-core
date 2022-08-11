@@ -1,8 +1,6 @@
-import os
-
-import pytest
-
 from ..... import networkx as nx
+import pytest
+import os
 
 
 class TestMinCostFlow:

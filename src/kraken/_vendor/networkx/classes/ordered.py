@@ -33,13 +33,13 @@ subgraphs and replace with code similar to:
     SG.add_edges_from((u, v) for (u, v) in G.edges() if u in SG if v in SG)
 
 """
-import warnings
 from collections import OrderedDict
+import warnings
 
-from .digraph import DiGraph
 from .graph import Graph
-from .multidigraph import MultiDiGraph
 from .multigraph import MultiGraph
+from .digraph import DiGraph
+from .multidigraph import MultiDiGraph
 
 __all__ = []
 
@@ -73,7 +73,7 @@ class OrderedGraph(Graph):
             DeprecationWarning,
             stacklevel=2,
         )
-        super().__init__(incoming_graph_data, **attr)
+        super(OrderedGraph, self).__init__(incoming_graph_data, **attr)
 
 
 class OrderedDiGraph(DiGraph):
@@ -101,7 +101,7 @@ class OrderedDiGraph(DiGraph):
             DeprecationWarning,
             stacklevel=2,
         )
-        super().__init__(incoming_graph_data, **attr)
+        super(OrderedDiGraph, self).__init__(incoming_graph_data, **attr)
 
 
 class OrderedMultiGraph(MultiGraph):
@@ -130,7 +130,7 @@ class OrderedMultiGraph(MultiGraph):
             DeprecationWarning,
             stacklevel=2,
         )
-        super().__init__(incoming_graph_data, **attr)
+        super(OrderedMultiGraph, self).__init__(incoming_graph_data, **attr)
 
 
 class OrderedMultiDiGraph(MultiDiGraph):
@@ -159,4 +159,4 @@ class OrderedMultiDiGraph(MultiDiGraph):
             DeprecationWarning,
             stacklevel=2,
         )
-        super().__init__(incoming_graph_data, **attr)
+        super(OrderedMultiDiGraph, self).__init__(incoming_graph_data, **attr)

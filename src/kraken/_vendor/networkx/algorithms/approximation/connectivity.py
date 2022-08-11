@@ -11,6 +11,8 @@ __all__ = [
     "all_pairs_node_connectivity",
 ]
 
+INF = float("inf")
+
 
 def local_node_connectivity(G, source, target, cutoff=None):
     """Compute node connectivity between source and target.
@@ -93,7 +95,7 @@ def local_node_connectivity(G, source, target, cutoff=None):
         return K
 
     if cutoff is None:
-        cutoff = float("inf")
+        cutoff = INF
 
     exclude = set()
     for i in range(min(possible, cutoff)):

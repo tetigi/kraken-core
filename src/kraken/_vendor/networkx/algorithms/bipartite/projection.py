@@ -1,6 +1,5 @@
 """One-mode (unipartite) projections of bipartite graphs."""
 from .... import networkx as nx
-from ....networkx.exception import NetworkXAlgorithmError
 from ....networkx.utils import not_implemented_for
 
 __all__ = [
@@ -133,7 +132,7 @@ def weighted_projected_graph(B, nodes, ratio=False):
         The input graph should be bipartite.
 
     nodes : list or iterable
-        Distinct nodes to project onto (the "bottom" nodes).
+        Nodes to project onto (the "bottom" nodes).
 
     ratio: Bool (default=False)
         If True, edge weight is the ratio between actual shared neighbors
@@ -160,11 +159,7 @@ def weighted_projected_graph(B, nodes, ratio=False):
 
     Notes
     -----
-    No attempt is made to verify that the input graph B is bipartite, or that
-    the input nodes are distinct. However, if the length of the input nodes is
-    greater than or equal to the nodes in the graph B, an exception is raised.
-    If the nodes are not distinct but don't raise this error, the output weights
-    will be incorrect.
+    No attempt is made to verify that the input graph B is bipartite.
     The graph and node properties are (shallow) copied to the projected graph.
 
     See :mod:`bipartite documentation <networkx.algorithms.bipartite>`
@@ -194,14 +189,7 @@ def weighted_projected_graph(B, nodes, ratio=False):
         G = nx.Graph()
     G.graph.update(B.graph)
     G.add_nodes_from((n, B.nodes[n]) for n in nodes)
-    n_top = len(B) - len(nodes)
-
-    if n_top < 1:
-        raise NetworkXAlgorithmError(
-            f"the size of the nodes to project onto ({len(nodes)}) is >= the graph size ({len(B)}).\n"
-            "They are either not a valid bipartite partition or contain duplicates"
-        )
-
+    n_top = float(len(B) - len(nodes))
     for u in nodes:
         unbrs = set(B[u])
         nbrs2 = {n for nbr in unbrs for n in B[nbr]} - {u}
@@ -402,9 +390,9 @@ def overlap_weighted_projected_graph(B, nodes, jaccard=True):
         for v in nbrs2:
             vnbrs = set(pred[v])
             if jaccard:
-                wt = len(unbrs & vnbrs) / len(unbrs | vnbrs)
+                wt = float(len(unbrs & vnbrs)) / len(unbrs | vnbrs)
             else:
-                wt = len(unbrs & vnbrs) / min(len(unbrs), len(vnbrs))
+                wt = float(len(unbrs & vnbrs)) / min(len(unbrs), len(vnbrs))
             G.add_edge(u, v, weight=wt)
     return G
 
@@ -525,14 +513,4 @@ def generic_weighted_projected_graph(B, nodes, weight_function=None):
 
 
 def project(B, nodes, create_using=None):
-    import warnings
-
-    warnings.warn(
-        (
-            "networkx.project is deprecated and will be removed"
-            "in NetworkX 3.0, use networkx.projected_graph instead."
-        ),
-        DeprecationWarning,
-        stacklevel=2,
-    )
     return projected_graph(B, nodes)

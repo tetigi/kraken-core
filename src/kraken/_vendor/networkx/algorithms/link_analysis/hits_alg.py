@@ -75,26 +75,26 @@ def hits(G, max_iter=100, tol=1.0e-8, nstart=None, normalized=True):
 
     if len(G) == 0:
         return {}, {}
-    A = nx.adjacency_matrix(G, nodelist=list(G), dtype=float)
+    M = nx.adjacency_matrix(G, nodelist=list(G), dtype=float)
 
     if nstart is None:
-        _, _, vt = sp.sparse.linalg.svds(A, k=1, maxiter=max_iter, tol=tol)
+        u, s, vt = sp.sparse.linalg.svds(M, k=1, maxiter=max_iter, tol=tol)
     else:
         nstart = np.array(list(nstart.values()))
-        _, _, vt = sp.sparse.linalg.svds(A, k=1, v0=nstart, maxiter=max_iter, tol=tol)
+        u, s, vt = sp.sparse.linalg.svds(M, k=1, v0=nstart, maxiter=max_iter, tol=tol)
 
     a = vt.flatten().real
-    h = A @ a
+    h = np.asarray(M * a).flatten()
     if normalized:
-        h /= h.sum()
-        a /= a.sum()
+        h = h / h.sum()
+        a = a / a.sum()
     hubs = dict(zip(G, map(float, h)))
     authorities = dict(zip(G, map(float, a)))
     return hubs, authorities
 
 
 def _hits_python(G, max_iter=100, tol=1.0e-8, nstart=None, normalized=True):
-    if isinstance(G, (nx.MultiGraph, nx.MultiDiGraph)):
+    if type(G) == nx.MultiGraph or type(G) == nx.MultiDiGraph:
         raise Exception("hits() not defined for graphs with multiedges.")
     if len(G) == 0:
         return {}, {}
@@ -129,7 +129,7 @@ def _hits_python(G, max_iter=100, tol=1.0e-8, nstart=None, normalized=True):
         for n in a:
             a[n] *= s
         # check convergence, l1 norm
-        err = sum(abs(h[n] - hlast[n]) for n in h)
+        err = sum([abs(h[n] - hlast[n]) for n in h])
         if err < tol:
             break
     else:
@@ -245,9 +245,8 @@ def hits_numpy(G, normalized=True):
        doi:10.1145/324133.324140.
        http://www.cs.cornell.edu/home/kleinber/auth.pdf.
     """
-    import warnings
-
     import numpy as np
+    import warnings
 
     warnings.warn(
         (
@@ -270,11 +269,11 @@ def hits_numpy(G, normalized=True):
     e, ev = np.linalg.eig(A)
     a = ev[:, np.argmax(e)]  # eigenvector corresponding to the maximum eigenvalue
     if normalized:
-        h /= h.sum()
-        a /= a.sum()
+        h = h / h.sum()
+        a = a / a.sum()
     else:
-        h /= h.max()
-        a /= a.max()
+        h = h / h.max()
+        a = a / a.max()
     hubs = dict(zip(G, map(float, h)))
     authorities = dict(zip(G, map(float, a)))
     return hubs, authorities
@@ -350,9 +349,8 @@ def hits_scipy(G, max_iter=100, tol=1.0e-6, nstart=None, normalized=True):
        doi:10.1145/324133.324140.
        http://www.cs.cornell.edu/home/kleinber/auth.pdf.
     """
-    import warnings
-
     import numpy as np
+    import warnings
 
     warnings.warn(
         (
@@ -365,22 +363,23 @@ def hits_scipy(G, max_iter=100, tol=1.0e-6, nstart=None, normalized=True):
 
     if len(G) == 0:
         return {}, {}
-    A = nx.to_scipy_sparse_array(G, nodelist=list(G))
-    (n, _) = A.shape  # should be square
-    ATA = A.T @ A  # authority matrix
+    M = nx.to_scipy_sparse_matrix(G, nodelist=list(G))
+    (n, m) = M.shape  # should be square
+    A = M.T * M  # authority matrix
+    x = np.ones((n, 1)) / n  # initial guess
     # choose fixed starting vector if not given
     if nstart is None:
-        x = np.ones((n, 1)) / n
+        x = np.ones((n, 1)) / n  # initial guess
     else:
         x = np.array([nstart.get(n, 0) for n in list(G)], dtype=float)
-        x /= x.sum()
+        x = x / x.sum()
 
     # power iteration on authority matrix
     i = 0
     while True:
         xlast = x
-        x = ATA @ x
-        x /= x.max()
+        x = A * x
+        x = x / x.max()
         # check convergence, l1 norm
         err = np.absolute(x - xlast).sum()
         if err < tol:
@@ -389,11 +388,12 @@ def hits_scipy(G, max_iter=100, tol=1.0e-6, nstart=None, normalized=True):
             raise nx.PowerIterationFailedConvergence(max_iter)
         i += 1
 
-    a = x.flatten()
-    h = A @ a
+    a = np.asarray(x).flatten()
+    # h=M*a
+    h = np.asarray(M * a).flatten()
     if normalized:
-        h /= h.sum()
-        a /= a.sum()
+        h = h / h.sum()
+        a = a / a.sum()
     hubs = dict(zip(G, map(float, h)))
     authorities = dict(zip(G, map(float, a)))
     return hubs, authorities

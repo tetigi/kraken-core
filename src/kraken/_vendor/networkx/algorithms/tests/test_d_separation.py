@@ -1,7 +1,5 @@
 from itertools import combinations
-
 import pytest
-
 from .... import networkx as nx
 
 

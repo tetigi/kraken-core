@@ -2,16 +2,16 @@
 Flow based cut algorithms
 """
 import itertools
-
 from .... import networkx as nx
 
 # Define the default maximum flow function to use in all flow based
 # cut algorithms.
-from ....networkx.algorithms.flow import build_residual_network, edmonds_karp
+from ....networkx.algorithms.flow import edmonds_karp
+from ....networkx.algorithms.flow import build_residual_network
 
 default_flow_func = edmonds_karp
 
-from .utils import build_auxiliary_edge_connectivity, build_auxiliary_node_connectivity
+from .utils import build_auxiliary_node_connectivity, build_auxiliary_edge_connectivity
 
 __all__ = [
     "minimum_st_node_cut",

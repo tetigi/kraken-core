@@ -2,9 +2,8 @@
 
 """
 
-import pytest
-
 from .... import networkx as nx
+import pytest
 
 
 class TestMaximumWeightClique:

@@ -3,9 +3,8 @@ packages = [
     "nr.io.graphviz==0.1.1",
     "nr.python.environment==0.1.4",
     "termcolor==1.1.0",
-    # NOTE (@NiklasRosenstein): The `termcolor-stubs/__init__.pyi` needs to be renamed to `termcolor.pyi`.
     "types-termcolor==1.1.5",
-    "networkx==2.8.5",
+    "networkx==2.6.3",
     "typeapi==0.2.1",
     # NOTE (@NiklasRosenstein): If the `dill` vendored package gets updated, we need to modify a line in it's
     #       __init__.py that references `dill._dill` via `sys.modules.

@@ -1,5 +1,5 @@
-import warnings
 from contextlib import contextmanager
+import warnings
 
 __all__ = ["reversed"]
 
@@ -7,11 +7,6 @@ __all__ = ["reversed"]
 @contextmanager
 def reversed(G):
     """A context manager for temporarily reversing a directed graph in place.
-
-    .. deprecated:: 2.6
-
-       This context manager is deprecated and will be removed in 3.0.
-       Use ``G.reverse(copy=False) if G.is_directed() else G`` instead.
 
     This is a no-op for undirected graphs.
 

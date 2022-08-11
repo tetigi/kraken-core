@@ -1,8 +1,6 @@
 from itertools import chain
-
-import pytest
-
 from ..... import networkx as nx
+import pytest
 
 
 class TestIsSemiconnected:

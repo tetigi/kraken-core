@@ -1,21 +1,18 @@
-import copy
 import json
-
 import pytest
-
 from ..... import networkx as nx
+import copy
 from .....networkx.readwrite.json_graph import cytoscape_data, cytoscape_graph
 
 
 # TODO: To be removed when signature change complete in 3.0
-def test_attrs_deprecation(recwarn):
+def test_attrs_deprecation():
     G = nx.path_graph(3)
-
     # No warnings when `attrs` kwarg not used
-    data = cytoscape_data(G)
-    H = cytoscape_graph(data)
-    assert len(recwarn) == 0
-
+    with pytest.warns(None) as record:
+        data = cytoscape_data(G)
+        H = cytoscape_graph(data)
+    assert len(record) == 0
     # Future warning raised with `attrs` kwarg
     attrs = {"name": "foo", "ident": "bar"}
     with pytest.warns(DeprecationWarning):

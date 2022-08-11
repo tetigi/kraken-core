@@ -64,6 +64,12 @@ flake8 = "flake8 src/"
 fmt = "black src/ && isort src/"
 "docs:build" = "cd docs && novella --base-url kraken-cli/"
 "docs:dev" = "cd docs && novella --serve"
+"vendorize" = """
+set -euxo pipefail
+python-vendorize
+mv src/kraken/_vendor/termcolor-stubs/__init__.pyi src/kraken/_vendor/termcolor.pyi
+rm -r src/kraken/_vendor/termcolor-stubs
+"""
 
 [tool.mypy]
 python_version = "3.7"

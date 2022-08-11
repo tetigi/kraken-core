@@ -24,8 +24,8 @@ adjacency list (anything following the # in a line is a comment)::
 
 __all__ = ["generate_adjlist", "write_adjlist", "parse_adjlist", "read_adjlist"]
 
-from ... import networkx as nx
 from ...networkx.utils import open_file
+from ... import networkx as nx
 
 
 def generate_adjlist(G, delimiter=" "):
@@ -193,18 +193,19 @@ def parse_adjlist(
         if nodetype is not None:
             try:
                 u = nodetype(u)
-            except BaseException as err:
+            except BaseException as e:
                 raise TypeError(
                     f"Failed to convert node ({u}) to type " f"{nodetype}"
-                ) from err
+                ) from e
         G.add_node(u)
         if nodetype is not None:
             try:
                 vlist = list(map(nodetype, vlist))
-            except BaseException as err:
+            except BaseException as e:
                 raise TypeError(
-                    f"Failed to convert nodes ({','.join(vlist)}) to type {nodetype}"
-                ) from err
+                    f"Failed to convert nodes ({','.join(vlist)}) "
+                    f"to type {nodetype}"
+                ) from e
         G.add_edges_from([(u, v) for v in vlist])
     return G
 

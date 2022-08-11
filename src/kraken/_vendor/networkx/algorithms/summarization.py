@@ -58,9 +58,9 @@ supports graphs with one edge type.
 For more information on graph summarization, see `Graph Summarization Methods
 and Applications: A Survey <https://dl.acm.org/doi/abs/10.1145/3186727>`_
 """
+from ... import networkx as nx
 from collections import Counter, defaultdict
 
-from ... import networkx as nx
 
 __all__ = ["dedensify", "snap_aggregation"]
 
@@ -174,7 +174,7 @@ def dedensify(G, threshold, prefix=None, copy=True):
 
     degrees = G.in_degree if G.is_directed() else G.degree
     # Group nodes based on degree threshold
-    high_degree_nodes = {n for n, d in degrees if d > threshold}
+    high_degree_nodes = set([n for n, d in degrees if d > threshold])
     low_degree_nodes = G.nodes() - high_degree_nodes
 
     auxillary = {}
@@ -262,7 +262,7 @@ def _snap_build_graph(
     node_label_lookup = dict()
     for index, group_id in enumerate(groups):
         group_set = groups[group_id]
-        supernode = f"{prefix}{index}"
+        supernode = "%s%s" % (prefix, index)
         node_label_lookup[group_id] = supernode
         supernode_attributes = {
             attr: G.nodes[next(iter(group_set))][attr] for attr in node_attributes
@@ -354,7 +354,12 @@ def _snap_eligible_group(G, groups, group_lookup, edge_types):
     return None, neighbor_info
 
 
-def _snap_split(groups, neighbor_info, group_lookup, group_id):
+def _snap_split(
+    groups,
+    neighbor_info,
+    group_lookup,
+    group_id,
+):
     """
     Splits a group based on edge types and updates the groups accordingly
 

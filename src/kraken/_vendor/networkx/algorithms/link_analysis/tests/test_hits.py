@@ -1,5 +1,4 @@
 import pytest
-
 from ..... import networkx as nx
 
 np = pytest.importorskip("numpy")
@@ -38,7 +37,10 @@ class TestHITS:
         for n in G:
             assert a[n] == pytest.approx(G.a[n], abs=1e-4)
 
-    @pytest.mark.parametrize("hits_alg", (nx.hits, nx.hits_scipy, _hits_python))
+    @pytest.mark.parametrize(
+        "hits_alg",
+        (nx.hits, nx.hits_scipy, _hits_python),
+    )
     def test_hits(self, hits_alg):
         G = self.G
         h, a = hits_alg(G, tol=1.0e-08)
@@ -74,11 +76,14 @@ class TestHITS:
             _hits_python(G, max_iter=0)
         with pytest.raises(ValueError):
             nx.hits(G, max_iter=0)
-        with pytest.raises(sp.sparse.linalg.ArpackNoConvergence):
+        with pytest.raises(sp.sparse.linalg.eigen.arpack.ArpackNoConvergence):
             nx.hits(G, max_iter=1)
 
 
-@pytest.mark.parametrize("hits_alg", (nx.hits_numpy, nx.hits_scipy))
+@pytest.mark.parametrize(
+    "hits_alg",
+    (nx.hits_numpy, nx.hits_scipy),
+)
 def test_deprecation_warnings(hits_alg):
     """Make sure deprecation warnings are raised.
 
@@ -86,4 +91,4 @@ def test_deprecation_warnings(hits_alg):
     """
     G = nx.DiGraph(nx.path_graph(4))
     with pytest.warns(DeprecationWarning):
-        hits_alg(G)
+        pr = hits_alg(G)

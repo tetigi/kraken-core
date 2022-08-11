@@ -1,6 +1,5 @@
-from itertools import chain, combinations, product
-
 import pytest
+from itertools import chain, combinations, product
 
 from .... import networkx as nx
 
@@ -293,12 +292,6 @@ class TestDAGLCA:
         G.add_node(3)
         ans = list(all_pairs_lca(G))
         assert ans == [((3, 3), 3)]
-
-    def test_all_pairs_lowest_common_ancestor10(self):
-        """Test that it works on a small graph that previously revealed a bug gh-4942"""
-        G = nx.DiGraph([(0, 2), (1, 2), (2, 3)])
-        ans = list(all_pairs_lca(G))
-        assert len(ans) == 9
 
     def test_lowest_common_ancestor1(self):
         """Test that the one-pair function works on default."""

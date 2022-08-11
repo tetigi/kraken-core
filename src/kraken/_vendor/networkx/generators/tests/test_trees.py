@@ -1,5 +1,4 @@
 import pytest
-
 from .... import networkx as nx
 from ....networkx.utils import arbitrary_element, graphs_equal
 
@@ -79,7 +78,10 @@ def test_basic_prefix_tree(prefix_tree_fn):
 )
 def test_implementations_consistent(strings):
     """Ensure results are consistent between prefix_tree implementations."""
-    assert graphs_equal(nx.prefix_tree(strings), nx.prefix_tree_recursive(strings))
+    assert graphs_equal(
+        nx.prefix_tree(strings),
+        nx.prefix_tree_recursive(strings),
+    )
 
 
 def test_random_tree():

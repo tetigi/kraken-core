@@ -1,20 +1,19 @@
 """Flow based node and edge disjoint paths."""
 from .... import networkx as nx
+from ....networkx.exception import NetworkXNoPath
 
 # Define the default maximum flow function to use for the undelying
 # maximum flow computations
-from ....networkx.algorithms.flow import (
-    edmonds_karp,
-    preflow_push,
-    shortest_augmenting_path,
-)
-from ....networkx.exception import NetworkXNoPath
+from ....networkx.algorithms.flow import edmonds_karp
+from ....networkx.algorithms.flow import preflow_push
+from ....networkx.algorithms.flow import shortest_augmenting_path
 
 default_flow_func = edmonds_karp
-from itertools import filterfalse as _filterfalse
-
 # Functions to build auxiliary data structures.
-from .utils import build_auxiliary_edge_connectivity, build_auxiliary_node_connectivity
+from .utils import build_auxiliary_node_connectivity
+from .utils import build_auxiliary_edge_connectivity
+
+from itertools import filterfalse as _filterfalse
 
 __all__ = ["edge_disjoint_paths", "node_disjoint_paths"]
 

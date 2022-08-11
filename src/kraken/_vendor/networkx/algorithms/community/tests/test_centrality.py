@@ -4,6 +4,7 @@ module.
 """
 from operator import itemgetter
 
+
 from ..... import networkx as nx
 from .....networkx.algorithms.community import girvan_newman
 

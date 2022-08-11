@@ -1,11 +1,10 @@
 """
 Pajek tests
 """
+from .... import networkx as nx
 import os
 import tempfile
-
-from .... import networkx as nx
-from ....networkx.utils import edges_equal, nodes_equal
+from ....networkx.utils import nodes_equal, edges_equal
 
 
 class TestPajek:

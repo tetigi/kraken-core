@@ -1,8 +1,7 @@
 import random
 
-import pytest
-
 from ..... import networkx as nx
+import pytest
 
 np = pytest.importorskip("numpy")
 pytest.importorskip("scipy")
@@ -81,7 +80,7 @@ class TestPageRank:
     def test_google_matrix(self):
         G = self.G
         M = nx.google_matrix(G, alpha=0.9, nodelist=sorted(G))
-        _, ev = np.linalg.eig(M.T)
+        e, ev = np.linalg.eig(M.T)
         p = np.array(ev[:, 0] / ev[:, 0].sum())[:, 0]
         for (a, b) in zip(p, self.G.pagerank.values()):
             assert a == pytest.approx(b, abs=1e-7)
@@ -141,7 +140,7 @@ class TestPageRank:
         """
         G = self.G
         dangling = self.dangling_edges
-        dangling_sum = sum(dangling.values())
+        dangling_sum = float(sum(dangling.values()))
         M1 = nx.google_matrix(G, personalization=dangling)
         M2 = nx.google_matrix(G, personalization=dangling, dangling=dangling)
         for i in range(len(G)):
@@ -209,7 +208,10 @@ class TestPageRankScipy(TestPageRank):
         assert nx.pagerank_scipy(G) == {}
 
 
-@pytest.mark.parametrize("pagerank_alg", (nx.pagerank_numpy, nx.pagerank_scipy))
+@pytest.mark.parametrize(
+    "pagerank_alg",
+    (nx.pagerank_numpy, nx.pagerank_scipy),
+)
 def test_deprecation_warnings(pagerank_alg):
     """Make sure deprecation warnings are raised.
 
@@ -217,4 +219,4 @@ def test_deprecation_warnings(pagerank_alg):
     """
     G = nx.DiGraph(nx.path_graph(4))
     with pytest.warns(DeprecationWarning):
-        pagerank_alg(G, alpha=0.9)
+        pr = pagerank_alg(G, alpha=0.9)

@@ -1,16 +1,15 @@
-import bz2
-import collections
-import gzip
-import inspect
-import itertools
-import re
 from collections import defaultdict
-from contextlib import contextmanager
 from os.path import splitext
+from contextlib import contextmanager
 from pathlib import Path
+import warnings
 
 from ... import networkx as nx
-from ...networkx.utils import create_py_random_state, create_random_state
+from ...networkx.utils import create_random_state, create_py_random_state
+
+import inspect, itertools, collections
+
+import re, gzip, bz2
 
 __all__ = [
     "not_implemented_for",
@@ -94,12 +93,10 @@ def not_implemented_for(*graph_types):
 
 # To handle new extensions, define a function accepting a `path` and `mode`.
 # Then add the extension to _dispatch_dict.
-fopeners = {
-    ".gz": gzip.open,
-    ".gzip": gzip.open,
-    ".bz2": bz2.BZ2File,
-}
-_dispatch_dict = defaultdict(lambda: open, **fopeners)  # type: ignore
+_dispatch_dict = defaultdict(lambda: open)
+_dispatch_dict[".gz"] = gzip.open
+_dispatch_dict[".bz2"] = bz2.BZ2File
+_dispatch_dict[".gzip"] = gzip.open
 
 
 def open_file(path_arg, mode="r"):
@@ -131,11 +128,11 @@ def open_file(path_arg, mode="r"):
            pass
 
        @open_file(1,"w")
-       def write_function(G, pathname="graph.dot"):
+       def write_function(G, pathname="graph.dot")
            pass
 
        @open_file("pathname","w")
-       def write_function(G, pathname="graph.dot"):
+       def write_function(G, pathname="graph.dot")
            pass
 
        @open_file("path", "w+")
@@ -149,7 +146,7 @@ def open_file(path_arg, mode="r"):
     specified as a string, but it does not handle the situation when the
     function wants to accept a default of None (and then handle it).
 
-    Here is an example of how to handle this case::
+    Here is an example of how to handle this case:
 
       @open_file("path")
       def some_function(arg1, arg2, path=None):
@@ -247,7 +244,8 @@ def nodes_or_number(which_args):
             nodes = tuple(n)
         else:
             if n < 0:
-                raise nx.NetworkXError(f"Negative number of nodes not valid: {n}")
+                msg = "Negative number of nodes not valid: {n}"
+                raise nx.NetworkXError(msg)
         return (n, nodes)
 
     try:
@@ -287,8 +285,6 @@ def preserve_random_state(func):
     -----
     If numpy.random is not importable, the state is not saved or restored.
     """
-    import warnings
-
     msg = "preserve_random_state is deprecated and will be removed in 3.0."
     warnings.warn(msg, DeprecationWarning)
 
@@ -314,7 +310,7 @@ def preserve_random_state(func):
         return func
 
 
-def np_random_state(random_state_argument):
+def random_state(random_state_argument):
     """Decorator to generate a `numpy.random.RandomState` instance.
 
     The decorator processes the argument indicated by `random_state_argument`
@@ -358,25 +354,7 @@ def np_random_state(random_state_argument):
     return argmap(create_random_state, random_state_argument)
 
 
-def random_state(random_state_argument):
-    """Decorator to generate a `numpy.random.RandomState` instance.
-
-    .. deprecated:: 2.7
-
-       This function is a deprecated alias for `np_random_state` and will be
-       removed in version 3.0. Use np_random_state instead.
-    """
-    import warnings
-
-    warnings.warn(
-        (
-            "`random_state` is a deprecated alias for `np_random_state`\n"
-            "and will be removed in version 3.0. Use `np_random_state` instead."
-        ),
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return np_random_state(random_state_argument)
+np_random_state = random_state
 
 
 def py_random_state(random_state_argument):
@@ -464,9 +442,6 @@ class argmap:
         for the finally block created by `func`. This is used when the map
         function constructs an object (like a file handle) that requires
         post-processing (like closing).
-
-        Note: try_finally decorators cannot be used to decorate generator
-        functions.
 
     Examples
     --------
@@ -609,38 +584,6 @@ class argmap:
         def fancy_reader(file=None):
             # this code doesn't need to worry about closing the file
             print(file.read())
-
-    Decorators with try_finally = True cannot be used with generator functions,
-    because the `finally` block is evaluated before the generator is exhausted::
-
-        @argmap(open_file, "file", try_finally=True)
-        def file_to_lines(file):
-            for line in file.readlines():
-                yield line
-
-    is equivalent to::
-
-        def file_to_lines_wrapped(file):
-            for line in file.readlines():
-                yield line
-
-        def file_to_lines_wrapper(file):
-            try:
-                file = open_file(file)
-                return file_to_lines_wrapped(file)
-            finally:
-                file.close()
-
-    which behaves similarly to::
-
-        def file_to_lines_whoops(file):
-            file = open_file(file)
-            file.close()
-            for line in file.readlines():
-                yield line
-
-    because the `finally` block of `file_to_lines_wrapper` is executed before
-    the caller has a chance to exhaust the iterator.
 
     Notes
     -----
@@ -841,8 +784,15 @@ class argmap:
         argmap._lazy_compile
         """
 
-        def func(*args, __wrapper=None, **kwargs):
-            return argmap._lazy_compile(__wrapper)(*args, **kwargs)
+        if inspect.isgeneratorfunction(f):
+
+            def func(*args, __wrapper=None, **kwargs):
+                yield from argmap._lazy_compile(__wrapper)(*args, **kwargs)
+
+        else:
+
+            def func(*args, __wrapper=None, **kwargs):
+                return argmap._lazy_compile(__wrapper)(*args, **kwargs)
 
         # standard function-wrapping stuff
         func.__name__ = f.__name__
@@ -871,14 +821,6 @@ class argmap:
 
         # this is used to variously call self.assemble and self.compile
         func.__argmap__ = self
-
-        if hasattr(f, "__argmap__"):
-            func.__is_generator = f.__is_generator
-        else:
-            func.__is_generator = inspect.isgeneratorfunction(f)
-
-        if self._finally and func.__is_generator:
-            raise nx.NetworkXError("argmap cannot decorate generators with try_finally")
 
         return func
 
@@ -1072,7 +1014,7 @@ class argmap:
                 name = ", ".join(get_name(x, False) for x in arg)
                 return name if first else f"({name})"
             if arg in applied:
-                raise nx.NetworkXError(f"argument {arg} is specified multiple times")
+                raise nx.NetworkXError(f"argument {name} is specified multiple times")
             applied.add(arg)
             if arg in sig.names:
                 return sig.names[arg]
@@ -1119,7 +1061,7 @@ class argmap:
 
     @classmethod
     def signature(cls, f):
-        r"""Construct a Signature object describing `f`
+        """Construct a Signature object describing `f`
 
         Compute a Signature so that we can write a function wrapping f with
         the same signature and call-type.
@@ -1134,8 +1076,6 @@ class argmap:
         sig : argmap.Signature
             The Signature of f
 
-        Notes
-        -----
         The Signature is a namedtuple with names:
 
             name : a unique version of the name of the decorated function
@@ -1144,8 +1084,8 @@ class argmap:
             call_sig : a string used as code to call the decorated function
             names : a dict keyed by argument name and index to the argument's name
             n_positional : the number of positional arguments in the signature
-            args : the name of the VAR_POSITIONAL argument if any, i.e. \*theseargs
-            kwargs : the name of the VAR_KEYWORDS argument if any, i.e. \*\*kwargs
+            args : the name of the VAR_POSITIONAL argument if any, i.e. *theseargs
+            kwargs : the name of the VAR_KEYWORDS argument if any, i.e. **kwargs
 
         These named attributes of the signature are used in `assemble` and `compile`
         to construct a string of source code for the decorated function.
@@ -1199,7 +1139,12 @@ class argmap:
         fname = cls._name(f)
         def_sig = f'def {fname}({", ".join(def_sig)}):'
 
-        call_sig = f"return {{}}({', '.join(call_sig)})"
+        if inspect.isgeneratorfunction(f):
+            _return = "yield from"
+        else:
+            _return = "return"
+
+        call_sig = f"{_return} {{}}({', '.join(call_sig)})"
 
         return cls.Signature(fname, sig, def_sig, call_sig, names, npos, args, kwargs)
 

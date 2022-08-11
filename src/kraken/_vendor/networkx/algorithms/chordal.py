@@ -12,6 +12,7 @@ from ... import networkx as nx
 from ...networkx.algorithms.components import connected_components
 from ...networkx.utils import arbitrary_element, not_implemented_for
 
+
 __all__ = [
     "is_chordal",
     "find_induced_nodes",
@@ -101,7 +102,7 @@ def find_induced_nodes(G, s, t, treewidth_bound=sys.maxsize):
 
     Returns
     -------
-    induced_nodes : Set of nodes
+    Induced_nodes : Set of nodes
         The set of induced nodes in the path from s to t in G
 
     Raises
@@ -142,23 +143,23 @@ def find_induced_nodes(G, s, t, treewidth_bound=sys.maxsize):
 
     H = nx.Graph(G)
     H.add_edge(s, t)
-    induced_nodes = set()
+    Induced_nodes = set()
     triplet = _find_chordality_breaker(H, s, treewidth_bound)
     while triplet:
         (u, v, w) = triplet
-        induced_nodes.update(triplet)
+        Induced_nodes.update(triplet)
         for n in triplet:
             if n != s:
                 H.add_edge(s, n)
         triplet = _find_chordality_breaker(H, s, treewidth_bound)
-    if induced_nodes:
+    if Induced_nodes:
         # Add t and the second node in the induced path from s to t.
-        induced_nodes.add(t)
+        Induced_nodes.add(t)
         for u in G[s]:
-            if len(induced_nodes & set(G[u])) == 2:
-                induced_nodes.add(u)
+            if len(Induced_nodes & set(G[u])) == 2:
+                Induced_nodes.add(u)
                 break
-    return induced_nodes
+    return Induced_nodes
 
 
 def chordal_graph_cliques(G):

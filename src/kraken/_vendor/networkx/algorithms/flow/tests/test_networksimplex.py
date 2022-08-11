@@ -1,8 +1,6 @@
-import os
-
 import pytest
-
 from ..... import networkx as nx
+import os
 
 
 @pytest.fixture
@@ -105,7 +103,10 @@ def test_google_or_tools_example():
 
     for i in range(len(start_nodes)):
         G.add_edge(
-            start_nodes[i], end_nodes[i], weight=unit_costs[i], capacity=capacities[i]
+            start_nodes[i],
+            end_nodes[i],
+            weight=unit_costs[i],
+            capacity=capacities[i],
         )
 
     flowCost, flowDict = nx.network_simplex(G)
@@ -130,7 +131,10 @@ def test_google_or_tools_example2():
 
     for i in range(len(start_nodes)):
         G.add_edge(
-            start_nodes[i], end_nodes[i], weight=unit_costs[i], capacity=capacities[i]
+            start_nodes[i],
+            end_nodes[i],
+            weight=unit_costs[i],
+            capacity=capacities[i],
         )
 
     flowCost, flowDict = nx.network_simplex(G)

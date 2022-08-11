@@ -11,12 +11,12 @@ in this module return a Graph class (i.e. a simple, undirected graph).
 """
 
 import itertools
-import numbers
 
 from ... import networkx as nx
 from ...networkx.classes import Graph
 from ...networkx.exception import NetworkXError
-from ...networkx.utils import nodes_or_number, pairwise
+from ...networkx.utils import nodes_or_number
+from ...networkx.utils import pairwise
 
 __all__ = [
     "balanced_tree",
@@ -251,8 +251,8 @@ def complete_graph(n, create_using=None):
     True
 
     """
-    _, nodes = n
-    G = empty_graph(nodes, create_using)
+    n_name, nodes = n
+    G = empty_graph(n_name, create_using)
     if len(nodes) > 1:
         if G.is_directed():
             edges = itertools.permutations(nodes, 2)
@@ -368,9 +368,10 @@ def cycle_graph(n, create_using=None):
     If create_using is directed, the direction is in increasing order.
 
     """
-    _, nodes = n
+    n_orig, nodes = n
     G = empty_graph(nodes, create_using)
-    G.add_edges_from(pairwise(nodes, cyclic=True))
+    G.add_edges_from(pairwise(nodes))
+    G.add_edge(nodes[-1], nodes[0])
     return G
 
 
@@ -481,16 +482,15 @@ def empty_graph(n=0, create_using=None, default=Graph):
     """
     if create_using is None:
         G = default()
-    elif type(create_using) is type:
-        G = create_using()
-    elif not hasattr(create_using, "adj"):
-        raise TypeError("create_using is not a valid NetworkX graph type or instance")
-    else:
+    elif hasattr(create_using, "_adj"):
         # create_using is a NetworkX style Graph
         create_using.clear()
         G = create_using
+    else:
+        # try create_using as constructor
+        G = create_using()
 
-    _, nodes = n
+    n_name, nodes = n
     G.add_nodes_from(nodes)
     return G
 
@@ -540,28 +540,24 @@ def lollipop_graph(m, n, create_using=None):
 
     """
     m, m_nodes = m
-    M = len(m_nodes)
-    if M < 2:
-        raise NetworkXError("Invalid description: m should indicate at least 2 nodes")
-
     n, n_nodes = n
-    if isinstance(m, numbers.Integral) and isinstance(n, numbers.Integral):
-        n_nodes = list(range(M, M + n))
+    M = len(m_nodes)
     N = len(n_nodes)
+    if isinstance(m, int):
+        n_nodes = [len(m_nodes) + i for i in n_nodes]
+    if M < 2:
+        raise NetworkXError("Invalid graph description, m should be >=2")
+    if N < 0:
+        raise NetworkXError("Invalid graph description, n should be >=0")
 
     # the ball
     G = complete_graph(m_nodes, create_using)
     if G.is_directed():
         raise NetworkXError("Directed Graph not supported")
-
     # the stick
     G.add_nodes_from(n_nodes)
     if N > 1:
         G.add_edges_from(pairwise(n_nodes))
-
-    if len(G) != M + N:
-        raise NetworkXError("Nodes must be distinct in containers m and n")
-
     # connect ball to stick
     if M > 0 and N > 0:
         G.add_edge(m_nodes[-1], n_nodes[0])
@@ -591,7 +587,7 @@ def path_graph(n, create_using=None):
        Graph type to create. If graph instance, then cleared before populated.
 
     """
-    _, nodes = n
+    n_name, nodes = n
     G = empty_graph(nodes, create_using)
     G.add_edges_from(pairwise(nodes))
     return G
@@ -616,16 +612,14 @@ def star_graph(n, create_using=None):
     The graph has n+1 nodes for integer n.
     So star_graph(3) is the same as star_graph(range(4)).
     """
-    n, nodes = n
-    if isinstance(n, numbers.Integral):
-        nodes.append(n)  # there should be n+1 nodes
+    n_name, nodes = n
+    if isinstance(n_name, int):
+        nodes = nodes + [n_name]  # there should be n+1 nodes
+    first = nodes[0]
     G = empty_graph(nodes, create_using)
     if G.is_directed():
         raise NetworkXError("Directed Graph not supported")
-
-    if len(nodes) > 1:
-        hub, *spokes = nodes
-        G.add_edges_from((hub, node) for node in spokes)
+    G.add_edges_from((first, v) for v in nodes[1:])
     return G
 
 
@@ -684,16 +678,14 @@ def wheel_graph(n, create_using=None):
 
     Node labels are the integers 0 to n - 1.
     """
-    _, nodes = n
-    G = empty_graph(nodes, create_using)
-    if G.is_directed():
-        raise NetworkXError("Directed Graph not supported")
-
-    if len(nodes) > 1:
-        hub, *rim = nodes
-        G.add_edges_from((hub, node) for node in rim)
-        if len(rim) > 1:
-            G.add_edges_from(pairwise(rim, cyclic=True))
+    n_name, nodes = n
+    if n_name == 0:
+        G = empty_graph(0, create_using)
+        return G
+    G = star_graph(nodes, create_using)
+    if len(G) > 2:
+        G.add_edges_from(pairwise(nodes[1:]))
+        G.add_edge(nodes[-1], nodes[1])
     return G
 
 
@@ -770,8 +762,8 @@ def complete_multipartite_graph(*subset_sizes):
     try:
         for (i, subset) in enumerate(subsets):
             G.add_nodes_from(subset, subset=i)
-    except TypeError as err:
-        raise NetworkXError("Arguments must be all ints or all iterables") from err
+    except TypeError as e:
+        raise NetworkXError("Arguments must be all ints or all iterables") from e
 
     # Across subsets, all nodes should be adjacent.
     # We can use itertools.combinations() because undirected.

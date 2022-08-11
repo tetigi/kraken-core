@@ -1,6 +1,5 @@
 import pytest
-
-from ....networkx.utils.mapped_queue import MappedQueue, _HeapElement
+from ....networkx.utils.mapped_queue import _HeapElement, MappedQueue
 
 
 def test_HeapElement_gtlt():

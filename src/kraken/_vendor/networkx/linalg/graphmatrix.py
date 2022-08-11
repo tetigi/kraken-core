@@ -66,7 +66,7 @@ def incidence_matrix(G, nodelist=None, edgelist=None, oriented=False, weight=Non
             edgelist = list(G.edges(keys=True))
         else:
             edgelist = list(G.edges())
-    A = sp.sparse.lil_array((len(nodelist), len(edgelist)))
+    A = sp.sparse.lil_matrix((len(nodelist), len(edgelist)))
     node_index = {node: i for i, node in enumerate(nodelist)}
     for ei, e in enumerate(edgelist):
         (u, v) = e[:2]
@@ -75,10 +75,10 @@ def incidence_matrix(G, nodelist=None, edgelist=None, oriented=False, weight=Non
         try:
             ui = node_index[u]
             vi = node_index[v]
-        except KeyError as err:
+        except KeyError as e:
             raise nx.NetworkXError(
-                f"node {u} or {v} in edgelist but not in nodelist"
-            ) from err
+                f"node {u} or {v} in edgelist " f"but not in nodelist"
+            ) from e
         if weight is None:
             wt = 1
         else:
@@ -93,14 +93,6 @@ def incidence_matrix(G, nodelist=None, edgelist=None, oriented=False, weight=Non
         else:
             A[ui, ei] = wt
             A[vi, ei] = wt
-    import warnings
-
-    warnings.warn(
-        "incidence_matrix will return a scipy.sparse array instead of a matrix in Networkx 3.0.",
-        FutureWarning,
-        stacklevel=2,
-    )
-    # TODO: Rm sp.sparse.csc_matrix in Networkx 3.0
     return A.asformat("csc")
 
 
@@ -158,18 +150,10 @@ def adjacency_matrix(G, nodelist=None, dtype=None, weight="weight"):
     See Also
     --------
     to_numpy_array
-    to_scipy_sparse_array
+    to_scipy_sparse_matrix
     to_dict_of_dicts
     adjacency_spectrum
     """
-    import warnings
-
-    warnings.warn(
-        "adjacency_matrix will return a scipy.sparse array instead of a matrix in Networkx 3.0.",
-        FutureWarning,
-        stacklevel=2,
-    )
-    # TODO: Change to `to_scipy_sparse_array` for networkx 3.0
     return nx.to_scipy_sparse_matrix(G, nodelist=nodelist, dtype=dtype, weight=weight)
 
 

@@ -1,16 +1,14 @@
+from ast import literal_eval
 import codecs
+from contextlib import contextmanager
 import io
 import math
+import pytest
+from .... import networkx as nx
+from ....networkx.readwrite.gml import literal_stringizer, literal_destringizer
 import os
 import tempfile
-from ast import literal_eval
-from contextlib import contextmanager
 from textwrap import dedent
-
-import pytest
-
-from .... import networkx as nx
-from ....networkx.readwrite.gml import literal_destringizer, literal_stringizer
 
 
 class TestGraph:
@@ -290,7 +288,7 @@ graph
 ]"""
         assert data == answer
 
-    def test_special_float_label(self):
+    def test_float_label(self):
         special_floats = [float("nan"), float("+inf"), float("-inf")]
         try:
             import numpy as np
@@ -435,7 +433,7 @@ graph
         data = [
             True,
             False,
-            10**20,
+            10 ** 20,
             -2e33,
             "'",
             '"&&amp;&&#34;"',
@@ -594,13 +592,13 @@ graph
         # Test export for numbers that barely fit or don't fit into 32 bits,
         # and 3 numbers in the middle
         numbers = {
-            "toosmall": (-(2**31)) - 1,
-            "small": -(2**31),
+            "toosmall": (-(2 ** 31)) - 1,
+            "small": -(2 ** 31),
             "med1": -4,
             "med2": 0,
             "med3": 17,
-            "big": (2**31) - 1,
-            "toobig": 2**31,
+            "big": (2 ** 31) - 1,
+            "toobig": 2 ** 31,
         }
         G.add_node("Node", **numbers)
 

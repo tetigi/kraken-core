@@ -4,7 +4,6 @@ graphs.
 
 """
 import copy
-
 from ... import networkx as nx
 
 __all__ = ["kl_connected_subgraph", "is_kl_connected"]

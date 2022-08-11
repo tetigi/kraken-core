@@ -1,5 +1,5 @@
 """Katz centrality."""
-import math
+from math import sqrt
 
 from .... import networkx as nx
 from ....networkx.utils import not_implemented_for
@@ -157,15 +157,15 @@ def katz_centrality(
 
     try:
         b = dict.fromkeys(G, float(beta))
-    except (TypeError, ValueError, AttributeError) as err:
+    except (TypeError, ValueError, AttributeError) as e:
         b = beta
         if set(beta) != set(G):
             raise nx.NetworkXError(
                 "beta dictionary " "must have a value for every node"
-            ) from err
+            ) from e
 
     # make up to max_iter iterations
-    for _ in range(max_iter):
+    for i in range(max_iter):
         xlast = x
         x = dict.fromkeys(xlast, 0)
         # do the multiplication y^T = Alpha * x^T A - Beta
@@ -176,12 +176,12 @@ def katz_centrality(
             x[n] = alpha * x[n] + b[n]
 
         # check convergence
-        error = sum(abs(x[n] - xlast[n]) for n in x)
-        if error < nnodes * tol:
+        err = sum([abs(x[n] - xlast[n]) for n in x])
+        if err < nnodes * tol:
             if normalized:
                 # normalize vector
                 try:
-                    s = 1.0 / math.hypot(*x.values())
+                    s = 1.0 / sqrt(sum(v ** 2 for v in x.values()))
                 # this should never be zero?
                 except ZeroDivisionError:
                     s = 1.0
@@ -318,9 +318,9 @@ def katz_centrality_numpy(G, alpha=0.1, beta=1.0, normalized=True, weight=None):
     except AttributeError:
         nodelist = list(G)
         try:
-            b = np.ones((len(nodelist), 1)) * beta
-        except (TypeError, ValueError, AttributeError) as err:
-            raise nx.NetworkXError("beta must be a number") from err
+            b = np.ones((len(nodelist), 1)) * float(beta)
+        except (TypeError, ValueError, AttributeError) as e:
+            raise nx.NetworkXError("beta must be a number") from e
 
     A = nx.adjacency_matrix(G, nodelist=nodelist, weight=weight).todense().T
     n = A.shape[0]

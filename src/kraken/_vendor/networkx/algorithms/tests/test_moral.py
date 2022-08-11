@@ -1,4 +1,5 @@
 from .... import networkx as nx
+
 from ....networkx.algorithms.moral import moral_graph
 
 

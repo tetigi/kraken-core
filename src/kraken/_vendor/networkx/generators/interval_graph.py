@@ -2,7 +2,6 @@
 Generators for interval graph.
 """
 from collections.abc import Sequence
-
 from ... import networkx as nx
 
 __all__ = ["interval_graph"]

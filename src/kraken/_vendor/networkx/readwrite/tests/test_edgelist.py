@@ -1,15 +1,15 @@
 """
     Unit tests for edgelists.
 """
+import pytest
 import io
-import os
 import tempfile
+import os
 import textwrap
 
-import pytest
-
 from .... import networkx as nx
-from ....networkx.utils import edges_equal, graphs_equal, nodes_equal
+from ....networkx.utils import nodes_equal, edges_equal, graphs_equal
+
 
 edges_no_data = textwrap.dedent(
     """
@@ -121,7 +121,8 @@ def test_parse_edgelist_no_data(example_graph):
 def test_parse_edgelist_with_data_dict(example_graph):
     G = example_graph
     H = nx.parse_edgelist(
-        ["1 2 {'weight': 3}", "2 3 {'weight': 27}", "3 4 {'weight': 3.0}"], nodetype=int
+        ["1 2 {'weight': 3}", "2 3 {'weight': 27}", "3 4 {'weight': 3.0}"],
+        nodetype=int,
     )
     assert nodes_equal(G.nodes, H.nodes)
     assert edges_equal(G.edges(data=True), H.edges(data=True))
@@ -159,14 +160,6 @@ def test_parse_edgelist():
     with pytest.raises(TypeError, match="Failed to convert"):
         lines = ["1 2 't1'", "2 3 't3'", "3 4 't3'"]
         nx.parse_edgelist(lines, nodetype=int, data=(("weight", float),))
-
-
-def test_comments_None():
-    edgelist = ["node#1 node#2", "node#2 node#3"]
-    # comments=None supported to ignore all comment characters
-    G = nx.parse_edgelist(edgelist, comments=None)
-    H = nx.Graph([e.split(" ") for e in edgelist])
-    assert edges_equal(G.edges, H.edges)
 
 
 class TestEdgelist:

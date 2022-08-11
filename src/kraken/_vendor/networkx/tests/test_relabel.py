@@ -1,8 +1,7 @@
 import pytest
-
 from ... import networkx as nx
 from ...networkx.generators.classic import empty_graph
-from ...networkx.utils import edges_equal, nodes_equal
+from ...networkx.utils import nodes_equal, edges_equal
 
 
 class TestRelabel:

@@ -1,9 +1,7 @@
-import math
-
 import pytest
-
 from .... import networkx as nx
 from ....networkx.algorithms.planar_drawing import triangulate_embedding
+import math
 
 
 def test_graph1():
@@ -173,10 +171,10 @@ def check_edge_intersections(G, pos):
                     # https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
                     px = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (
                         x3 * y4 - y3 * x4
-                    ) / determinant
+                    ) / float(determinant)
                     py = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (
                         x3 * y4 - y3 * x4
-                    ) / determinant
+                    ) / float(determinant)
 
                     # Check if intersection lies between the points
                     if point_in_between(pos[a], pos[b], (px, py)) and point_in_between(

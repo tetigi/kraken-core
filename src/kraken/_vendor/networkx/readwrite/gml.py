@@ -27,18 +27,18 @@ For additional documentation on the GML file format, please see the
 Several example graphs in GML format may be found on Mark Newman's
 `Network data page <http://www-personal.umich.edu/~mejn/netdata/>`_.
 """
-import html.entities as htmlentitydefs
-import re
-import warnings
+from io import StringIO
 from ast import literal_eval
 from collections import defaultdict
 from enum import Enum
-from io import StringIO
 from typing import Any, NamedTuple
-
 from ... import networkx as nx
 from ...networkx.exception import NetworkXError
 from ...networkx.utils import open_file
+
+import warnings
+import re
+import html.entities as htmlentitydefs
 
 __all__ = ["read_gml", "parse_gml", "generate_gml", "write_gml"]
 
@@ -107,8 +107,8 @@ def literal_destringizer(rep):
         orig_rep = rep
         try:
             return literal_eval(rep)
-        except SyntaxError as err:
-            raise ValueError(f"{orig_rep!r} is not a valid Python literal") from err
+        except SyntaxError as e:
+            raise ValueError(f"{orig_rep!r} is not a valid Python literal") from e
     else:
         raise ValueError(f"{rep!r} is not a string")
 
@@ -144,7 +144,6 @@ def read_gml(path, label="label", destringizer=None):
     See Also
     --------
     write_gml, parse_gml
-    literal_destringizer
 
     Notes
     -----
@@ -184,8 +183,8 @@ def read_gml(path, label="label", destringizer=None):
         for line in lines:
             try:
                 line = line.decode("ascii")
-            except UnicodeDecodeError as err:
-                raise NetworkXError("input is not ASCII-encoded") from err
+            except UnicodeDecodeError as e:
+                raise NetworkXError("input is not ASCII-encoded") from e
             if not isinstance(line, str):
                 lines = str(lines)
             if line and line[-1] == "\n":
@@ -249,8 +248,8 @@ def parse_gml(lines, label="label", destringizer=None):
         if isinstance(line, bytes):
             try:
                 line.decode("ascii")
-            except UnicodeDecodeError as err:
-                raise NetworkXError("input is not ASCII-encoded") from err
+            except UnicodeDecodeError as e:
+                raise NetworkXError("input is not ASCII-encoded") from e
         if not isinstance(line, str):
             line = str(line)
         return line
@@ -444,8 +443,8 @@ def parse_gml_lines(lines, label, destringizer):
     def pop_attr(dct, category, attr, i):
         try:
             return dct.pop(attr)
-        except KeyError as err:
-            raise NetworkXError(f"{category} #{i} has no {attr!r} attribute") from err
+        except KeyError as e:
+            raise NetworkXError(f"{category} #{i} has no {attr!r} attribute") from e
 
     nodes = graph.get("node", [])
     mapping = {}
@@ -591,7 +590,7 @@ def literal_stringizer(value):
                 stringize(item)
             buf.write("}")
         else:
-            msg = f"{value!r} cannot be converted into a Python literal"
+            msg = "{value!r} cannot be converted into a Python literal"
             raise ValueError(msg)
 
     buf = StringIO()
@@ -622,10 +621,6 @@ def generate_gml(G, stringizer=None):
     NetworkXError
         If `stringizer` cannot convert a value into a string, or the value to
         convert is not a string while `stringizer` is None.
-
-    See Also
-    --------
-    literal_stringizer
 
     Notes
     -----
@@ -701,7 +696,7 @@ def generate_gml(G, stringizer=None):
                 elif value is False:
                     yield indent + key + " 0"
                 # GML only supports signed 32-bit integers
-                elif value < -(2**31) or value >= 2**31:
+                elif value < -(2 ** 31) or value >= 2 ** 31:
                     yield indent + key + ' "' + str(value) + '"'
                 else:
                     yield indent + key + " " + str(value)
@@ -742,10 +737,10 @@ def generate_gml(G, stringizer=None):
                 if stringizer:
                     try:
                         value = stringizer(value)
-                    except ValueError as err:
+                    except ValueError as e:
                         raise NetworkXError(
                             f"{value!r} cannot be converted into a string"
-                        ) from err
+                        ) from e
                 if not isinstance(value, str):
                     raise NetworkXError(f"{value!r} is not a string")
                 yield indent + key + ' "' + escape(value) + '"'
@@ -818,7 +813,6 @@ def write_gml(G, path, stringizer=None):
     See Also
     --------
     read_gml, generate_gml
-    literal_stringizer
 
     Notes
     -----

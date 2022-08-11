@@ -3,15 +3,16 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "kraken-core"
+name = "kraken-build"
 version = "0.7.5"
 description = ""
 authors = ["Niklas Rosenstein <rosensteinniklas@gmail.com>"]
 license = "MIT"
 readme = "readme.md"
 packages = [
-    { include = "kraken/api", from = "src" },
     { include = "kraken/core", from = "src" },
+    { include = "kraken/cli", from = "src" },
+    { include = "kraken/util", from = "src" },
 ]
 classifiers = []
 keywords = []
@@ -45,6 +46,9 @@ python_script = "kraken.core.loader.python_script:PythonScriptProjectLoader"
 
 [tool.poetry.plugins."pytest11"]
 kraken-testing = "kraken.core.testing"
+
+[tool.poetry.scripts]
+kraken = "kraken.cli.main:_entrypoint"
 
 [tool.slap]
 typed = true

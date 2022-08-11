@@ -9,7 +9,7 @@ from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar
 import typeapi
 
 from kraken.core.supplier import Empty, Supplier
-from kraken.core.utils import NotSet
+from kraken.util.helpers import NotSet
 
 T = TypeVar("T")
 

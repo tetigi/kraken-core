@@ -1,28 +1,53 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Sequence, TypeVar
+from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Sequence, TypeVar
 
+from kraken.core.base import Currentable, MetadataContainer
 from kraken.core.executor import GraphExecutorObserver
-from kraken.core.utils import CurrentProvider, MetadataContainer
 
 if TYPE_CHECKING:
-    from kraken.core.executor import Graph, GraphExecutor
+    from kraken.core.executor import GraphExecutor
     from kraken.core.graph import TaskGraph
+    from kraken.core.loader import ProjectLoader
     from kraken.core.project import Project
     from kraken.core.task import Task
 
 T = TypeVar("T")
 
 
-class Context(MetadataContainer, CurrentProvider["Context"]):
+class Context(MetadataContainer, Currentable["Context"]):
     """This class is the single instance where all components of a build process come together."""
 
-    def __init__(self, build_directory: Path) -> None:
-        self._root_project: Optional[Project] = None
+    def __init__(
+        self,
+        build_directory: Path,
+        project_loader: ProjectLoader | None = None,
+        executor: GraphExecutor | None = None,
+        observer: GraphExecutorObserver | None = None,
+    ) -> None:
+        """
+        :param build_directory: The directory in which all files generated durin the build should be stored.
+        :param project_loader: The object to use to load projects from a directory. If not specified, a
+            :class:`PythonScriptProjectLoader` will be used.
+        :param executor: The executor to use when the graph is executed.
+        :param observer: The executro observer to use when the graph is executed.
+        """
+
+        from kraken.core.executor.default import (
+            DefaultGraphExecutor,
+            DefaultPrintingExecutorObserver,
+            DefaultTaskExecutor,
+        )
+        from kraken.core.loader import PythonScriptProjectLoader
+
+        super().__init__()
         self.build_directory = build_directory
-        self.metadata: list[Any] = []
+        self.project_loader = project_loader or PythonScriptProjectLoader()
+        self.executor = executor or DefaultGraphExecutor(DefaultTaskExecutor())
+        self.observer = observer or DefaultPrintingExecutorObserver()
         self._finalized: bool = False
+        self._root_project: Optional[Project] = None
 
     @property
     def root_project(self) -> Project:
@@ -36,36 +61,26 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
 
     def load_project(
         self,
-        file: Path | None = None,
-        directory: Path | None = None,
+        directory: Path,
         parent: Project | None = None,
     ) -> Project:
         """Loads a project from a file or directory.
 
         Args:
-            file: The file to load from. One of *file* or *directory* must be specified.
-            directory: The directory to load from. If it is not specified, and the matching loader
-                does not return a directory, the parent directory of *file* is used. If a directory
-                is specified and the loader returns a different directory, the directory passed her
-                takes precedence.
+            directory: The directory to load the project from.
             parent: The parent project. If no parent is specified, then the :attr:`root_project`
                 must not have been initialized yet and the loaded project will be initialize it.
                 If the root project is initialized but no parent is specified, an error will be
                 raised.
         """
 
-        from kraken.core.loader import detect_project_loader
         from kraken.core.project import Project
 
-        file, directory, loader = detect_project_loader(file, directory)
-
         project = Project(directory.name, directory, parent, self)
-
-        if self._root_project is None:
-            self._root_project = project
-
-        loader.load_script(file, project)
-
+        with self.as_current():
+            if self._root_project is None:
+                self._root_project = project
+            self.project_loader.load_project(project)
         return project
 
     def iter_projects(self) -> Iterator[Project]:
@@ -185,43 +200,27 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
         assert graph, "TaskGraph cannot be empty"
         return graph
 
-    def execute(
-        self,
-        targets: list[str | Task] | TaskGraph | None = None,
-        executor: GraphExecutor | None = None,
-        observer: GraphExecutorObserver | None = None,
-        graph_adapter: Callable[[TaskGraph], Graph] | None = None,
-    ) -> None:
+    def execute(self, tasks: list[str | Task] | TaskGraph | None = None) -> None:
         """Execute all default tasks or the tasks specified by *targets* using the default executor.
         If :meth:`finalize` was not called already it will be called by this function before the build
         graph is created, unless a build graph is passed in the first place.
 
-        :param targets: The list of targets to execute, or the build graph. If none specified, all default
+        :param tasks: The list of tasks to execute, or the build graph. If none specified, all default
             tasks will be executed.
-        :param verbose: Verbosity argument passed to the executor.
-        :param executor: The executor to execute with. If not set, a default executor is used.
-        :param observer: The observer to execute with. If not set, a default observer is used.
         :raise BuildError: If any task fails to execute.
         """
 
-        from kraken.core.executor.default import (
-            DefaultGraphExecutor,
-            DefaultPrintingExecutorObserver,
-            DefaultTaskExecutor,
-        )
         from kraken.core.graph import TaskGraph
 
-        if isinstance(targets, TaskGraph):
+        if isinstance(tasks, TaskGraph):
             assert self._finalized, "no, no, this is all wrong. you need to finalize the context first"
-            graph = targets
+            graph = tasks
         else:
             if not self._finalized:
                 self.finalize()
-            graph = self.get_build_graph(targets)
+            graph = self.get_build_graph(tasks)
 
-        executor = executor or DefaultGraphExecutor(DefaultTaskExecutor())
-        observer = observer or DefaultPrintingExecutorObserver()
-        executor.execute_graph(graph_adapter(graph) if graph_adapter else graph, observer)
+        self.executor.execute_graph(graph, self.observer)
 
         if not graph.is_complete():
             failed_tasks = list(graph.tasks(failed=True))
@@ -231,12 +230,13 @@ class Context(MetadataContainer, CurrentProvider["Context"]):
                 message = "tasks " + ", ".join(f'"{task.path}"' for task in failed_tasks) + " failed"
             raise BuildError(message)
 
-    @classmethod
-    def _get_current_object(cls) -> Context:
-        from kraken.api import ctx
-
-        return ctx
-
 
 class BuildError(Exception):
-    pass
+    def __init__(self, failed_tasks: Iterable[str]) -> None:
+        self.failed_tasks = set(failed_tasks)
+
+    def __repr__(self) -> str:
+        if len(self.failed_tasks) == 1:
+            return f'task "{next(iter(self.failed_tasks))}" failed'
+        else:
+            return "tasks " + ", ".join(f'"{task}"' for task in sorted(self.failed_tasks)) + " failed"

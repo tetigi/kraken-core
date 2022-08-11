@@ -4,8 +4,9 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
+from kraken.core.base import Currentable, MetadataContainer
 from kraken.core.task import GroupTask, Task
-from kraken.core.utils import CurrentProvider, MetadataContainer, flatten
+from kraken.util.helpers import flatten
 
 if TYPE_CHECKING:
     from kraken.core.context import Context
@@ -14,7 +15,7 @@ T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")
 
 
-class Project(MetadataContainer, CurrentProvider["Project"]):
+class Project(MetadataContainer, Currentable["Project"]):
     """A project consolidates tasks related to a directory on the filesystem."""
 
     name: str
@@ -162,9 +163,3 @@ class Project(MetadataContainer, CurrentProvider["Project"]):
             task.default = default
 
         return task
-
-    @classmethod
-    def _get_current_object(cls) -> Project:
-        from kraken.api import project
-
-        return project

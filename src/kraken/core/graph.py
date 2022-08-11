@@ -9,7 +9,7 @@ from networkx import DiGraph, restricted_view  # type: ignore[import]
 from kraken.core.context import Context
 from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus
-from kraken.core.utils import not_none
+from kraken.util.helpers import not_none
 
 logger = logging.getLogger(__name__)
 

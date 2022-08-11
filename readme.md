@@ -1,97 +1,45 @@
-# kraken-core
+# kraken-build
 
-[![Python application](https://github.com/kraken-build/kraken-core/actions/workflows/python-package.yml/badge.svg)](https://github.com/kraken-build/kraken-core/actions/workflows/python-package.yml)
-[![PyPI version](https://badge.fury.io/py/kraken-core.svg)](https://badge.fury.io/py/kraken-core)
+[![Python application](https://github.com/kraken-build/kraken-build/actions/workflows/python-package.yml/badge.svg)](https://github.com/kraken-build/kraken-build/actions/workflows/python-package.yml)
+[![PyPI version](https://badge.fury.io/py/kraken-build.svg)](https://badge.fury.io/py/kraken-build)
 
-The `kraken-core` package provides the primitives to describe a dependency graph for the purpose of task
-orchestration.
+__The Kraken build system.__
 
-__Packages__
+Kraken focuses on ease of use and simplicity to model complex task orchestration workflows.
 
-* `kraken.api` &ndash; This module can be imported from in a `.kraken.py` build script to get access to the current
-    build context and project.
-* `kraken.core` &ndash; The core API that consists of primitives to describe tasks with dependencies, as well as
-    Pytest fixtures.
+The **`kraken-build`** packages provides the _`kraken.core`_, _`kraken.cli`_ and _`kraken.util`_ top-level namespace
+packages. Other Python packages may provide additional top-level packages in the _`kraken.`_ namespace.
 
-## Concepts
+## Quickstart
 
-* __Context__: The build context is the "root object" which contains a reference to the root project as well as
-the path to a designated build directory. The context can hold metadata that is addressable globally by the Python
-type (see `Context.metadata`).
-* __Project__: A project represents a directory on the file system and tasks that are associated with the contents of
-that directory and the build script loaded from it. A project's members are named and either `Task`s or other
-`Project`s. A project is uniquely identified by it's "path" which is similar to a filesystem path only that the
-separator is a colon (`:`). The root project is identifier with just a single colon, while members of a project are
-identified by concatenating the project path with the member name (such as `:subproject:task`).
-* __Task__: A task is a unit of work that can is related to a project. Tasks can have relationships to other tasks
-that describe whether it needs to run before or after the related task. The relationship can also be strict (default)
-or optional, in which case only the order of execution is informed. Tasks have properties that when passed to
-properties of other tasks inform a strict dependency relationship.
-* __Task factory__: A task factory is a function that is a convenient utility for Kraken build scripts to define one
-or more tasks in a project. The `Project.do()` method in particular is often used to create task, allowing users to
-conveniently set task property values directly instead of interfacing with the property API.
-* __Group tasks__: Group tasks are a special kind of task that store a list of tasks as their dependencies, effectively
-grouping the tasks under their name. There is some special treatment for group tasks when the task graph is constructed,
-but otherwise they behave like normal tasks that don't actually do any work themselves. Every Kraken project always
-has the following groups by default: `fmt`, `lint`, `build` and `test`.
-* __Property__: A property is a typed container for a value. It can receive a static value or another task's property
-to inform a strict dependency relationship between the property owners. Properties have a `.set(value)`, `.get()` and
-`.get_or()` method.
-* __Task graph__: The task graph represents a fully wired graph of the tasks in a *context*. The task graph must only
-be constructed after `Context.finalize()` was called to allow tasks to perform one final update before nothing can be
-changed anymore. After constructing a graph from a set of initially required tasks, it only contains the tasks that are
-transitively required by the initial set. The graph can be further trimmed to remove weakly connected components of the
-graph (such as group tasks if they were of the initial set or dependencies that are not strictly required by any other
-task).
-* __Task selector__: A task selector is an absolute or relative task or project path (example `:`, `:task`,
-`:project:task`, `task`, `project:task`). On the command line, all tasks are resolved relative to the root project.
-Within a project, absolute task paths are resolved within that project (i.e. `:` represents the current project and
-not the root project). A plain task name without a separator (`:`) selects all task with that name in all projects.
-A selector can be suffixed with a question mark to mark it as optional, allowing it to resolve to no tasks instead of
-raising an error.
-
-## Example
-
-Check out the [`example/`](./example/) directory.
-
-## Remarks for writing extensions
-
-__Use `typing` aliases when defining Task properties for pre-3.10 compatibility__
-
-The Kraken code base uses the 3.10+ type union operator `|` for type hints where possible. However, special care needs
-to be taken with this operator when defining properties on Kraken tasks. The annotations on task objects are eveluated
-and will cause errors in Python versions lower than 3.10 when using the union operator `|` even with
-`__future__.annotations` enabled.
-
-The following code will cause a `TypeError` when executed even when using `from __future__ import annotations`:
+> This example requires the **`kraken-std`** package.
 
 ```py
-class MyTask(Task):
-    my_prop: Property[str | Path]  # unsupported operand type(s) for |: 'type' and 'type'
+# .kraken.py
+from kraken.core import Project, Supplier
+from kraken.std.generic.render_file_task import RenderFileTask
+project = Project.current()
+project.do(
+    "renderDockerfile",
+    RenderFileTask,
+    file=project.build_directory / "Dockerfile",
+    content=Supplier.of_callable(lambda: "FROM ubuntu:focal\n..."),
+)
 ```
 
-__Property value adapters__
-
-Properties will perform runtime type checking when passing a static value into it. The type checking is currently
-limited to the root data type and does not take type parameters and sub-structures into account (e.g. a `List[str]`
-property will validate that the received value is a `list` but that that it's items are `str`).
-
-The runtime type check is not currently performed when a supplier (another property for example) is passed into 
-the property instead.
-
-In addition to type checks, "value adapters" can be registered using the `Property.value_adapter()` decorator. A
-default adapter is registered for the `Path` type which will coerce string values to path objects. This means that
-the order the order of the union members matters:
-
-```py
-a: Property[Union[str, Path]]
-b: Property[Union[Path, str]]
-
-# ...
-
-a.set("foo")
-assert a.get() == "foo"
-
-b.set("foo")
-assert b.get() == Path("foo")
 ```
+$ kraken run :renderDockerfile
+[ ... ]
+$ cat build/Dockerfile
+FROM ubuntu:focal
+...
+```
+
+## Reproducible build environments
+
+The _`kraken`_ CLI provided by _`kraken.cli`_ executes in the same Python environment that the CLI was installed in.
+
+We recommend you use the _`krakenw`_ command to achieve fully reproducible builds thanks to its lockfile support.
+The _`krakenw`_ command can be installed via the **`kraken-wrapper`** package.
+
+    $ pipx install kraken-wrapper

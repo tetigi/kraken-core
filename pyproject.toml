@@ -47,7 +47,7 @@ docs = ["mkdocs", "mkdocs-material", "novella==0.2.3"]
 "kraken.test" = "kraken.test"
 
 [tool.poetry.scripts]
-kraken = "kraken.cli.main:_entrypoint"
+kraken = "kraken.cli.main:main"
 
 [tool.slap]
 typed = true

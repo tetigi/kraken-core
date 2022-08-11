@@ -67,7 +67,7 @@ def parse_requirement(value: str) -> Requirement:
 
 @dataclasses.dataclass(frozen=True)
 class RequirementSpec:
-    """Represents the requirements for a Kraken build script."""
+    """Represents the requirements for a kraken build script."""
 
     requirements: tuple[Requirement, ...]
     index_url: str | None = None
@@ -153,7 +153,9 @@ class RequirementSpec:
             interpreter_constraint=parsed.interpreter_constraint,
         )
 
-    def to_args(self, base_dir: Path = Path("."), with_requirements: bool = True) -> list[str]:
+    def to_args(
+        self, base_dir: Path = Path("."), with_options: bool = True, with_requirements: bool = True
+    ) -> list[str]:
         """Converts the requirements back to Pip install arguments.
 
         :param base_dir: The base directory that relative :class:`LocalRequirement`s should be considered relative to.
@@ -161,10 +163,11 @@ class RequirementSpec:
         """
 
         args = []
-        if self.index_url:
+        if with_options and self.index_url:
             args += ["--index-url", self.index_url]
-        for url in self.extra_index_urls:
-            args += ["--extra-index-url", url]
+        if with_options:
+            for url in self.extra_index_urls:
+                args += ["--extra-index-url", url]
         if with_requirements:
             args += flatten(req.to_args(base_dir) for req in self.requirements)
         return args
@@ -210,5 +213,4 @@ def parse_requirements_from_python_script(file: TextIO) -> RequirementSpec:
         else:
             pythonpath += args
 
-    print(requirements)
     return RequirementSpec.from_args(requirements).with_pythonpath(pythonpath)

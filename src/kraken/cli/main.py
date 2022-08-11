@@ -3,173 +3,28 @@ from __future__ import annotations
 import argparse
 import builtins
 import contextlib
-import dataclasses
 import logging
 import os
 import sys
 from functools import partial
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
+    from kraken.cli.option_sets import BuildOptions, GraphOptions, RunOptions, VizOptions
     from kraken.core import Context, GroupTask, Property, Task, TaskGraph
-
-DEFAULT_BUILD_DIR = Path("build")
-DEFAULT_PROJECT_DIR = Path(".")
-BUILD_STATE_DIR = ".kraken/buildenv"
 
 logger = logging.getLogger(__name__)
 print = partial(builtins.print, flush=True)
 
 
-@dataclasses.dataclass(frozen=True)
-class _LoggingOptions:
-    verbosity: int
-    quietness: int
-
-    @staticmethod
-    def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument(
-            "-v",
-            dest="verbosity",
-            action="count",
-            default=0,
-            help="increase the log level (can be specified multiple times)",
-        )
-        parser.add_argument(
-            "-q",
-            dest="quietness",
-            action="count",
-            default=0,
-            help="decrease the log level (can be specified multiple times)",
-        )
-
-    @classmethod
-    def collect(cls, args: argparse.Namespace) -> _LoggingOptions:
-        return cls(
-            verbosity=args.verbosity,
-            quietness=args.quietness,
-        )
-
-
-@dataclasses.dataclass(frozen=True)
-class _BuildOptions:
-    build_dir: Path
-    project_dir: Path
-
-    @property
-    def state_dir(self) -> Path:
-        return self.build_dir / BUILD_STATE_DIR
-
-    @staticmethod
-    def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument(
-            "-b",
-            "--build-dir",
-            metavar="PATH",
-            type=Path,
-            default=DEFAULT_BUILD_DIR,
-            help="the build directory to write to [default: %(default)s]",
-        )
-        parser.add_argument(
-            "-p",
-            "--project-dir",
-            metavar="PATH",
-            type=Path,
-            default=DEFAULT_PROJECT_DIR,
-            help="the root project directory [default: ./]",
-        )
-
-    @classmethod
-    def collect(cls, args: argparse.Namespace) -> _BuildOptions:
-        return cls(
-            build_dir=args.build_dir,
-            project_dir=args.project_dir,
-        )
-
-
-@dataclasses.dataclass(frozen=True)
-class _GraphOptions:
-    tasks: list[str]
-    resume: bool
-    restart: bool
-    no_save: bool
-
-    @staticmethod
-    def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("tasks", metavar="task", nargs="*", help="one or more tasks to execute")
-        parser.add_argument("--resume", action="store_true", help="load previous build state")
-        parser.add_argument(
-            "--restart",
-            choices=("all",),
-            help="load previous build state, but discard existing results (requires --resume)",
-        )
-        parser.add_argument("--no-save", action="store_true", help="do not save the new build state")
-
-    @classmethod
-    def collect(cls, args: argparse.Namespace) -> _GraphOptions:
-        return cls(
-            tasks=args.tasks,
-            resume=args.resume,
-            restart=args.restart,
-            no_save=args.no_save,
-        )
-
-
-@dataclasses.dataclass
-class _RunOptions:
-    allow_no_tasks: bool
-    skip_build: bool
-    exclude_tasks: list[str] | None
-    exclude_tasks_subgraph: list[str] | None
-
-    @staticmethod
-    def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("-s", "--skip-build", action="store_true", help="just load the project, do not build")
-        parser.add_argument("-0", "--allow-no-tasks", action="store_true", help="don't error if no tasks got selected")
-        parser.add_argument("-x", "--exclude", metavar="TASK", action="append", help="exclude one or more tasks")
-        parser.add_argument(
-            "-X",
-            "--exclude-subgraph",
-            action="append",
-            metavar="TASK",
-            help="exclude the entire subgraphs of one or more tasks",
-        )
-
-    @classmethod
-    def collect(cls, args: argparse.Namespace) -> _RunOptions:
-        return cls(
-            skip_build=args.skip_build,
-            allow_no_tasks=args.allow_no_tasks,
-            exclude_tasks=args.exclude,
-            exclude_tasks_subgraph=args.exclude_subgraph,
-        )
-
-
-@dataclasses.dataclass
-class _VizOptions:
-    all: bool
-    show: bool
-
-    @staticmethod
-    def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("-a", "--all", action="store_true", help="include all tasks in the graph")
-        parser.add_argument("-s", "--show", action="store_true", help="show the graph in the browser (requires dot)")
-
-    @classmethod
-    def collect(cls, args: argparse.Namespace) -> _VizOptions:
-        return cls(
-            all=args.all,
-            show=args.show,
-        )
-
-
-def _get_argument_parser() -> argparse.ArgumentParser:
+def _get_argument_parser(prog: str) -> argparse.ArgumentParser:
     import textwrap
 
+    from kraken.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions, VizOptions
     from kraken.util.argparse import propagate_formatter_to_subparser
 
     parser = argparse.ArgumentParser(
+        prog,
         formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=120, max_help_position=60),
         description=textwrap.dedent(
             """
@@ -182,66 +37,46 @@ def _get_argument_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="cmd")
 
     run = subparsers.add_parser("run", aliases=["r"])
-    _LoggingOptions.add_to_parser(run)
-    _BuildOptions.add_to_parser(run)
-    _GraphOptions.add_to_parser(run)
-    _RunOptions.add_to_parser(run)
+    LoggingOptions.add_to_parser(run)
+    BuildOptions.add_to_parser(run)
+    GraphOptions.add_to_parser(run)
+    RunOptions.add_to_parser(run)
 
     query = subparsers.add_parser("query", aliases=["q"])
     query_subparsers = query.add_subparsers(dest="query_cmd")
 
     ls = query_subparsers.add_parser("ls", description="list all tasks and task groups in the build")
-    _LoggingOptions.add_to_parser(ls)
-    _BuildOptions.add_to_parser(ls)
-    _GraphOptions.add_to_parser(ls)
+    LoggingOptions.add_to_parser(ls)
+    BuildOptions.add_to_parser(ls)
+    GraphOptions.add_to_parser(ls)
 
     describe = query_subparsers.add_parser(
         "describe",
         aliases=["d"],
         description="describe one or more tasks in detail",
     )
-    _LoggingOptions.add_to_parser(describe)
-    _BuildOptions.add_to_parser(describe)
-    _GraphOptions.add_to_parser(describe)
+    LoggingOptions.add_to_parser(describe)
+    BuildOptions.add_to_parser(describe)
+    GraphOptions.add_to_parser(describe)
 
     viz = query_subparsers.add_parser("visualize", aliases=["viz", "v"], description="generate a GraphViz of the build")
-    _LoggingOptions.add_to_parser(viz)
-    _BuildOptions.add_to_parser(viz)
-    _GraphOptions.add_to_parser(viz)
-    _VizOptions.add_to_parser(viz)
+    LoggingOptions.add_to_parser(viz)
+    BuildOptions.add_to_parser(viz)
+    GraphOptions.add_to_parser(viz)
+    VizOptions.add_to_parser(viz)
 
     # This command is used by kraken-wrapper to produce a lock file.
     env = query_subparsers.add_parser("env", description="produce a JSON file of the Python environment distributions")
-    _LoggingOptions.add_to_parser(env)
+    LoggingOptions.add_to_parser(env)
 
     propagate_formatter_to_subparser(parser)
     return parser
 
 
-def _init_logging(verbosity: int) -> None:
-    from kraken._vendor.termcolor import colored
-
-    if verbosity > 1:
-        level = logging.DEBUG
-    elif verbosity > 0:
-        level = logging.INFO
-    elif verbosity == 0:
-        level = logging.WARNING
-    elif verbosity < 0:
-        level = logging.ERROR
-    else:
-        assert False, level
-    logging.basicConfig(
-        level=level,
-        format=f"{colored('%(levelname)-7s', 'magenta')} | {colored('%(name)-24s', 'blue')} | "
-        f"{colored('%(message)s', 'cyan')}",
-    )
-
-
 def _load_build_state(
     exit_stack: contextlib.ExitStack,
-    build_options: _BuildOptions,
-    graph_options: _GraphOptions,
+    build_options: BuildOptions,
+    graph_options: GraphOptions,
 ) -> tuple[Context, TaskGraph]:
     from kraken.cli import serialize
     from kraken.core import Context, TaskGraph
@@ -274,9 +109,9 @@ def _load_build_state(
 
 def run(
     exit_stack: contextlib.ExitStack,
-    build_options: _BuildOptions,
-    graph_options: _GraphOptions,
-    run_options: _RunOptions,
+    build_options: BuildOptions,
+    graph_options: GraphOptions,
+    run_options: RunOptions,
 ) -> None:
 
     from kraken.cli.executor import KrakenCliExecutorObserver
@@ -311,39 +146,6 @@ def run(
             print()
             print("error:", exc, file=sys.stderr)
             sys.exit(1)
-
-
-def query(
-    parser: argparse.ArgumentParser,
-    args: argparse.Namespace,
-    exit_stack: contextlib.ExitStack,
-) -> None:
-
-    if not args.query_cmd:
-        parser.print_usage()
-        sys.exit(0)
-
-    if args.query_cmd == "env":
-        env()
-        sys.exit(0)
-
-    build_options = _BuildOptions.collect(args)
-    graph_options = _GraphOptions.collect(args)
-
-    context, graph = _load_build_state(
-        exit_stack=exit_stack,
-        build_options=build_options,
-        graph_options=graph_options,
-    )
-
-    if args.query_cmd == "ls":
-        ls(graph)
-    elif args.query_cmd in ("describe", "d"):
-        describe(graph)
-    elif args.query_cmd in ("visualize", "viz", "v"):
-        visualize(graph, _VizOptions.collect(args))
-    else:
-        assert False, args.query_cmd
 
 
 def ls(graph: TaskGraph) -> None:
@@ -440,7 +242,7 @@ def describe(graph: TaskGraph) -> None:
         print()
 
 
-def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
+def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
     import io
 
     from kraken._vendor.nr.io.graphviz.render import render_to_browser
@@ -501,42 +303,72 @@ def env() -> None:
     print(json.dumps([dist.to_json() for dist in dists], sort_keys=True))
 
 
-def main() -> NoReturn:
-    parser = _get_argument_parser()
-    args = parser.parse_args()
+def main_internal(prog: str, argv: list[str] | None) -> NoReturn:
+    from kraken.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions
+
+    parser = _get_argument_parser(prog)
+    args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+
     if not args.cmd:
         parser.print_usage()
         sys.exit(0)
 
-    logging_options = _LoggingOptions.collect(args)
-    _init_logging(logging_options.verbosity - logging_options.quietness)
+    LoggingOptions.collect(args).init_logging()
 
-    with contextlib.ExitStack() as exit_stack:
-        if args.cmd in ("run", "r"):
-            run(exit_stack, _BuildOptions.collect(args), _GraphOptions.collect(args), _RunOptions.collect(args))
-        elif args.cmd in ("query", "q"):
-            query(parser, args, exit_stack)
-        else:
+    if args.cmd in ("run", "r"):
+        with contextlib.ExitStack() as exit_stack:
+            run(exit_stack, BuildOptions.collect(args), GraphOptions.collect(args), RunOptions.collect(args))
+
+    elif args.cmd in ("query", "q"):
+        if not args.query_cmd:
             parser.print_usage()
+            sys.exit(0)
+
+        if args.query_cmd == "env":
+            env()
+            sys.exit(0)
+
+        build_options = BuildOptions.collect(args)
+        graph_options = GraphOptions.collect(args)
+
+        with contextlib.ExitStack() as exit_stack:
+            _context, graph = _load_build_state(
+                exit_stack=exit_stack,
+                build_options=build_options,
+                graph_options=graph_options,
+            )
+
+            if args.query_cmd == "ls":
+                ls(graph)
+            elif args.query_cmd in ("describe", "d"):
+                describe(graph)
+            elif args.query_cmd in ("visualize", "viz", "v"):
+                visualize(graph, VizOptions.collect(args))
+            else:
+                assert False, args.query_cmd
+
+    else:
+        parser.print_usage()
 
     sys.exit(0)
 
 
-def _entrypoint() -> NoReturn:
+def main(prog: str = "kraken", argv: list[str] | None = None) -> NoReturn:
     profile_outfile = os.getenv("KRAKEN_PROFILING")
     if profile_outfile:
         import cProfile as profile
 
-        with open(profile_outfile, "w"):
+        with open(profile_outfile, "w"):  # Make sure the file exists
             pass
+
         prof = profile.Profile()
         try:
-            prof.runcall(main)
+            prof.runcall(main_internal, prog, argv)
         finally:
             prof.dump_stats(profile_outfile)
     else:
-        main()
+        main_internal(prog, argv)
 
 
 if __name__ == "__main__":
-    _entrypoint()
+    main()

@@ -5,7 +5,7 @@ from typing import Optional
 
 from kraken._vendor.termcolor import colored
 from kraken.core import Property, Supplier, Task, TaskStatus
-from kraken.util.fs import try_relative_to
+from kraken.util.path import try_relative_to
 
 DEFAULT_ENCODING = "utf-8"
 

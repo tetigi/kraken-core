@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import os
 import shutil
-import sys
 import tempfile
 from pathlib import Path
 from typing import IO, AnyStr, BinaryIO, ContextManager, Iterator, TextIO, overload
@@ -97,21 +97,12 @@ def atomic_file_swap(
                     os.remove(old.name)
 
 
-def is_relative_to(apath: Path, bpath: Path) -> bool:
-    """Checks if *apath* is a path relative to *bpath*."""
-
-    if sys.version_info[:2] < (3, 9):
-        try:
-            apath.relative_to(bpath)
-            return True
-        except ValueError:
-            return False
+def safe_rmpath(path: Path) -> None:
+    if path.is_dir():
+        shutil.rmtree(path, ignore_errors=True)
     else:
-        return apath.is_relative_to(bpath)
-
-
-def try_relative_to(apath: Path, bpath: Path | None = None) -> Path:
-    try:
-        return apath.relative_to(bpath or Path.cwd())
-    except ValueError:
-        return apath
+        try:
+            path.unlink()
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise

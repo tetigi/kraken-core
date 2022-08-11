@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterator, TextIO
+from typing import Iterator, Sequence, TextIO
 
 from kraken._vendor.termcolor import colored
 
@@ -24,9 +24,9 @@ REGEX_ANSI_ESCAPE = re.compile(
 class AsciiTable:
     def __init__(self) -> None:
         self.headers: list[str] = []
-        self.rows: list[list[str]] = []
+        self.rows: list[Sequence[str]] = []
 
-    def __iter__(self) -> Iterator[list[str]]:
+    def __iter__(self) -> Iterator[Sequence[str]]:
         yield self.headers
         yield from self.rows
 

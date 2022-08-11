@@ -7,18 +7,12 @@ import dataclasses
 import logging
 import os
 import sys
-import textwrap
 from functools import partial
 from pathlib import Path
-from typing import Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
-from kraken._vendor.termcolor import colored
-from kraken.cli import serialize
-from kraken.cli.executor import status_to_text
-from kraken.core import BuildError, Context, GroupTask, Property, Task, TaskGraph
-from kraken.util.argparse import propagate_formatter_to_subparser
-from kraken.util.helpers import not_none
-from kraken.util.term import get_terminal_width
+if TYPE_CHECKING:
+    from kraken.core import Context, GroupTask, Property, Task, TaskGraph
 
 DEFAULT_BUILD_DIR = Path("build")
 DEFAULT_PROJECT_DIR = Path(".")
@@ -73,13 +67,16 @@ class _GlobalOptions:
         )
 
     @classmethod
-    def collect(cls, args: argparse.Namespace) -> _GlobalOptions:
-        return cls(
-            verbosity=args.verbosity,
-            quietness=args.quietness,
-            build_dir=args.build_dir,
-            project_dir=args.project_dir,
-        )
+    def collect(cls, args: argparse.Namespace) -> _GlobalOptions | None:
+        try:
+            return cls(
+                verbosity=args.verbosity,
+                quietness=args.quietness,
+                build_dir=args.build_dir,
+                project_dir=args.project_dir,
+            )
+        except AttributeError:
+            return _GlobalOptions(0, 0, DEFAULT_BUILD_DIR, DEFAULT_PROJECT_DIR)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -159,6 +156,9 @@ class _VizOptions:
 
 
 def _get_argument_parser() -> argparse.ArgumentParser:
+    import textwrap
+    from kraken.util.argparse import propagate_formatter_to_subparser
+
     parser = argparse.ArgumentParser(
         formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=120, max_help_position=60),
         description=textwrap.dedent(
@@ -179,24 +179,34 @@ def _get_argument_parser() -> argparse.ArgumentParser:
     query = subparsers.add_parser("query", aliases=["q"])
     query_subparsers = query.add_subparsers(dest="query_cmd")
 
-    ls = query_subparsers.add_parser("ls")
+    ls = query_subparsers.add_parser("ls", description="list all tasks and task groups in the build")
     _GlobalOptions.add_to_parser(ls)
     _GraphOptions.add_to_parser(ls)
 
-    describe = query_subparsers.add_parser("describe", aliases=["d"])
+    describe = query_subparsers.add_parser(
+        "describe",
+        aliases=["d"],
+        description="describe one or more tasks in detail",
+    )
     _GlobalOptions.add_to_parser(describe)
     _GraphOptions.add_to_parser(describe)
 
-    viz = query_subparsers.add_parser("visualize", aliases=["viz", "v"])
+    viz = query_subparsers.add_parser("visualize", aliases=["viz", "v"], description="generate a GraphViz of the build")
     _GlobalOptions.add_to_parser(viz)
     _GraphOptions.add_to_parser(viz)
     _VizOptions.add_to_parser(viz)
+
+    # This command is used by kraken-wrapper to produce a lock file.
+    env = query_subparsers.add_parser("env", description="produce a JSON file of the Python environment distributions")
+    _GlobalOptions.add_to_parser(env)
 
     propagate_formatter_to_subparser(parser)
     return parser
 
 
 def _init_logging(verbosity: int) -> None:
+    from kraken._vendor.termcolor import colored
+
     if verbosity > 1:
         level = logging.DEBUG
     elif verbosity > 0:
@@ -219,6 +229,9 @@ def _load_build_state(
     global_options: _GlobalOptions,
     graph_options: _GraphOptions,
 ) -> tuple[Context, TaskGraph]:
+    from kraken.cli import serialize
+    from kraken.util.helpers import not_none
+    from kraken.core import Context, TaskGraph
 
     if graph_options.restart and not graph_options.resume:
         raise ValueError("the --restart option requires the --resume flag")
@@ -253,6 +266,7 @@ def run(
 ) -> None:
 
     from kraken.cli.executor import KrakenCliExecutorObserver
+    from kraken.core import BuildError
 
     context, graph = _load_build_state(
         exit_stack=exit_stack,
@@ -296,6 +310,10 @@ def query(
         parser.print_usage()
         sys.exit(0)
 
+    if args.query_cmd == "env":
+        env()
+        sys.exit(0)
+
     global_options = _GlobalOptions.collect(args)
     graph_options = _GraphOptions.collect(args)
 
@@ -316,6 +334,11 @@ def query(
 
 
 def ls(graph: TaskGraph) -> None:
+    import textwrap
+    from kraken._vendor.termcolor import colored
+    from kraken.cli.executor import status_to_text
+    from kraken.util.term import get_terminal_width
+    from kraken.core import GroupTask
 
     required_tasks = set(graph.tasks(targets_only=True))
     longest_name = max(map(len, (t.path for t in graph.tasks(all=True)))) + 1
@@ -371,6 +394,7 @@ def ls(graph: TaskGraph) -> None:
 
 
 def describe(graph: TaskGraph) -> None:
+    from kraken._vendor.termcolor import colored
 
     tasks = list(graph.tasks(targets_only=True))
     print("selected", len(tasks), "task(s)")
@@ -405,8 +429,8 @@ def describe(graph: TaskGraph) -> None:
 def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
     import io
 
-    from nr.io.graphviz.render import render_to_browser
-    from nr.io.graphviz.writer import GraphvizWriter
+    from kraken._vendor.nr.io.graphviz.render import render_to_browser
+    from kraken._vendor.nr.io.graphviz.writer import GraphvizWriter
 
     buffer = io.StringIO()
     writer = GraphvizWriter(buffer if viz_options.show else sys.stdout)
@@ -454,9 +478,21 @@ def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
         render_to_browser(buffer.getvalue())
 
 
+def env() -> None:
+    import json
+    from kraken._vendor.nr.python.environment.distributions import get_distributions
+
+    dists = sorted(get_distributions().values(), key=lambda dist: dist.name)
+    print(json.dumps([dist.to_json() for dist in dists], sort_keys=True))
+
+
 def main() -> NoReturn:
     parser = _get_argument_parser()
     args = parser.parse_args()
+    if not args.cmd:
+        parser.print_usage()
+        sys.exit(0)
+
     global_options = _GlobalOptions.collect(args)
     _init_logging(global_options.verbosity - global_options.quietness)
 

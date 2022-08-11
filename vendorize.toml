@@ -10,6 +10,9 @@ packages = [
     #       __init__.py that references `dill._dill` via `sys.modules.
     "dill==0.3.5",
 ]
+
+# NOTE (@NiklasRosenstein): Requires https://github.com/nrosenstein-forks/python-vendorize until
+#       https://github.com/mwilliamson/python-vendorize/pull/18 is merged.
 top_level_names = [
     "typeapi",
 ]

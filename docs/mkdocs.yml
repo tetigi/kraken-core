@@ -1,0 +1,12 @@
+nav:
+  - Home: index.md
+  - changelog.md
+  - Synopsis:
+    - synopsis/index.md
+    - synopsis/run.md
+    - kraken query:
+      - synopsis/query/index.md
+      - synopsis/query/ls.md
+      - synopsis/query/describe.md
+      - synopsis/query/env.md
+      - synopsis/query/visualize.md

@@ -1,0 +1,15 @@
+target = "src/kraken/_vendor"
+packages = [
+    "nr.io.graphviz==0.1.1",
+    "nr.python.environment==0.1.4",
+    "termcolor==1.1.0",
+    "types-termcolor==1.1.5",
+    "networkx==2.8.5",
+    "typeapi==0.2.1",
+    "dill==0.3.5",
+]
+top_level_names = [
+    "nr.io.graphviz",
+    "nr.python.environment",
+    "termcolor",
+]

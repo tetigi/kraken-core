@@ -15,6 +15,7 @@ packages = [
     { include = "kraken/lib", from = "src" },
     { include = "kraken/test", from = "src" },
     { include = "kraken/util", from = "src" },
+    { include = "kraken/_vendor", from = "src" },
 ]
 classifiers = []
 keywords = []

@@ -11,9 +11,9 @@ def flatten(it: Iterable[Iterable[T]]) -> Iterable[T]:
         yield from item
 
 
-def not_none(v: T | None) -> T:
+def not_none(v: T | None, message: str = "expected not-None") -> T:
     if v is None:
-        raise RuntimeError("expected not-None")
+        raise RuntimeError(message)
     return v
 
 

@@ -35,12 +35,28 @@ class Project(MetadataContainer, Currentable["Project"]):
         # we're not accidentally allocating the same name twice.
         self._members: dict[str, Task | Project] = {}
 
-        self.group("fmt", description="Tasks that perform code formatting operations.")
-        self.group("lint", description="Tasks that perform code linting.", default=True)
-        self.group("build", description="Tasks that produce build artefacts.")
-        self.group("test", description="Tasks that perform unit tests.", default=True)
-        self.group("integrationTest", description="Tasks that perform integration tests.")
-        self.group("publish", description="Tasks that publish build artefacts.")
+        self.group("apply", description="Tasks that perform automatic updates to the project consistency.")
+        self.group("fmt", description="Tasks that that perform code formatting operations.")
+
+        check_group = self.group("check", description="Tasks that perform project consistency checks.", default=True)
+
+        lint_group = self.group("lint", description="Tasks that perform code linting.", default=True)
+        lint_group.add_relationship(check_group, strict=True)
+
+        build_group = self.group("build", description="Tasks that produce build artefacts.")
+        build_group.add_relationship(lint_group, strict=False)
+
+        test_group = self.group("test", description="Tasks that perform unit tests.", default=True)
+        test_group.add_relationship(build_group, strict=False)
+
+        integration_test_group = self.group("integrationTest", description="Tasks that perform integration tests.")
+        integration_test_group.add_relationship(test_group, strict=False)
+
+        publish_group = self.group("publish", description="Tasks that publish build artefacts.")
+        publish_group.add_relationship(integration_test_group, strict=False)
+
+        deploy_group = self.group("deploy", description="Tasks that deploy applications.")
+        deploy_group.add_relationship(publish_group, strict=False)
 
     def __repr__(self) -> str:
         return f"Project({self.path})"

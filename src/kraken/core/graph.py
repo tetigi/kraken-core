@@ -147,6 +147,9 @@ class TaskGraph(Graph):
                 result.append(task)
         return result
 
+    def get_edge(self, pred: Task, succ: Task) -> _Edge:
+        return not_none(self._get_edge(pred.path, succ.path), f"edge does not exist ({pred.path} --> {succ.path})")
+
     def set_targets(self, tasks: Iterable[Task] | None) -> None:
         """Mark the tasks given with *tasks* as required. All immediate dependencies that are background tasks and
         have already run will be reset to ensure they run again.

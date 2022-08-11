@@ -170,25 +170,26 @@ def _get_argument_parser() -> argparse.ArgumentParser:
             """
         ),
     )
-    _GlobalOptions.add_to_parser(parser)
-
     subparsers = parser.add_subparsers(dest="cmd")
 
     run = subparsers.add_parser("run", aliases=["r"])
+    _GlobalOptions.add_to_parser(run)
     _GraphOptions.add_to_parser(run)
     _RunOptions.add_to_parser(run)
 
     query = subparsers.add_parser("query", aliases=["q"])
-
     query_subparsers = query.add_subparsers(dest="query_cmd")
 
     ls = query_subparsers.add_parser("ls")
+    _GlobalOptions.add_to_parser(ls)
     _GraphOptions.add_to_parser(ls)
 
     describe = query_subparsers.add_parser("describe", aliases=["d"])
+    _GlobalOptions.add_to_parser(describe)
     _GraphOptions.add_to_parser(describe)
 
     viz = query_subparsers.add_parser("visualize", aliases=["viz", "v"])
+    _GlobalOptions.add_to_parser(viz)
     _GraphOptions.add_to_parser(viz)
     _VizOptions.add_to_parser(viz)
 
@@ -292,6 +293,10 @@ def query(
     global_options: _GlobalOptions,
 ) -> None:
 
+    if not args.query_cmd:
+        parser.print_usage()
+        sys.exit(0)
+
     global_options = _GlobalOptions.collect(args)
     graph_options = _GraphOptions.collect(args)
 
@@ -303,12 +308,12 @@ def query(
 
     if args.query_cmd == "ls":
         ls(graph)
-    elif args.query_cmd == "describe":
+    elif args.query_cmd in ("describe", "d"):
         describe(graph)
-    elif args.query_cmd == "visualize":
+    elif args.query_cmd in ("visualize", "viz", "v"):
         visualize(graph, _VizOptions.collect(args))
     else:
-        parser.print_usage()
+        assert False, args.query_cmd
 
 
 def ls(graph: TaskGraph) -> None:
@@ -409,38 +414,41 @@ def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
     writer.digraph(fontname="monospace", rankdir="LR")
     writer.set_node_style(style="filled", shape="box")
 
-    style_default_task = {"penwidth": "3"}
-    style_selected_task = {"fillcolor": "darkgoldenrod1"}
-    style_group_task = {"fillcolor": "dodgerblue"}
-    style_goal_task = {"shape": "circle"}
+    style_default = {"penwidth": "3"}
+    style_goal = {"fillcolor": "lawngreen"}
+    style_task = {}
+    style_select = {"fillcolor": "darkgoldenrod1"}
+    style_group = {"shape": "ellipse"}
+    style_edge_strict = {}
+    style_edge_non_strict = {"style": "dashed"}
 
     writer.subgraph("cluster_#legend", label="Legend")
-    writer.node("#none", label="will not run")
-    writer.node("#default", label="would run by default", **style_default_task)
-    writer.node("#selected", label="will run", **style_selected_task)
-    writer.node("#group", label="group task", **style_group_task)
-    writer.node("#goal", label="goal task", **style_goal_task)
+    writer.node("#task", label="task", **style_task)
+    writer.node("#group", label="group task", **style_group)
+    writer.node("#default", label="would run by default", **style_default)
+    writer.node("#selected", label="will run", **style_select)
+    writer.node("#goal", label="goal task", **style_goal)
     writer.end()
 
     writer.subgraph("cluster_#build", label="Build Graph")
 
-    executed_tasks = set(graph.tasks())
-    targets = set(graph.tasks(targets_only=True))
+    goal_tasks = set(graph.tasks(targets_only=True))
+    selected_tasks = set(graph.tasks())
+
     for task in graph.tasks(all=viz_options.all):
-        writer.node(
-            task.path,
-            **(style_default_task if task.default else {}),
-            **(
-                style_group_task
-                if isinstance(task, GroupTask)
-                else style_selected_task
-                if task in executed_tasks
-                else {}
-            ),
-            **(style_goal_task if task in targets else {}),
-        )
+        style = {}
+        style.update(style_default if task.default else {})
+        style.update(style_group if isinstance(task, GroupTask) else style_task)
+        style.update(style_select if task in selected_tasks else {})
+        style.update(style_goal if task in goal_tasks else {})
+
+        writer.node(task.path, **style)
         for predecessor in graph.get_predecessors(task, ignore_groups=False):
-            writer.edge(predecessor.path, task.path)
+            writer.edge(
+                predecessor.path,
+                task.path,
+                **(style_edge_strict if graph.get_edge(predecessor, task).strict else style_edge_non_strict),
+            )
 
     writer.end()
     writer.end()
@@ -456,9 +464,9 @@ def main() -> NoReturn:
     _init_logging(global_options.verbosity - global_options.quietness)
 
     with contextlib.ExitStack() as exit_stack:
-        if args.cmd == "run":
+        if args.cmd in ("run", "r"):
             run(exit_stack, global_options, _GraphOptions.collect(args), _RunOptions.collect(args))
-        elif args.cmd == "query":
+        elif args.cmd in ("query", "q"):
             query(parser, args, exit_stack, global_options)
         else:
             parser.print_usage()

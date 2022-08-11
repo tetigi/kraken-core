@@ -4,7 +4,7 @@ import dataclasses
 import logging
 from typing import Iterable, Iterator, List, cast
 
-from kraken._vendor.networkx import DiGraph, restricted_view  # type: ignore[import]
+from kraken._vendor.networkx import DiGraph, restricted_view
 from kraken.core.context import Context
 from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus
@@ -123,11 +123,11 @@ class TaskGraph(Graph):
 
     def _update_target_graph(self) -> None:
         """Updates the target graph."""
-        self._target_graph = restricted_view(self._full_graph, self._inactive_tasks, set())
+        self._target_graph = restricted_view(self._full_graph, self._inactive_tasks, set())  # type: ignore[no-untyped-call]  # noqa: 501
 
     def _get_ready_graph(self) -> DiGraph:
         """Updates the ready graph."""
-        return restricted_view(self._target_graph, self._completed_tasks, set())
+        return restricted_view(self._target_graph, self._completed_tasks, set())  # type: ignore[no-untyped-call]
 
     # Public API
 

@@ -67,7 +67,7 @@ class _GlobalOptions:
         )
 
     @classmethod
-    def collect(cls, args: argparse.Namespace) -> _GlobalOptions | None:
+    def collect(cls, args: argparse.Namespace) -> _GlobalOptions:
         try:
             return cls(
                 verbosity=args.verbosity,
@@ -157,6 +157,7 @@ class _VizOptions:
 
 def _get_argument_parser() -> argparse.ArgumentParser:
     import textwrap
+
     from kraken.util.argparse import propagate_formatter_to_subparser
 
     parser = argparse.ArgumentParser(
@@ -230,8 +231,8 @@ def _load_build_state(
     graph_options: _GraphOptions,
 ) -> tuple[Context, TaskGraph]:
     from kraken.cli import serialize
-    from kraken.util.helpers import not_none
     from kraken.core import Context, TaskGraph
+    from kraken.util.helpers import not_none
 
     if graph_options.restart and not graph_options.resume:
         raise ValueError("the --restart option requires the --resume flag")
@@ -335,10 +336,11 @@ def query(
 
 def ls(graph: TaskGraph) -> None:
     import textwrap
+
     from kraken._vendor.termcolor import colored
     from kraken.cli.executor import status_to_text
-    from kraken.util.term import get_terminal_width
     from kraken.core import GroupTask
+    from kraken.util.term import get_terminal_width
 
     required_tasks = set(graph.tasks(targets_only=True))
     longest_name = max(map(len, (t.path for t in graph.tasks(all=True)))) + 1
@@ -480,6 +482,7 @@ def visualize(graph: TaskGraph, viz_options: _VizOptions) -> None:
 
 def env() -> None:
     import json
+
     from kraken._vendor.nr.python.environment.distributions import get_distributions
 
     dists = sorted(get_distributions().values(), key=lambda dist: dist.name)

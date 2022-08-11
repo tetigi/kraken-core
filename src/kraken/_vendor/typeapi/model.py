@@ -153,7 +153,7 @@ class Type(Hint):
 
         # TODO (@NiklasRosenstein): This might be a good spot to implement caching.
 
-        import typeapi
+        from .. import typeapi
 
         def _raise() -> t.NoReturn:
             raise ValueError(f"unable to deconstruct {type_!r}")
@@ -411,7 +411,7 @@ def eval_types(
       The same hint with all forward references replaced.
     """
 
-    import typeapi
+    from .. import typeapi
 
     def _visitor(hint: Hint) -> Hint:
         if isinstance(hint, ForwardRef):

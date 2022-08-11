@@ -51,7 +51,8 @@ https://github.com/uqfoundation/dill/pull/443
 
 import inspect, sys
 
-_dill = sys.modules['dill._dill']
+#_dill = sys.modules['dill._dill']
+from . import _dill
 
 
 class Reduce(object):

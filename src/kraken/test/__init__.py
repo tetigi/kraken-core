@@ -11,7 +11,7 @@ import pytest
 from kraken.core.context import Context
 from kraken.core.project import Project
 
-__version__ = "0.8.2"
+__version__ = "0.8.3"
 logger = logging.getLogger(__name__)
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import contextlib
 
 import logging
 import sys
@@ -14,6 +15,7 @@ __version__ = "0.8.2"
 logger = logging.getLogger(__name__)
 
 
+@contextlib.contextmanager
 @pytest.fixture(name="kraken_ctx")
 def kraken_ctx() -> Iterator[Context]:
     context = Context(Path("build"))
@@ -21,6 +23,7 @@ def kraken_ctx() -> Iterator[Context]:
         yield context
 
 
+@contextlib.contextmanager
 @pytest.fixture(name="kraken_project")
 def kraken_project(kraken_ctx: Context, path: Path | None = None) -> Iterator[Project]:
     if path is None:

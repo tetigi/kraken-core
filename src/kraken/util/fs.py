@@ -108,3 +108,10 @@ def is_relative_to(apath: Path, bpath: Path) -> bool:
             return False
     else:
         return apath.is_relative_to(bpath)
+
+
+def try_relative_to(apath: Path, bpath: Path | None = None) -> Path:
+    try:
+        return apath.relative_to(bpath or Path.cwd())
+    except ValueError:
+        return apath

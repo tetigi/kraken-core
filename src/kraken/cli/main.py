@@ -23,15 +23,9 @@ print = partial(builtins.print, flush=True)
 
 
 @dataclasses.dataclass(frozen=True)
-class _GlobalOptions:
+class _LoggingOptions:
     verbosity: int
     quietness: int
-    build_dir: Path
-    project_dir: Path
-
-    @property
-    def state_dir(self) -> Path:
-        return self.build_dir / BUILD_STATE_DIR
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
@@ -49,6 +43,26 @@ class _GlobalOptions:
             default=0,
             help="decrease the log level (can be specified multiple times)",
         )
+
+    @classmethod
+    def collect(cls, args: argparse.Namespace) -> _LoggingOptions:
+        return cls(
+            verbosity=args.verbosity,
+            quietness=args.quietness,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class _BuildOptions:
+    build_dir: Path
+    project_dir: Path
+
+    @property
+    def state_dir(self) -> Path:
+        return self.build_dir / BUILD_STATE_DIR
+
+    @staticmethod
+    def add_to_parser(parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
             "-b",
             "--build-dir",
@@ -67,16 +81,11 @@ class _GlobalOptions:
         )
 
     @classmethod
-    def collect(cls, args: argparse.Namespace) -> _GlobalOptions:
-        try:
-            return cls(
-                verbosity=args.verbosity,
-                quietness=args.quietness,
-                build_dir=args.build_dir,
-                project_dir=args.project_dir,
-            )
-        except AttributeError:
-            return _GlobalOptions(0, 0, DEFAULT_BUILD_DIR, DEFAULT_PROJECT_DIR)
+    def collect(cls, args: argparse.Namespace) -> _BuildOptions:
+        return cls(
+            build_dir=args.build_dir,
+            project_dir=args.project_dir,
+        )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -173,7 +182,8 @@ def _get_argument_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="cmd")
 
     run = subparsers.add_parser("run", aliases=["r"])
-    _GlobalOptions.add_to_parser(run)
+    _LoggingOptions.add_to_parser(run)
+    _BuildOptions.add_to_parser(run)
     _GraphOptions.add_to_parser(run)
     _RunOptions.add_to_parser(run)
 
@@ -181,7 +191,8 @@ def _get_argument_parser() -> argparse.ArgumentParser:
     query_subparsers = query.add_subparsers(dest="query_cmd")
 
     ls = query_subparsers.add_parser("ls", description="list all tasks and task groups in the build")
-    _GlobalOptions.add_to_parser(ls)
+    _LoggingOptions.add_to_parser(ls)
+    _BuildOptions.add_to_parser(ls)
     _GraphOptions.add_to_parser(ls)
 
     describe = query_subparsers.add_parser(
@@ -189,17 +200,19 @@ def _get_argument_parser() -> argparse.ArgumentParser:
         aliases=["d"],
         description="describe one or more tasks in detail",
     )
-    _GlobalOptions.add_to_parser(describe)
+    _LoggingOptions.add_to_parser(describe)
+    _BuildOptions.add_to_parser(describe)
     _GraphOptions.add_to_parser(describe)
 
     viz = query_subparsers.add_parser("visualize", aliases=["viz", "v"], description="generate a GraphViz of the build")
-    _GlobalOptions.add_to_parser(viz)
+    _LoggingOptions.add_to_parser(viz)
+    _BuildOptions.add_to_parser(viz)
     _GraphOptions.add_to_parser(viz)
     _VizOptions.add_to_parser(viz)
 
     # This command is used by kraken-wrapper to produce a lock file.
     env = query_subparsers.add_parser("env", description="produce a JSON file of the Python environment distributions")
-    _GlobalOptions.add_to_parser(env)
+    _LoggingOptions.add_to_parser(env)
 
     propagate_formatter_to_subparser(parser)
     return parser
@@ -227,7 +240,7 @@ def _init_logging(verbosity: int) -> None:
 
 def _load_build_state(
     exit_stack: contextlib.ExitStack,
-    global_options: _GlobalOptions,
+    build_options: _BuildOptions,
     graph_options: _GraphOptions,
 ) -> tuple[Context, TaskGraph]:
     from kraken.cli import serialize
@@ -239,21 +252,21 @@ def _load_build_state(
 
     context: Context | None = None
     if graph_options.resume:
-        context, graph = serialize.load_build_state(global_options.state_dir)
+        context, graph = serialize.load_build_state(build_options.state_dir)
         if not graph:
             raise ValueError("cannot --resume without build state")
         if graph and graph_options.restart:
             graph.discard_statuses()
 
     if context is None:
-        context = Context(global_options.build_dir)
-        context.load_project(global_options.project_dir)
+        context = Context(build_options.build_dir)
+        context.load_project(build_options.project_dir)
         context.finalize()
         graph = TaskGraph(context)
 
     assert graph is not None
     if not graph_options.no_save:
-        exit_stack.callback(lambda: serialize.save_build_state(global_options.state_dir, not_none(graph)))
+        exit_stack.callback(lambda: serialize.save_build_state(build_options.state_dir, not_none(graph)))
 
     graph.set_targets(context.resolve_tasks(graph_options.tasks or None))
     return context, graph
@@ -261,7 +274,7 @@ def _load_build_state(
 
 def run(
     exit_stack: contextlib.ExitStack,
-    global_options: _GlobalOptions,
+    build_options: _BuildOptions,
     graph_options: _GraphOptions,
     run_options: _RunOptions,
 ) -> None:
@@ -271,7 +284,7 @@ def run(
 
     context, graph = _load_build_state(
         exit_stack=exit_stack,
-        global_options=global_options,
+        build_options=build_options,
         graph_options=graph_options,
     )
 
@@ -304,7 +317,6 @@ def query(
     parser: argparse.ArgumentParser,
     args: argparse.Namespace,
     exit_stack: contextlib.ExitStack,
-    global_options: _GlobalOptions,
 ) -> None:
 
     if not args.query_cmd:
@@ -315,12 +327,12 @@ def query(
         env()
         sys.exit(0)
 
-    global_options = _GlobalOptions.collect(args)
+    build_options = _BuildOptions.collect(args)
     graph_options = _GraphOptions.collect(args)
 
     context, graph = _load_build_state(
         exit_stack=exit_stack,
-        global_options=global_options,
+        build_options=build_options,
         graph_options=graph_options,
     )
 
@@ -496,14 +508,14 @@ def main() -> NoReturn:
         parser.print_usage()
         sys.exit(0)
 
-    global_options = _GlobalOptions.collect(args)
-    _init_logging(global_options.verbosity - global_options.quietness)
+    logging_options = _LoggingOptions.collect(args)
+    _init_logging(logging_options.verbosity - logging_options.quietness)
 
     with contextlib.ExitStack() as exit_stack:
         if args.cmd in ("run", "r"):
-            run(exit_stack, global_options, _GraphOptions.collect(args), _RunOptions.collect(args))
+            run(exit_stack, _BuildOptions.collect(args), _GraphOptions.collect(args), _RunOptions.collect(args))
         elif args.cmd in ("query", "q"):
-            query(parser, args, exit_stack, global_options)
+            query(parser, args, exit_stack)
         else:
             parser.print_usage()
 

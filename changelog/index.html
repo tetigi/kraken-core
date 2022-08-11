@@ -1,0 +1,1651 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.3.9">
+    
+    
+      
+        <title>Changelog - kraken-core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.1d29e8d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#009485">
+        
+      
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="kraken-core" class="md-header__button md-logo" aria-label="kraken-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            kraken-core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/kraken-build/kraken-core" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="kraken-core" class="md-nav__button md-logo" aria-label="kraken-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    kraken-core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kraken-build/kraken-core" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Changelog
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Changelog
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#080-2022-08-12" class="md-nav__link">
+    0.8.0 (2022-08-12)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#075-2022-08-06" class="md-nav__link">
+    0.7.5 (2022-08-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#074-2022-08-06" class="md-nav__link">
+    0.7.4 (2022-08-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#073-2022-08-05" class="md-nav__link">
+    0.7.3 (2022-08-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#072-2022-08-05" class="md-nav__link">
+    0.7.2 (2022-08-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#071-2022-08-04" class="md-nav__link">
+    0.7.1 (2022-08-04)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#070-2022-08-03" class="md-nav__link">
+    0.7.0 (2022-08-03)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#062-2022-08-01" class="md-nav__link">
+    0.6.2 (2022-08-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#061-2022-08-01" class="md-nav__link">
+    0.6.1 (2022-08-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#060-2022-07-29" class="md-nav__link">
+    0.6.0 (2022-07-29)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#054-2022-07-27" class="md-nav__link">
+    0.5.4 (2022-07-27)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#053-2022-07-27" class="md-nav__link">
+    0.5.3 (2022-07-27)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#052-2022-07-24" class="md-nav__link">
+    0.5.2 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#051-2022-07-24" class="md-nav__link">
+    0.5.1 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050-2022-07-24" class="md-nav__link">
+    0.5.0 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#040-2022-07-24" class="md-nav__link">
+    0.4.0 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#037-2022-07-23" class="md-nav__link">
+    0.3.7 (2022-07-23)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#036-2022-07-20" class="md-nav__link">
+    0.3.6 (2022-07-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#035-2022-07-20" class="md-nav__link">
+    0.3.5 (2022-07-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#034-2022-07-19" class="md-nav__link">
+    0.3.4 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#033-2022-07-19" class="md-nav__link">
+    0.3.3 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#032-2022-07-19" class="md-nav__link">
+    0.3.2 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#031-2022-07-19" class="md-nav__link">
+    0.3.1 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2022-07-19" class="md-nav__link">
+    0.3.0 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0219-2022-07-18" class="md-nav__link">
+    0.2.19 (2022-07-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0218-2022-07-18" class="md-nav__link">
+    0.2.18 (2022-07-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0217-2022-07-15" class="md-nav__link">
+    0.2.17 (2022-07-15)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0216-2022-07-13" class="md-nav__link">
+    0.2.16 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0215-2022-07-13" class="md-nav__link">
+    0.2.15 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0214-2022-07-13" class="md-nav__link">
+    0.2.14 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0213-2022-07-13" class="md-nav__link">
+    0.2.13 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0212-2022-07-13" class="md-nav__link">
+    0.2.12 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0211-2022-07-10" class="md-nav__link">
+    0.2.11 (2022-07-10)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0210-2022-07-09" class="md-nav__link">
+    0.2.10 (2022-07-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#029-2022-07-09" class="md-nav__link">
+    0.2.9 (2022-07-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#027-2022-07-08" class="md-nav__link">
+    0.2.7 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#026-2022-07-08" class="md-nav__link">
+    0.2.6 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#025-2022-07-08" class="md-nav__link">
+    0.2.5 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#024-2022-07-08" class="md-nav__link">
+    0.2.4 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#023-2022-07-06" class="md-nav__link">
+    0.2.3 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#022-2022-07-06" class="md-nav__link">
+    0.2.2 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#021-2022-07-06" class="md-nav__link">
+    0.2.1 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020-2022-07-06" class="md-nav__link">
+    0.2.0 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#013-2022-07-04" class="md-nav__link">
+    0.1.3 (2022-07-04)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#012-2022-07-04" class="md-nav__link">
+    0.1.2 (2022-07-04)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010post1-2022-07-01" class="md-nav__link">
+    0.1.0.post1 (2022-07-01)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../synopsis/">Synopsis</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Synopsis" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Synopsis
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synopsis/run/" class="md-nav__link">
+        kraken run
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_3_3" type="checkbox" id="__nav_3_3" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../synopsis/query/">kraken query</a>
+          
+            <label for="__nav_3_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="kraken query" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          kraken query
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synopsis/query/ls/" class="md-nav__link">
+        kraken query ls
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synopsis/query/describe/" class="md-nav__link">
+        kraken query describe
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synopsis/query/env/" class="md-nav__link">
+        kraken query env
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synopsis/query/visualize/" class="md-nav__link">
+        kraken query visualize
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#080-2022-08-12" class="md-nav__link">
+    0.8.0 (2022-08-12)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#075-2022-08-06" class="md-nav__link">
+    0.7.5 (2022-08-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#074-2022-08-06" class="md-nav__link">
+    0.7.4 (2022-08-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#073-2022-08-05" class="md-nav__link">
+    0.7.3 (2022-08-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#072-2022-08-05" class="md-nav__link">
+    0.7.2 (2022-08-05)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#071-2022-08-04" class="md-nav__link">
+    0.7.1 (2022-08-04)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#070-2022-08-03" class="md-nav__link">
+    0.7.0 (2022-08-03)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#062-2022-08-01" class="md-nav__link">
+    0.6.2 (2022-08-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#061-2022-08-01" class="md-nav__link">
+    0.6.1 (2022-08-01)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#060-2022-07-29" class="md-nav__link">
+    0.6.0 (2022-07-29)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#054-2022-07-27" class="md-nav__link">
+    0.5.4 (2022-07-27)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#053-2022-07-27" class="md-nav__link">
+    0.5.3 (2022-07-27)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#052-2022-07-24" class="md-nav__link">
+    0.5.2 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#051-2022-07-24" class="md-nav__link">
+    0.5.1 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050-2022-07-24" class="md-nav__link">
+    0.5.0 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#040-2022-07-24" class="md-nav__link">
+    0.4.0 (2022-07-24)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#037-2022-07-23" class="md-nav__link">
+    0.3.7 (2022-07-23)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#036-2022-07-20" class="md-nav__link">
+    0.3.6 (2022-07-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#035-2022-07-20" class="md-nav__link">
+    0.3.5 (2022-07-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#034-2022-07-19" class="md-nav__link">
+    0.3.4 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#033-2022-07-19" class="md-nav__link">
+    0.3.3 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#032-2022-07-19" class="md-nav__link">
+    0.3.2 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#031-2022-07-19" class="md-nav__link">
+    0.3.1 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-2022-07-19" class="md-nav__link">
+    0.3.0 (2022-07-19)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0219-2022-07-18" class="md-nav__link">
+    0.2.19 (2022-07-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0218-2022-07-18" class="md-nav__link">
+    0.2.18 (2022-07-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0217-2022-07-15" class="md-nav__link">
+    0.2.17 (2022-07-15)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0216-2022-07-13" class="md-nav__link">
+    0.2.16 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0215-2022-07-13" class="md-nav__link">
+    0.2.15 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0214-2022-07-13" class="md-nav__link">
+    0.2.14 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0213-2022-07-13" class="md-nav__link">
+    0.2.13 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0212-2022-07-13" class="md-nav__link">
+    0.2.12 (2022-07-13)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0211-2022-07-10" class="md-nav__link">
+    0.2.11 (2022-07-10)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0210-2022-07-09" class="md-nav__link">
+    0.2.10 (2022-07-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#029-2022-07-09" class="md-nav__link">
+    0.2.9 (2022-07-09)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#027-2022-07-08" class="md-nav__link">
+    0.2.7 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#026-2022-07-08" class="md-nav__link">
+    0.2.6 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#025-2022-07-08" class="md-nav__link">
+    0.2.5 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#024-2022-07-08" class="md-nav__link">
+    0.2.4 (2022-07-08)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#023-2022-07-06" class="md-nav__link">
+    0.2.3 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#022-2022-07-06" class="md-nav__link">
+    0.2.2 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#021-2022-07-06" class="md-nav__link">
+    0.2.1 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020-2022-07-06" class="md-nav__link">
+    0.2.0 (2022-07-06)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#013-2022-07-04" class="md-nav__link">
+    0.1.3 (2022-07-04)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#012-2022-07-04" class="md-nav__link">
+    0.1.2 (2022-07-04)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010post1-2022-07-01" class="md-nav__link">
+    0.1.0.post1 (2022-07-01)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+  <a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/content/changelog.md" title="Edit this page" class="md-content__button md-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+
+<h1 id="changelog">Changelog</h1>
+<h2 id="080-2022-08-12">0.8.0 (2022-08-12)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Breaking change</td><td>
+
+large refactor of the `kraken-core` module, now comes with the cli and utils and a task library, remove `kraken.api` and vendor most dependencies</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="075-2022-08-06">0.7.5 (2022-08-06)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+Fix a potential error when a bad value is passed to `Property.default()` on construction of the object where it cannot be properly formatted as a string yet because some attributes may not be set; `Property.__repr__()` now catches an exception of formatting it's owner</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Fix</td><td>
+
+In the previous version, the default groups `lint` and `test` should have been marked as default tasks. They are now</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+`TaskGraph.set_targets()` now longer treats group tasks special; this allows `TaskGroup.tasks(targets_only=True)` to return the group tasks that were originally passed into `set_targets()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="074-2022-08-06">0.7.4 (2022-08-06)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+Add `Project.group(default)` parameter and mark the groups `lint` and `test` as default.</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+`Task.default` is now disabled by default</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+Add `Task.get_description()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="073-2022-08-05">0.7.3 (2022-08-05)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `TaskGraph.tasks(pending)` parameter</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Fix</td><td>
+
+`TaskGraph.set_status()` now correctly resets the required background tasks of all _pending_ tasks, not just the immediate build targets</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="072-2022-08-05">0.7.2 (2022-08-05)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Deprecation</td><td>
+
+Deprecate `Task.capture` and `Project.do(capture)` with warnings</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Fix</td><td>
+
+The task graph now keeps track of tasks that return `TaskStatusType.STARTED` and will reset their status when the graph targets are set (`TaskGraph.set_target()`) which is usually after the TaskGraph was deserialized. This will ensure that background tasks are run again if another task that has not yet run is executed in a resumed execution.</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="071-2022-08-04">0.7.1 (2022-08-04)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+Fix default executor to now print build summary in execution order</td><td></td><td><a href="https://github.com/kraken-build/kraken-core/issues/4">4</a></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="070-2022-08-03">0.7.0 (2022-08-03)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `TaskStatusType.INTERRUPTED`, the default executor now stops execution immediately (but it would not understand waiting for any currently running tasks if the TaskRunner is executing them in the background)</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="062-2022-08-01">0.6.2 (2022-08-01)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+Depending on a group now behaves like directly dependending on the groups members; this change is particularly relevant for the successors that background tasks are active for.</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="061-2022-08-01">0.6.1 (2022-08-01)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `Property.setmap()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="060-2022-07-29">0.6.0 (2022-07-29)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+Define new interfaces for `Graph`, `GraphExecutor` and `GraphExecutorObserver` and provide default implementations that do not use termcolor, so we can get rid of that dependency in `kraken-core`</td><td></td><td><a href="https://github.com/kraken-build/kraken-core/issues/3">3</a></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="054-2022-07-27">0.5.4 (2022-07-27)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+make `Supplier.map()` result picklable</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="053-2022-07-27">0.5.3 (2022-07-27)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+Move `.find_metadata()` and `.current()` implementation on `Context` and `Project` into common base classes (`MetadataContainer` and `CurrentProvider`), add `Project.default()` and `Project.default_factory()`, add `Property.setcallable()` and `Property.clear()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+Add `Task.teardown()` method and adapt `Executor` to call it</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+`VoidTask` can now be configured to not skip execution</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+Add `TaskStatusType.STARTED`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `BackgroundTask` base class</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="052-2022-07-24">0.5.2 (2022-07-24)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+Fix derivation of inactive tasks in `TaskGraph`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="051-2022-07-24">0.5.1 (2022-07-24)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+Python 3.7 and 3.8 compatibility (removed use of | operator for types)</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="050-2022-07-24">0.5.0 (2022-07-24)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+make sure anonymous `Supplier` subclasses are picklable</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+revamp `TaskGraph` API</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="040-2022-07-24">0.4.0 (2022-07-24)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+allow adding question marks to target selectors to make it optional</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+improve `ValueError` raised when task selector is resolved in `Task.get_relationships()` to add the context of the task that the selector is resolved from</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+rename `TaskResult` to `TaskStatusType`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+add `TaskStatus` type</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+replace `Task.is_up_to_date()` and `Task.is_skippable()` with new `Task.prepare()` method</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+`Task.execute()` can now return `None` to indicate success</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+The `TaskGraph` now tracks task statuses and can be used to query remaining tasks (added `TaskGraph.set_status()`, `TaskGraph.get_status()`, `TaskGraph.is_complete()` and `TaskGraph.ready()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+The `Executor` now by default executes as many tasks as possible instead of failing on the first (this is enabled by the new `TaskGraph` API)</td><td></td><td><a href="https://github.com/kraken-build/kraken-core/issues/1">1</a></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+add `TaskStatusType.PENDING`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="037-2022-07-23">0.3.7 (2022-07-23)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Breaking change</td><td>
+
+rename `TaskRelationship.before` to `.inverse`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `Task.add_relationship()` method</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="036-2022-07-20">0.3.6 (2022-07-20)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+The `Property` type can now be used with (a union of) any type(s) as long as it is a proper `type` subclass and can be used for type checking</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="035-2022-07-20">0.3.5 (2022-07-20)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `kraken.core.utils.is_relative_to()` function</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="034-2022-07-19">0.3.4 (2022-07-19)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Breaking change</td><td>
+
+Build script can only be called `.kraken.py`, all other alternative names are no longer supported</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="033-2022-07-19">0.3.3 (2022-07-19)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `Project.do(group)` parameter and `TaskResult.from_exit_code()` method</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="032-2022-07-19">0.3.2 (2022-07-19)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `Property.config()` static method that allows setting default values for the property on the class level</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="031-2022-07-19">0.3.1 (2022-07-19)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+add `Property.output()` static method, removed `kraken.core.testing.kraken_execute()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="030-2022-07-19">0.3.0 (2022-07-19)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Breaking change</td><td>
+
+a rather substantial refactor to rename `BuildContext` to just `Context` and `BuildGraph` to `TaskGraph`, removed the `task_factory` class and moved its functionality mostly to `Project.do()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+move `kraken.testing` to `kraken.core.testing`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add simple CLI that can be run with `python -m kraken.core`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+flush after printing in Executor to ensure that outputs are in order (sometimes an issue in CI jobs on Github and Gitlab)</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0219-2022-07-18">0.2.19 (2022-07-18)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+fix `NameError` in `BuildContext.execute()` that is unfortunately not caught my Mypy or Flake8</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0218-2022-07-18">0.2.18 (2022-07-18)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `kraken.core.executor` module, moved here from `kraken-cli`; add `BuildContext.get_build_graph()` and `BuildContext.execute()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0217-2022-07-15">0.2.17 (2022-07-15)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+`Task.execute()` default implementation now raises a `NotImplementedError`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+remove installation of project requirements via Pip and enabling it with localimport; kraken-cli will manage a build environment instead</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0216-2022-07-13">0.2.16 (2022-07-13)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+`Project.do()` no longer overrides `Task.default` and `Task.capture` by default if no explicit value is specified</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `GroupTask` class and `Project.group()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0215-2022-07-13">0.2.15 (2022-07-13)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `BuildGraph.__len__()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0214-2022-07-13">0.2.14 (2022-07-13)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Breaking change</td><td>
+
+update `BuildContext.current()` to behave the same as `Project.current()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0213-2022-07-13">0.2.13 (2022-07-13)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `BuildContext.current()` and `Project.current()` static methods</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0212-2022-07-13">0.2.12 (2022-07-13)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `BuildContext.metadata`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0211-2022-07-10">0.2.11 (2022-07-10)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+Fix multiple inheritance alongside `kraken.core.property.Object`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="0210-2022-07-09">0.2.10 (2022-07-09)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Breaking change</td><td>
+
+no longer accept `kraken.py` in the Project directory as a build script, but instead additionally accept `.kraken.py` and `.kraken.build.py`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="029-2022-07-09">0.2.9 (2022-07-09)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+update `Task.logger` name</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `atomic_file_swap(create_dirs)` parameter</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+improve `kraken.testing` module</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="027-2022-07-08">0.2.7 (2022-07-08)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+implement `kraken.testing` module properly as a Pytest plugin, add a `kraken_execute()` function for executing a build graph from tests</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+use `Task.logger` to report properties that cannot be set by `Object.update()`, this most commonly surfaces when using a `task_factory` in a build script and passing parameters that do not exist on the task</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `import_class()` to `kraken.core.utils`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="026-2022-07-08">0.2.6 (2022-07-08)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `Property.seterror()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="025-2022-07-08">0.2.5 (2022-07-08)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+Look for `kraken.build.py` scripts in addition to `kraken.py`, the latter can result into issues resolving the `kraken` package as the build script can take precedence</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `Project.metadata` and `Project.find_metadata()` which can be used by plugins to store project-global data</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+improve VSCode type recognition for `Task.project` by putting `typing.ForwardRef()` for `Project` in the else block of `if TYPE_CHECKING:`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+add `kraken.core.utils.atomic_file_swap()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="024-2022-07-08">0.2.4 (2022-07-08)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+add `BuildGraph.tasks(required_only)` parameter</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+rename `BuildScriptLoader` to `ProjectLoader`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+Support `collections.abc.Callable` as a valid property type</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+Add `Task.logger`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+`Task.is_skippable()` and `Task.is_up_to_date()` now raise `NotImplementedError by default which is part of the API now</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="023-2022-07-06">0.2.3 (2022-07-06)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+fix self-referencing relationship introduced by properties derived from another property on the same task</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="022-2022-07-06">0.2.2 (2022-07-06)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+fix typing of Supplier derived_from args</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="021-2022-07-06">0.2.1 (2022-07-06)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+install requirements.txt into .build/.lib directory if a .kraken/requirements.txt file exists</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Feature</td><td>
+
+implement Path value adapters</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Improvement</td><td>
+
+add derived_from to of_callable(), setdefault() no longer returns a value</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="020-2022-07-06">0.2.0 (2022-07-06)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+introduce Property concept and make Action and Task a subclass for HasProperties, Task.action is a property and Action.task was added which is also a property</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+  <tr><td>Breaking change</td><td>
+
+redesign API, remove Action</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="013-2022-07-04">0.1.3 (2022-07-04)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Feature</td><td>
+
+Add `Project.resolve_tasks()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="012-2022-07-04">0.1.2 (2022-07-04)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Improvement</td><td>
+
+add `Project.to_path()`</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+<h2 id="010post1-2022-07-01">0.1.0.post1 (2022-07-01)</h2>
+<table><tr><th>Type</th><th>Description</th><th>PR</th><th>Issues</th><th>Author</th></tr>
+  <tr><td>Fix</td><td>
+
+reduce networkx requirement for Python 3.7 compatibility, fix lints</td><td></td><td></td><td>@NiklasRosenstein</td></tr>
+</table>
+
+              
+            </article>
+            
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Home
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../synopsis/" class="md-footer__link md-footer__link--next" aria-label="Next: Synopsis" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Synopsis
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tracking", "navigation.top", "toc.follow", "navigation.expand"], "search": "../assets/javascripts/workers/search.b97dbffb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6c7ad80a.min.js"></script>
+      
+    
+  </body>
+</html>

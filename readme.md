@@ -1,58 +1,44 @@
-# kraken-build
+# kraken-core
 
-[![Python application](https://github.com/kraken-build/kraken-build/actions/workflows/python-package.yml/badge.svg)](https://github.com/kraken-build/kraken-build/actions/workflows/python-package.yml)
-[![PyPI version](https://badge.fury.io/py/kraken-build.svg)](https://badge.fury.io/py/kraken-build)
+[![Python application](https://github.com/kraken-core/kraken-core/actions/workflows/python-package.yml/badge.svg)](https://github.com/kraken-core/kraken-core/actions/workflows/python-package.yml)
+[![PyPI version](https://badge.fury.io/py/kraken-core.svg)](https://badge.fury.io/py/kraken-core)
 
 __The Kraken build system.__
 
 Kraken focuses on ease of use and simplicity to model complex task orchestration workflows.
 
-The **`kraken-build`** packages provides the _`kraken.core`_, _`kraken.cli`_ and _`kraken.util`_ top-level namespace
-packages. Other Python packages may provide additional top-level packages in the _`kraken.`_ namespace.
+The **`kraken-core`** packages provides a number of top-level packages under the _`kraken.`_ namespace. The packages provided by this
+project are listed below. Other Python packages may provide additional top-level packages under this namespace.
 
-## Quickstart
+* `kraken.core` &ndash; Modeling of projects, tasks and the task graph.
+* `kraken.cli` &ndash; Provides the `kraken` cli.
+* `kraken.lib` &ndash; A small set of core utility tasks (nothing language specific).
+* `kraken.test` &ndash; Fixtures for integration-testing Kraken builds with Pytest.
+* `kraken.util` &ndash; Utilities and helpers.
+* `kraken._vendor` &ndash; Vendored third party libraries.
 
-> This example requires the **`kraken-std`** package.
+__Reproducible build environments__
 
-```py
-# .kraken.py
-from kraken.core import Project, Supplier
-from kraken.std.generic.render_file_task import RenderFileTask
-project = Project.current()
-project.do(
-    "renderDockerfile",
-    RenderFileTask,
-    file=project.build_directory / "Dockerfile",
-    content=Supplier.of_callable(lambda: "FROM ubuntu:focal\n..."),
-)
-```
+We recommend that you use `krakenw` to invoke Kraken builds instead of the `kraken` cli directly to ensure that you
+have an isolated and reproducible build environment. Install the kraken wrapper cli via the `kraken-wrapper` package
+and define your build requirements at the top of your `.kraken.py` build script:
 
 ```
-$ kraken run :renderDockerfile
-[ ... ]
-$ cat build/Dockerfile
-FROM ubuntu:focal
-...
+# ::requirements kraken-std>=0.3.0
+from kraken.std.cargo import cargo_build
+cargo_build()
 ```
 
-## Reproducible build environments
+__Vendored packages__
 
-The _`kraken`_ CLI provided by _`kraken.cli`_ executes in the same Python environment that the CLI was installed in.
+We're vendoring a number of third party packages for the purpose of reducing the burden of package resolution
+at installation time. This is particularly relevant for using Kraken in continuous integration systems to improve
+resolve times and PEX size.
 
-We recommend you use the _`krakenw`_ command to achieve fully reproducible builds thanks to its lockfile support.
-The _`krakenw`_ command can be installed via the **`kraken-wrapper`** package.
-
-    $ pipx install kraken-wrapper
-
-## Package vendoring
-
-We're vendoring the following packages. This is done for the purpose of reducing the burden of package resolution
-at installation time and is particularly relevant for using Kraken in continuous integration systems.
-
-* dill
-* networkx
-* nr.io.graphviz
-* nr.python.environment
-* termcolor
-* types-termcolor
-* typeapi
+* `dill`
+* `networkx`
+* `nr.io.graphviz`
+* `nr.python.environment`
+* `termcolor`
+* `types-termcolor`
+* `typeapi`

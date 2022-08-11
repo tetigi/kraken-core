@@ -12,8 +12,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, NoReturn
 
-from termcolor import colored
-
+from kraken._vendor.termcolor import colored
 from kraken.cli import serialize
 from kraken.cli.executor import status_to_text
 from kraken.core import BuildError, Context, GroupTask, Property, Task, TaskGraph

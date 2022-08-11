@@ -4,8 +4,7 @@ import dataclasses
 import logging
 from typing import Iterable, Iterator, List, cast
 
-from networkx import DiGraph, restricted_view  # type: ignore[import]
-
+from kraken._vendor.networkx import DiGraph, restricted_view  # type: ignore[import]
 from kraken.core.context import Context
 from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus

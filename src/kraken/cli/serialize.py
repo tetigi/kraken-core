@@ -4,8 +4,7 @@ import logging
 import uuid
 from pathlib import Path
 
-import dill
-
+from kraken._vendor import dill
 from kraken.core import Context, TaskGraph
 from kraken.util.text import pluralize
 

@@ -43,3 +43,16 @@ We recommend you use the _`krakenw`_ command to achieve fully reproducible build
 The _`krakenw`_ command can be installed via the **`kraken-wrapper`** package.
 
     $ pipx install kraken-wrapper
+
+## Package vendoring
+
+We're vendoring the following packages. This is done for the purpose of reducing the burden of package resolution
+at installation time and is particularly relevant for using Kraken in continuous integration systems.
+
+* dill
+* networkx
+* nr.io.graphviz
+* nr.python.environment
+* termcolor
+* types-termcolor
+* typeapi

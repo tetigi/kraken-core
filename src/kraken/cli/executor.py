@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Collection
 
-from termcolor import colored as _colored
-
+from kraken._vendor.termcolor import colored as _colored
 from kraken.core import Graph, Task, TaskGraph, TaskStatus, TaskStatusType
 from kraken.core.executor.default import DefaultPrintingExecutorObserver
 

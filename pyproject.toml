@@ -28,10 +28,8 @@ keywords = []
 
 [tool.poetry.dependencies]
 python = "^3.7"
-networkx = "^2.6.0"
 pytest = { version = ">=6.0.0", optional = true }
 setuptools = ">=33.1.0"
-typeapi = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 black = "*"
@@ -57,8 +55,8 @@ typed = true
 check = "slap check"
 mypy = "dmypy run src/"
 pytest = "pytest src/tests/ -vv"
-black = "black --check src/"
-isort = "isort --check-only src/"
+black = "black --check src/ -v"
+isort = "isort --check-only src/ -v"
 flake8 = "flake8 src/"
 
 [tool.slap.run]
@@ -79,13 +77,20 @@ warn_unreachable = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = "dill"
+module = "kraken._vendor.dill.*"
+ignore_errors = true
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "kraken._vendor.termcolor.*"
+ignore_errors = true
 
 [tool.isort]
 profile = "black"
 line_length = 120
 combine_as_imports = true
+skip = "src/kraken/_vendor"
 
 [tool.black]
 line-length = 120
+exclude = "src/kraken/_vendor"

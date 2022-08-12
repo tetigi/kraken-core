@@ -24,6 +24,12 @@ class CheckFileContentsTask(Task):
     encoding: Property[str]
     update_task_name: Property[str]
 
+    # Task
+
+    def finalize(self) -> None:
+        self.file.setmap(lambda path: self.project.directory / path)
+        super().finalize()
+
     def execute(self) -> TaskStatus | None:
         file = try_relative_to(self.file.get())
         file_fmt = colored(str(file), "yellow", attrs=["bold"])

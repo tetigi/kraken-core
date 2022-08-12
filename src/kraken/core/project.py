@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
@@ -35,8 +34,11 @@ class Project(MetadataContainer, Currentable["Project"]):
         # we're not accidentally allocating the same name twice.
         self._members: dict[str, Task | Project] = {}
 
-        self.group("apply", description="Tasks that perform automatic updates to the project consistency.")
-        self.group("fmt", description="Tasks that that perform code formatting operations.")
+        apply_group = self.group(
+            "apply", description="Tasks that perform automatic updates to the project consistency."
+        )
+        fmt_group = self.group("fmt", description="Tasks that that perform code formatting operations.")
+        fmt_group.add_relationship(apply_group, strict=True)
 
         check_group = self.group("check", description="Tasks that perform project consistency checks.", default=True)
 
@@ -121,8 +123,8 @@ class Project(MetadataContainer, Currentable["Project"]):
         name: str,
         task_type: Type[T_Task] = cast(Any, Task),
         default: bool | None = None,
-        capture: bool | None = None,
         group: str | GroupTask | None = None,
+        description: str | None = None,
         **kwargs: Any,
     ) -> T_Task:
         """Add a task to the project under the given name, executing the specified action.
@@ -130,19 +132,11 @@ class Project(MetadataContainer, Currentable["Project"]):
         :param name: The name of the task to add.
         :param task_type: The type of task to add.
         :param default: Override :attr:`Task.default`.
-        :param capture: Override :attr:`Task.capture`.
         :param group: Add the task to the given group in the project.
         :param kwargs: Any number of properties to set on the task. Unknown properties will be ignored
             with a warning log.
         :return: The created task.
         """
-
-        if capture is not None:
-            warnings.warn(
-                "The Project.do(capture) parameter will be deprecated in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         if name in self._members:
             raise ValueError(f"{self} already has a member {name!r}")
@@ -150,8 +144,8 @@ class Project(MetadataContainer, Currentable["Project"]):
         task = task_type(name, self)
         if default is not None:
             task.default = default
-        if capture is not None:
-            task.capture = capture
+        if description is not None:
+            task.description = description
         task.update(**kwargs)
         self.add_task(task)
         if isinstance(group, str):

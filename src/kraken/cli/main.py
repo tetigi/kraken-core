@@ -247,6 +247,7 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
 
     from kraken._vendor.nr.io.graphviz.render import render_to_browser
     from kraken._vendor.nr.io.graphviz.writer import GraphvizWriter
+    from kraken.core import GroupTask
 
     buffer = io.StringIO()
     writer = GraphvizWriter(buffer if viz_options.show else sys.stdout)
@@ -304,7 +305,7 @@ def env() -> None:
 
 
 def main_internal(prog: str, argv: list[str] | None) -> NoReturn:
-    from kraken.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions
+    from kraken.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions, VizOptions
 
     parser = _get_argument_parser(prog)
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 
-from kraken.core import Project, Property, Supplier, Task, TaskStatus
+from kraken.core import Project, Property, Task, TaskStatus
 from kraken.util.path import try_relative_to
 
 from .check_file_contents_task import as_bytes
@@ -78,7 +78,7 @@ def render_file(
     description: str | None = None,
     group: str | None = "apply",
     create_check: bool = True,
-    check_name: str | None = "{name}.check",
+    check_name: str = "{name}.check",
     check_group: str | None = "check",
     check_description: str | None = None,
     project: Project | None = None,
@@ -89,8 +89,6 @@ def render_file(
     content: str | Property[str],
     encoding: str | Property[str] = DEFAULT_ENCODING,
 ) -> tuple[RenderFileTask, CheckFileContentsTask | None]:
-    from kraken.lib.check_file_contents_task import CheckFileContentsTask
-
     project = project or Project.current()
     render_task = project.do(
         name,

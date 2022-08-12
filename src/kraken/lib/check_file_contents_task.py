@@ -46,4 +46,4 @@ class CheckFileContentsTask(Task):
             return TaskStatus.failed(f'"{file}" is not a file')
         if file.read_bytes() != as_bytes(self.content.get(), self.encoding.get()):
             return TaskStatus.failed(f'file "{file_fmt}" is not up to date{message_suffix}')
-        return None
+        return TaskStatus.succeeded(f'file "{file_fmt}" is up to date')

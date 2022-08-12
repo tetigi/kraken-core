@@ -18,8 +18,13 @@ __version__ = "0.8.4"
 logger = logging.getLogger(__name__)
 
 
-@contextlib.contextmanager
 @pytest.fixture(name="kraken_ctx")
+def _kraken_ctx_fixture() -> Iterator[Context]:
+    with kraken_ctx() as ctx:
+        yield ctx
+
+
+@contextlib.contextmanager
 def kraken_ctx() -> Iterator[Context]:
     context = Context(Path("build"))
     with context.as_current():

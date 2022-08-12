@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
     from kraken.cli.option_sets import BuildOptions, GraphOptions, RunOptions, VizOptions
-    from kraken.core import Context, GroupTask, Property, Task, TaskGraph
+    from kraken.core import Context, Property, Task, TaskGraph
 
 logger = logging.getLogger(__name__)
 print = partial(builtins.print, flush=True)
@@ -211,6 +211,7 @@ def ls(graph: TaskGraph) -> None:
 
 def describe(graph: TaskGraph) -> None:
     from kraken._vendor.termcolor import colored
+    from kraken.core import GroupTask
 
     tasks = list(graph.tasks(targets_only=True))
     print("selected", len(tasks), "task(s)")

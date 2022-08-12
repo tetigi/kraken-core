@@ -14,7 +14,7 @@ from kraken.core.project import Project
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest
 
-__version__ = "0.8.4"
+__version__ = "0.8.5"
 logger = logging.getLogger(__name__)
 
 

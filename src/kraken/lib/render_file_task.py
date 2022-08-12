@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional, Union
 
-from kraken._vendor.termcolor import colored
-from kraken.core import Property, Supplier, Task, TaskStatus
+from kraken.core import Project, Property, Supplier, Task, TaskStatus
 from kraken.util.path import try_relative_to
+
+from .check_file_contents_task import as_bytes
+
+if TYPE_CHECKING:
+    from kraken.lib.check_file_contents_task import CheckFileContentsTask
 
 DEFAULT_ENCODING = "utf-8"
 
@@ -16,77 +20,36 @@ class RenderFileTask(Task):
     The contents of the file can be provided by the :attr:`content` property or by creating a subclass
     that implements the :meth:`get_file_contents` method.
 
-    It is a common pattern to have a separate task to validate the contents of the file are up to date
-    with what the RenderFileTask would produce. This additional task can be created with the
-    :meth:`make_check_task` helper method.
-
-    It is common for a RenderFileTask to be added to the default `fmt` task group. The check task, should
-    you create it, would be a good candidate to add to the default `check` group.
+    It is common for a RenderFileTask to be added to the default `apply` task group. A matching check task,
+    should you create it, would be a good candidate to add to the default `check` group.
     """
 
     description = 'Create or update "%(file)s".'
+
     file: Property[Path]
+    content: Property[Union[str, bytes]]
     encoding: Property[str] = Property.default(DEFAULT_ENCODING)
-    content: Property[str]
 
-    _content_cache: Optional[bytes] = None
-
-    def make_check_task(
+    def create_check(
         self,
-        name: str | None = None,
-        group: str = "check",
-        default: bool = False,
+        name: str = "{name}.check",
+        task_class: type[CheckFileContentsTask] | None = None,
         description: str | None = None,
-    ) -> _CheckFileContentsTask:
-        """Create a task that checks if the file that would be created or updated by the RenderFileTask would
-        be modified. If the file would be modified, the check task will fail. By default, the new task name is
-        the RenderFileTask's name appended with `.check`.
-
-        :param name: The name of the check task.
-        :param group: The group to attach the check group to.
-        :param default: Whether the task runs by default.
-        :param description: The description of the task.
-        """
+        group: str | None = "check",
+    ) -> CheckFileContentsTask:
+        from kraken.lib.check_file_contents_task import CheckFileContentsTask
 
         task = self.project.do(
-            name or (self.name + ".check"),
-            _CheckFileContentsTask,
-            default=default,
+            name.replace("{name}", self.name),
+            task_class or CheckFileContentsTask,
+            description=description,
             group=group,
-            # Use `Property.value` instead of the property directly to avoid creating a dependency between the
-            # RenderFileTask and the check task.
             file=self.file.value,
-            content=Supplier.of_callable(lambda: self.__get_file_contents_cached(), [self.content.value]),
-            update_task=self.path,
+            content=self.content.value,
+            encoding=self.encoding.value,
         )
-
-        task.description = description or 'Check if "%(file)s" is up to date.'
         task.add_relationship(self, strict=False)
-
         return task
-
-    def get_file_contents(self, file: Path) -> str | bytes:
-        """Return the content that should be written to *file*. The method may read the contents of *file* to
-        take it into account, for example to produce a convoluted response (for example appending contents of the
-        file that are missing).
-
-        The default implementation returns the contents of the :attr:`content` property."""
-
-        return self.content.get()
-
-    def __get_file_contents_cached(self) -> bytes:
-        """Internal. Caches the result of :meth:`get_file_contents`."""
-
-        if self._content_cache is None:
-            file = self.file.get()
-            # Materialize the file contents.
-            content = self.get_file_contents(file)
-            if isinstance(content, str):
-                self._content_cache = content.encode(self.encoding.get())
-            else:
-                self._content_cache = content
-
-        return self._content_cache
 
     # Task
 
@@ -95,38 +58,58 @@ class RenderFileTask(Task):
         super().finalize()
 
     def prepare(self) -> TaskStatus | None:
+        from kraken.lib.check_file_contents_task import as_bytes
+
         file = self.file.get()
-        if file.is_file() and file.read_bytes() == self.__get_file_contents_cached():
+        if file.is_file() and file.read_bytes() == as_bytes(self.content.get(), self.encoding.get()):
             return TaskStatus.up_to_date()
         return TaskStatus.pending()
 
     def execute(self) -> TaskStatus:
         file = self.file.get()
         file.parent.mkdir(exist_ok=True)
-        content = self.__get_file_contents_cached()
+        content = as_bytes(self.content.get(), self.encoding.get())
         file.write_bytes(content)
         return TaskStatus.succeeded(f"write {len(content)} bytes to {try_relative_to(file)}")
 
 
-class _CheckFileContentsTask(Task):
-    """Internal. Helper task to check the contents of a file."""
+def render_file(
+    name: str,
+    description: str | None = None,
+    group: str | None = "apply",
+    create_check: bool = True,
+    check_name: str | None = "{name}.check",
+    check_group: str | None = "check",
+    check_description: str | None = None,
+    project: Project | None = None,
+    task_class: type[RenderFileTask] | None = None,
+    check_task_class: type[CheckFileContentsTask] | None = None,
+    *,
+    file: str | Path | Property[Path],
+    content: str | Property[str],
+    encoding: str | Property[str] = DEFAULT_ENCODING,
+) -> tuple[RenderFileTask, CheckFileContentsTask | None]:
+    from kraken.lib.check_file_contents_task import CheckFileContentsTask
 
-    file: Property[Path]
-    content: Property[bytes]
-    update_task_name: Property[str]
+    project = project or Project.current()
+    render_task = project.do(
+        name,
+        task_class or RenderFileTask,
+        description=description,
+        group=group,
+        file=file,
+        content=content,
+        encoding=encoding,
+    )
 
-    def execute(self) -> TaskStatus | None:
-        file = self.file.get()
-        try:
-            file = file.relative_to(Path.cwd())
-        except ValueError:
-            pass
-        file_fmt = colored(str(file), "yellow", attrs=["bold"])
-        uptask = colored(self.update_task_name.get(), "blue", attrs=["bold"])
-        if not file.exists():
-            return TaskStatus.failed(f'file "{file_fmt}" does not exist, run {uptask} to generate it')
-        if not file.is_file():
-            return TaskStatus.failed(f'"{file}" is not a file')
-        if file.read_bytes() != self.content.get():
-            return TaskStatus.failed(f'file "{file_fmt}" is not up to date, run {uptask} to update it')
-        return None
+    if create_check:
+        check_task = render_task.create_check(
+            check_name.replace("{name}", name),
+            check_task_class,
+            description=check_description,
+            group=check_group,
+        )
+    else:
+        check_task = None
+
+    return render_task, check_task

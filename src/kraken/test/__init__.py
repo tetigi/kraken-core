@@ -1,15 +1,18 @@
 from __future__ import annotations
-import contextlib
 
+import contextlib
 import logging
 import sys
 from pathlib import Path
-from typing import Iterator
+from typing import TYPE_CHECKING, Iterator
 
 import pytest
 
 from kraken.core.context import Context
 from kraken.core.project import Project
+
+if TYPE_CHECKING:
+    from _pytest.fixtures import FixtureRequest
 
 __version__ = "0.8.3"
 logger = logging.getLogger(__name__)
@@ -23,8 +26,13 @@ def kraken_ctx() -> Iterator[Context]:
         yield context
 
 
-@contextlib.contextmanager
 @pytest.fixture(name="kraken_project")
+def _kraken_project_fixture(kraken_ctx: Context, request: FixtureRequest) -> Iterator[Project]:
+    with kraken_project(kraken_ctx, request.path) as project:
+        yield project
+
+
+@contextlib.contextmanager
 def kraken_project(kraken_ctx: Context, path: Path | None = None) -> Iterator[Project]:
     if path is None:
         path = Path(sys._getframe(1).f_code.co_filename)

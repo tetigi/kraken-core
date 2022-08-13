@@ -184,7 +184,7 @@ class TaskGraph(Graph):
         are merged into one graph. If the same task has a result in both graphs, the failed result will supersede the
         successful one."""
 
-        for task in self.tasks():
+        for task in self.tasks(all=True):
             status_a = self._results.get(task.path)
             status_b = other_graph._results.get(task.path)
             if status_a is not None and status_b is not None and status_a.type != status_b.type:
@@ -193,7 +193,7 @@ class TaskGraph(Graph):
                 resolved_status = status_a or status_b
             if resolved_status is not None:
                 # TODO (@NiklasRosenstein): We could avoid recomputing the target graph after the merge is complete.
-                self.set_status(task, resolved_status)
+                self.set_status(task, resolved_status, _force=True)
 
     def discard_statuses(self) -> None:
         """Discard any results from the graph, allowing you to effectively restart the execution of tasks."""
@@ -265,10 +265,10 @@ class TaskGraph(Graph):
                 result.append(task)
         return result
 
-    def set_status(self, task: Task, status: TaskStatus) -> None:
+    def set_status(self, task: Task, status: TaskStatus, *, _force: bool = False) -> None:
         """Sets the status of a task, marking it as executed."""
 
-        if task.path in self._results and not self._results[task.path].is_started():
+        if not _force and (task.path in self._results and not self._results[task.path].is_started()):
             raise RuntimeError(f"already have a status for task {task.path!r}")
         self._results[task.path] = status
         if status.is_started():

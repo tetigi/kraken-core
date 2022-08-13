@@ -7,12 +7,15 @@ import logging
 import os
 import sys
 from functools import partial
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
     from kraken.cli.option_sets import BuildOptions, GraphOptions, RunOptions, VizOptions
     from kraken.core import Context, Property, Task, TaskGraph
 
+BUILD_SCRIPT = Path(".kraken.py")
+BUILD_SUPPORT_DIRECTORY = "build-support"
 logger = logging.getLogger(__name__)
 print = partial(builtins.print, flush=True)
 
@@ -84,6 +87,18 @@ def _load_build_state(
 
     if graph_options.restart and not graph_options.resume:
         raise ValueError("the --restart option requires the --resume flag")
+
+    # Read the pythonpath from the build script file and add it to sys.path.
+    build_script = build_options.project_dir / BUILD_SCRIPT
+    if build_script.is_file():
+        from kraken.util.importing import append_to_sys_path
+        from kraken.util.requirements import parse_requirements_from_python_script
+
+        with build_script.open() as fp:
+            pythonpath = parse_requirements_from_python_script(fp).pythonpath
+        if BUILD_SUPPORT_DIRECTORY not in pythonpath:
+            pythonpath = (*pythonpath, BUILD_SUPPORT_DIRECTORY)
+        exit_stack.enter_context(append_to_sys_path(pythonpath))
 
     context: Context | None = None
     if graph_options.resume:

@@ -192,7 +192,6 @@ class TaskGraph(Graph):
             else:
                 resolved_status = status_a or status_b
             if resolved_status is not None:
-                # TODO (@NiklasRosenstein): We could avoid recomputing the target graph after the merge is complete.
                 self.set_status(task, resolved_status, _force=True)
 
     def discard_statuses(self) -> None:

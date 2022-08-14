@@ -1,3 +1,5 @@
+# ::pythonpath .
+
 from my_tasks import DockerBuildTask, WriteDockerfileTask
 
 from kraken.core import Project

@@ -6,7 +6,8 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar, cast
 
-from kraken.core._vendor import typeapi
+import typeapi
+
 from kraken.core.supplier import Empty, Supplier
 from kraken.core.util.helpers import NotSet
 

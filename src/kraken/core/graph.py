@@ -4,7 +4,8 @@ import dataclasses
 import logging
 from typing import Iterable, Iterator, List, cast
 
-from kraken.core._vendor.networkx import DiGraph, restricted_view
+from networkx import DiGraph, restricted_view
+
 from kraken.core.context import Context
 from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus
@@ -123,11 +124,11 @@ class TaskGraph(Graph):
 
     def _update_target_graph(self) -> None:
         """Updates the target graph."""
-        self._target_graph = restricted_view(self._full_graph, self._inactive_tasks, set())  # type: ignore[no-untyped-call]  # noqa: 501
+        self._target_graph = restricted_view(self._full_graph, self._inactive_tasks, set())
 
     def _get_ready_graph(self) -> DiGraph:
         """Updates the ready graph."""
-        return restricted_view(self._target_graph, self._completed_tasks, set())  # type: ignore[no-untyped-call]
+        return restricted_view(self._target_graph, self._completed_tasks, set())
 
     # Public API
 
@@ -232,9 +233,9 @@ class TaskGraph(Graph):
 
         :param all: Return the execution order of all tasks, not just from the target subgraph."""
 
-        from kraken.core._vendor.networkx.algorithms import topological_sort
+        from networkx.algorithms import topological_sort
 
-        order = topological_sort(self._full_graph if all else self._get_ready_graph())  # type: ignore[no-untyped-call]
+        order = topological_sort(self._full_graph if all else self._get_ready_graph())
         return (not_none(self._get_task(task_path)) for task_path in order)
 
     # Graph

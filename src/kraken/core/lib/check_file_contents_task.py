@@ -3,8 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Union
 
+from termcolor import colored
+
 from kraken.core import Property, Task, TaskStatus
-from kraken.core._vendor.termcolor import colored
 from kraken.core.util.path import try_relative_to
 
 

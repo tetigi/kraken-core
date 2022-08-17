@@ -166,8 +166,9 @@ def run(
 def ls(graph: TaskGraph) -> None:
     import textwrap
 
+    from termcolor import colored
+
     from kraken.core import GroupTask
-    from kraken.core._vendor.termcolor import colored
     from kraken.core.cli.executor import status_to_text
     from kraken.core.util.term import get_terminal_width
 
@@ -225,8 +226,9 @@ def ls(graph: TaskGraph) -> None:
 
 
 def describe(graph: TaskGraph) -> None:
+    from termcolor import colored
+
     from kraken.core import GroupTask
-    from kraken.core._vendor.termcolor import colored
 
     tasks = list(graph.tasks(targets_only=True))
     print("selected", len(tasks), "task(s)")
@@ -261,9 +263,10 @@ def describe(graph: TaskGraph) -> None:
 def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
     import io
 
+    from nr.io.graphviz.render import render_to_browser
+    from nr.io.graphviz.writer import GraphvizWriter
+
     from kraken.core import GroupTask
-    from kraken.core._vendor.nr.io.graphviz.render import render_to_browser
-    from kraken.core._vendor.nr.io.graphviz.writer import GraphvizWriter
 
     buffer = io.StringIO()
     writer = GraphvizWriter(buffer if viz_options.show else sys.stdout)
@@ -314,7 +317,7 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
 def env() -> None:
     import json
 
-    from kraken.core._vendor.nr.python.environment.distributions import get_distributions
+    from nr.python.environment.distributions import get_distributions
 
     dists = sorted(get_distributions().values(), key=lambda dist: dist.name)
     print(json.dumps([dist.to_json() for dist in dists], sort_keys=True))

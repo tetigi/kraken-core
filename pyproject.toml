@@ -1,19 +1,19 @@
 [build-system]
-requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
 
 [tool.poetry]
-name = "kraken-core"
-version = "0.8.11"
-description = ""
 authors = ["Niklas Rosenstein <rosensteinniklas@gmail.com>"]
-license = "MIT"
-readme = "readme.md"
-packages = [
-    { include = "kraken/core", from = "src" },
-]
 classifiers = []
+description = ""
 keywords = []
+license = "MIT"
+name = "kraken-core"
+packages = [
+  {include = "kraken/core", from = "src"},
+]
+readme = "readme.md"
+version = "0.8.11"
 
 [tool.poetry.urls]
 # "Bug Tracker" = ""
@@ -22,10 +22,15 @@ keywords = []
 # Repository = ""
 
 [tool.poetry.dependencies]
-python = "^3.7"
 dill = ">=0.3.5"
-pytest = { version = ">=6.0.0", optional = true }
+networkx = "^2.6.3"
+"nr.io.graphviz" = "^0.1.1"
+"nr.python.environment" = "^0.1.4"
+pytest = {version = ">=6.0.0", optional = true}
+python = "^3.7"
 setuptools = ">=33.1.0"
+termcolor = "^1.1.0"
+typeapi = "^0.2.1"
 typing-extensions = ">=3.10.0.2"
 
 [tool.poetry.dev-dependencies]
@@ -35,10 +40,11 @@ isort = "*"
 mypy = "*"
 pytest = "*"
 types-setuptools = "^57.4.18"
+types-termcolor = "^1.1.5"
 
 [tool.poetry.extras]
-testing = ["pytest"]
 docs = ["mkdocs", "mkdocs-material", "novella==0.2.3"]
+testing = ["pytest"]
 
 [tool.poetry.plugins."pytest11"]
 "kraken.core.test" = "kraken.core.test"
@@ -50,31 +56,24 @@ kraken = "kraken.core.cli.main:main"
 typed = true
 
 [tool.slap.test]
+black = "black --check src/"
 check = "slap check"
+flake8 = "flake8 src/"
+isort = "isort --check-only src/"
 mypy = "dmypy run src/"
 pytest = "pytest src/tests/ -vv"
-black = "black --check src/"
-isort = "isort --check-only src/"
-flake8 = "flake8 src/"
 
 [tool.slap.run]
-fmt = "black src/ && isort src/"
 "docs:build" = "cd docs && novella --base-url kraken-core/"
 "docs:dev" = "cd docs && novella --serve"
-"vendorize" = """
-set -euxo pipefail
-python-vendorize
-mv src/kraken/core/_vendor/termcolor-stubs/__init__.pyi src/kraken/core/_vendor/termcolor.pyi
-rm -r src/kraken/core/_vendor/{bin,share,termcolor-stubs}
-"""
+fmt = "black src/ && isort src/"
 
 [tool.mypy]
-python_version = "3.7"
 explicit_package_bases = true
-exclude = [ "src/kraken/_vendor" ]
 mypy_path = ["src"]
 namespace_packages = true
 pretty = true
+python_version = "3.7"
 show_error_codes = true
 show_error_context = true
 strict = true
@@ -84,20 +83,14 @@ warn_unreachable = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = "kraken.core._vendor.networkx.*"
 ignore_errors = true
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "kraken.core._vendor.*"
-ignore_errors = true
+module = "networkx.*"
 
 [tool.isort]
-profile = "black"
-line_length = 120
 combine_as_imports = true
-skip = "src/kraken/core/_vendor"
+line_length = 120
+profile = "black"
 
 [tool.black]
 line-length = 120
-exclude = "src/kraken/core/_vendor"

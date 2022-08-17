@@ -1,5 +1,0 @@
-[[entries]]
-id = "d6916781-811c-4947-bb1e-60740d2c322e"
-type = "fix"
-description = "fix error when running `krakenw q` because we do not configure the `q` command with these options (close #5)"
-author = "@NiklasRosenstein"

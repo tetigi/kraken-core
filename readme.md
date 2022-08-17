@@ -7,16 +7,6 @@ __The Kraken build system.__
 
 Kraken focuses on ease of use and simplicity to model complex task orchestration workflows.
 
-The **`kraken-core`** packages provides a number of top-level packages under the _`kraken.`_ namespace. The packages provided by this
-project are listed below. Other Python packages may provide additional top-level packages under this namespace.
-
-* `kraken.core` &ndash; Modeling of projects, tasks and the task graph.
-* `kraken.cli` &ndash; Provides the `kraken` cli.
-* `kraken.lib` &ndash; A small set of core utility tasks (nothing language specific).
-* `kraken.test` &ndash; Fixtures for integration-testing Kraken builds with Pytest.
-* `kraken.util` &ndash; Utilities and helpers.
-* `kraken._vendor` &ndash; Vendored third party libraries.
-
 __Reproducible build environments__
 
 We recommend that you use `krakenw` to invoke Kraken builds instead of the `kraken` cli directly to ensure that you

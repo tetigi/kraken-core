@@ -50,7 +50,7 @@ class LoggingOptions:
     def init_logging(self, format: str | None = None) -> None:
         import logging
 
-        from kraken._vendor.termcolor import colored
+        from kraken.core._vendor.termcolor import colored
 
         verbosity = self.verbosity - self.quietness
 

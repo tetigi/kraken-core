@@ -4,11 +4,11 @@ import dataclasses
 import logging
 from typing import Iterable, Iterator, List, cast
 
-from kraken._vendor.networkx import DiGraph, restricted_view
+from kraken.core._vendor.networkx import DiGraph, restricted_view
 from kraken.core.context import Context
 from kraken.core.executor import Graph
 from kraken.core.task import GroupTask, Task, TaskStatus
-from kraken.util.helpers import not_none
+from kraken.core.util.helpers import not_none
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +232,7 @@ class TaskGraph(Graph):
 
         :param all: Return the execution order of all tasks, not just from the target subgraph."""
 
-        from kraken._vendor.networkx.algorithms import topological_sort
+        from kraken.core._vendor.networkx.algorithms import topological_sort
 
         order = topological_sort(self._full_graph if all else self._get_ready_graph())  # type: ignore[no-untyped-call]
         return (not_none(self._get_task(task_path)) for task_path in order)

@@ -6,7 +6,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Callable, Generic, Iterable, Sequence, TypeVar
 
-from kraken.util.helpers import NotSet
+from kraken.core.util.helpers import NotSet
 
 T = TypeVar("T")
 U = TypeVar("U")

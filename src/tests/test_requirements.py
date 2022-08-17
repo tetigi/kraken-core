@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from kraken.util.requirements import (
+from kraken.core.util.requirements import (
     LocalRequirement,
     PipRequirement,
     RequirementSpec,

@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
-    from kraken.cli.option_sets import BuildOptions, GraphOptions, RunOptions, VizOptions
     from kraken.core import Context, Property, Task, TaskGraph
+    from kraken.core.cli.option_sets import BuildOptions, GraphOptions, RunOptions, VizOptions
 
 BUILD_SCRIPT = Path(".kraken.py")
 BUILD_SUPPORT_DIRECTORY = "build-support"
@@ -23,8 +23,8 @@ print = partial(builtins.print, flush=True)
 def _get_argument_parser(prog: str) -> argparse.ArgumentParser:
     import textwrap
 
-    from kraken.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions, VizOptions
-    from kraken.util.argparse import propagate_formatter_to_subparser
+    from kraken.core.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions, VizOptions
+    from kraken.core.util.argparse import propagate_formatter_to_subparser
 
     parser = argparse.ArgumentParser(
         prog,
@@ -81,9 +81,9 @@ def _load_build_state(
     build_options: BuildOptions,
     graph_options: GraphOptions,
 ) -> tuple[Context, TaskGraph]:
-    from kraken.cli import serialize
     from kraken.core import Context, TaskGraph
-    from kraken.util.helpers import not_none
+    from kraken.core.cli import serialize
+    from kraken.core.util.helpers import not_none
 
     if graph_options.restart and not graph_options.resume:
         raise ValueError("the --restart option requires the --resume flag")
@@ -91,8 +91,8 @@ def _load_build_state(
     # Read the pythonpath from the build script file and add it to sys.path.
     build_script = build_options.project_dir / BUILD_SCRIPT
     if build_script.is_file():
-        from kraken.util.importing import append_to_sys_path
-        from kraken.util.requirements import parse_requirements_from_python_script
+        from kraken.core.util.importing import append_to_sys_path
+        from kraken.core.util.requirements import parse_requirements_from_python_script
 
         with build_script.open() as fp:
             pythonpath = parse_requirements_from_python_script(fp).pythonpath
@@ -129,8 +129,8 @@ def run(
     run_options: RunOptions,
 ) -> None:
 
-    from kraken.cli.executor import KrakenCliExecutorObserver
     from kraken.core import BuildError
+    from kraken.core.cli.executor import ColoredDefaultPrintingExecutorObserver
 
     context, graph = _load_build_state(
         exit_stack=exit_stack,
@@ -138,7 +138,7 @@ def run(
         graph_options=graph_options,
     )
 
-    context.observer = KrakenCliExecutorObserver(
+    context.observer = ColoredDefaultPrintingExecutorObserver(
         context.resolve_tasks(run_options.exclude_tasks or []),
         context.resolve_tasks(run_options.exclude_tasks_subgraph or []),
     )
@@ -166,10 +166,10 @@ def run(
 def ls(graph: TaskGraph) -> None:
     import textwrap
 
-    from kraken._vendor.termcolor import colored
-    from kraken.cli.executor import status_to_text
     from kraken.core import GroupTask
-    from kraken.util.term import get_terminal_width
+    from kraken.core._vendor.termcolor import colored
+    from kraken.core.cli.executor import status_to_text
+    from kraken.core.util.term import get_terminal_width
 
     required_tasks = set(graph.tasks(targets_only=True))
     longest_name = max(map(len, (t.path for t in graph.tasks(all=True)))) + 1
@@ -225,8 +225,8 @@ def ls(graph: TaskGraph) -> None:
 
 
 def describe(graph: TaskGraph) -> None:
-    from kraken._vendor.termcolor import colored
     from kraken.core import GroupTask
+    from kraken.core._vendor.termcolor import colored
 
     tasks = list(graph.tasks(targets_only=True))
     print("selected", len(tasks), "task(s)")
@@ -261,9 +261,9 @@ def describe(graph: TaskGraph) -> None:
 def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
     import io
 
-    from kraken._vendor.nr.io.graphviz.render import render_to_browser
-    from kraken._vendor.nr.io.graphviz.writer import GraphvizWriter
     from kraken.core import GroupTask
+    from kraken.core._vendor.nr.io.graphviz.render import render_to_browser
+    from kraken.core._vendor.nr.io.graphviz.writer import GraphvizWriter
 
     buffer = io.StringIO()
     writer = GraphvizWriter(buffer if viz_options.show else sys.stdout)
@@ -314,14 +314,14 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
 def env() -> None:
     import json
 
-    from kraken._vendor.nr.python.environment.distributions import get_distributions
+    from kraken.core._vendor.nr.python.environment.distributions import get_distributions
 
     dists = sorted(get_distributions().values(), key=lambda dist: dist.name)
     print(json.dumps([dist.to_json() for dist in dists], sort_keys=True))
 
 
 def main_internal(prog: str, argv: list[str] | None) -> NoReturn:
-    from kraken.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions, VizOptions
+    from kraken.core.cli.option_sets import BuildOptions, GraphOptions, LoggingOptions, RunOptions, VizOptions
 
     parser = _get_argument_parser(prog)
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)

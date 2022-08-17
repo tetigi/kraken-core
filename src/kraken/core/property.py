@@ -6,9 +6,9 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar, cast
 
-from kraken._vendor import typeapi
+from kraken.core._vendor import typeapi
 from kraken.core.supplier import Empty, Supplier
-from kraken.util.helpers import NotSet
+from kraken.core.util.helpers import NotSet
 
 T = TypeVar("T")
 

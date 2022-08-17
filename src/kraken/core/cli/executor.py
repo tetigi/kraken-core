@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Collection
 
-from kraken._vendor.termcolor import colored as _colored
 from kraken.core import Graph, Task, TaskGraph, TaskStatus, TaskStatusType
+from kraken.core._vendor.termcolor import colored as _colored
 from kraken.core.executor.default import DefaultPrintingExecutorObserver
 
 COLORS_BY_STATUS = {
@@ -27,7 +27,7 @@ def status_to_text(status: TaskStatus, colored: bool = True) -> str:
     return message
 
 
-class KrakenCliExecutorObserver(DefaultPrintingExecutorObserver):
+class ColoredDefaultPrintingExecutorObserver(DefaultPrintingExecutorObserver):
     def __init__(
         self,
         exclude_tasks: Collection[Task] | None = None,

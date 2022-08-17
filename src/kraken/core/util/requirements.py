@@ -9,7 +9,7 @@ import shlex
 from pathlib import Path
 from typing import Any, Iterable, TextIO
 
-from kraken.util.helpers import flatten
+from kraken.core.util.helpers import flatten
 
 
 class Requirement(abc.ABC):

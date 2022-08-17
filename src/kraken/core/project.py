@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVa
 
 from kraken.core.base import Currentable, MetadataContainer
 from kraken.core.task import GroupTask, Task
-from kraken.util.helpers import flatten
+from kraken.core.util.helpers import flatten
 
 if TYPE_CHECKING:
     from kraken.core.context import Context

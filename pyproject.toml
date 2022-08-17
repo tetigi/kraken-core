@@ -10,12 +10,7 @@ authors = ["Niklas Rosenstein <rosensteinniklas@gmail.com>"]
 license = "MIT"
 readme = "readme.md"
 packages = [
-    { include = "kraken/cli", from = "src" },
     { include = "kraken/core", from = "src" },
-    { include = "kraken/lib", from = "src" },
-    { include = "kraken/test", from = "src" },
-    { include = "kraken/util", from = "src" },
-    { include = "kraken/_vendor", from = "src" },
 ]
 classifiers = []
 keywords = []
@@ -49,7 +44,7 @@ docs = ["mkdocs", "mkdocs-material", "novella==0.2.3"]
 "kraken.test" = "kraken.test"
 
 [tool.poetry.scripts]
-kraken = "kraken.cli.main:main"
+kraken = "kraken.core.cli.main:main"
 
 [tool.slap]
 typed = true
@@ -89,20 +84,20 @@ warn_unreachable = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = "kraken._vendor.networkx.*"
+module = "kraken.core._vendor.networkx.*"
 ignore_errors = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "kraken._vendor.termcolor.*"
+module = "kraken.core._vendor.termcolor.*"
 ignore_errors = true
 
 [tool.isort]
 profile = "black"
 line_length = 120
 combine_as_imports = true
-skip = "src/kraken/_vendor"
+skip = "src/kraken/core/_vendor"
 
 [tool.black]
 line-length = 120
-exclude = "src/kraken/_vendor"
+exclude = "src/kraken/core/_vendor"

@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 from kraken.core import Project, Property, Task, TaskStatus
-from kraken.util.path import try_relative_to
+from kraken.core.util.path import try_relative_to
 
 from .check_file_contents_task import as_bytes
 
 if TYPE_CHECKING:
-    from kraken.lib.check_file_contents_task import CheckFileContentsTask
+    from kraken.core.lib.check_file_contents_task import CheckFileContentsTask
 
 DEFAULT_ENCODING = "utf-8"
 
@@ -37,7 +37,7 @@ class RenderFileTask(Task):
         description: str | None = None,
         group: str | None = "check",
     ) -> CheckFileContentsTask:
-        from kraken.lib.check_file_contents_task import CheckFileContentsTask
+        from kraken.core.lib.check_file_contents_task import CheckFileContentsTask
 
         task = self.project.do(
             name.replace("{name}", self.name),
@@ -58,7 +58,7 @@ class RenderFileTask(Task):
         super().finalize()
 
     def prepare(self) -> TaskStatus | None:
-        from kraken.lib.check_file_contents_task import as_bytes
+        from kraken.core.lib.check_file_contents_task import as_bytes
 
         file = self.file.get()
         if file.is_file() and file.read_bytes() == as_bytes(self.content.get(), self.encoding.get()):

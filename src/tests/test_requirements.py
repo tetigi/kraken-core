@@ -28,15 +28,17 @@ def test__parse_requirement__can_handle_local_requirements() -> None:
 
 
 def test__parse_requirements_from_python_script__ok() -> None:
-    assert parse_requirements_from_python_script(
+    parsed = parse_requirements_from_python_script(
         io.StringIO(
             "# ::requirements abc>=2 'xyz @ ./xyz' \n"
             "#:: requirements --extra-index-url https://... --interpreter-constraint >=3.7 \n"
             "# :: pythonpath build-support\n"
         )
-    ) == RequirementSpec(
+    )
+    expected = RequirementSpec(
         requirements=(PipRequirement("abc", ">=2"), LocalRequirement("xyz", Path("./xyz"))),
         extra_index_urls=("https://...",),
         interpreter_constraint=">=3.7",
         pythonpath=("build-support",),
     )
+    assert parsed == expected

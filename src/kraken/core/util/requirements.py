@@ -9,7 +9,7 @@ import shlex
 from pathlib import Path
 from typing import Any, Iterable, TextIO
 
-from kraken.core.util.helpers import flatten
+from kraken.core.util.helpers import NotSet, flatten
 
 
 class Requirement(abc.ABC):
@@ -94,21 +94,30 @@ class RequirementSpec:
             if isinstance(req, str):
                 req = parse_requirement(req)
             requirements.append(req)
-        return RequirementSpec(
-            requirements=tuple(requirements),
-            index_url=self.index_url,
-            extra_index_urls=self.extra_index_urls,
-            interpreter_constraint=self.interpreter_constraint,
-            pythonpath=self.pythonpath,
-        )
+
+        return self.replace(requirements=tuple(requirements))
 
     def with_pythonpath(self, path: Iterable[str]) -> RequirementSpec:
+        """Adds the given pythonpath and returns a new instance."""
+
+        return self.replace(pythonpath=(*self.pythonpath, *path))
+
+    def replace(
+        self,
+        requirements: Iterable[Requirement] | None = None,
+        index_url: str | None | NotSet = NotSet.Value,
+        extra_index_urls: Iterable[str] | None = None,
+        interpreter_constraint: str | None | NotSet = NotSet.Value,
+        pythonpath: Iterable[str] | None = None,
+    ) -> RequirementSpec:
         return RequirementSpec(
-            requirements=self.requirements,
-            index_url=self.index_url,
-            extra_index_urls=self.extra_index_urls,
-            interpreter_constraint=self.interpreter_constraint,
-            pythonpath=(*self.pythonpath, *path),
+            requirements=self.requirements if requirements is None else tuple(requirements),
+            index_url=self.index_url if index_url is NotSet.Value else index_url,
+            extra_index_urls=self.extra_index_urls if extra_index_urls is None else tuple(extra_index_urls),
+            interpreter_constraint=self.interpreter_constraint
+            if interpreter_constraint is NotSet.Value
+            else interpreter_constraint,
+            pythonpath=self.pythonpath if pythonpath is None else tuple(pythonpath),
         )
 
     @staticmethod

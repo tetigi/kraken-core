@@ -13,4 +13,3 @@ packages = [
 top_level_names = [
     "typeapi",
 ]
-

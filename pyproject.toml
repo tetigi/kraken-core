@@ -41,7 +41,7 @@ testing = ["pytest"]
 docs = ["mkdocs", "mkdocs-material", "novella==0.2.3"]
 
 [tool.poetry.plugins."pytest11"]
-"kraken.test" = "kraken.test"
+"kraken.core.test" = "kraken.core.test"
 
 [tool.poetry.scripts]
 kraken = "kraken.core.cli.main:main"
@@ -64,8 +64,8 @@ fmt = "black src/ && isort src/"
 "vendorize" = """
 set -euxo pipefail
 python-vendorize
-mv src/kraken/_vendor/termcolor-stubs/__init__.pyi src/kraken/_vendor/termcolor.pyi
-rm -r src/kraken/_vendor/termcolor-stubs
+mv src/kraken/core/_vendor/termcolor-stubs/__init__.pyi src/kraken/core/_vendor/termcolor.pyi
+rm -r src/kraken/core/_vendor/{bin,share,termcolor-stubs}
 """
 
 [tool.mypy]
@@ -89,7 +89,7 @@ ignore_errors = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "kraken.core._vendor.termcolor.*"
+module = "kraken.core._vendor.*"
 ignore_errors = true
 
 [tool.isort]

@@ -5,4 +5,4 @@ ignore=
     W503, # line break before binary operator
     W504, # line break after binary operator
 exclude =
-    src/kraken/_vendor
+    src/kraken/core/_vendor

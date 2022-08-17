@@ -1,0 +1,5 @@
+[[entries]]
+id = "ec8d4649-92c5-4f36-8401-af2f9025c34e"
+type = "fix"
+description = "pin networkx down to 2.6.x which is the last version with Py 3.7 compatibility"
+author = "@NiklasRosenstein"

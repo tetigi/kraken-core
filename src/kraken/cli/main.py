@@ -330,7 +330,8 @@ def main_internal(prog: str, argv: list[str] | None) -> NoReturn:
         parser.print_usage()
         sys.exit(0)
 
-    LoggingOptions.collect(args).init_logging()
+    if LoggingOptions.available(args):
+        LoggingOptions.collect(args).init_logging()
 
     if args.cmd in ("run", "r"):
         with contextlib.ExitStack() as exit_stack:

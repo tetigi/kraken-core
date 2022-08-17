@@ -36,6 +36,10 @@ class LoggingOptions:
             help="decrease the log level (can be specified multiple times)",
         )
 
+    @staticmethod
+    def available(args: argparse.Namespace) -> bool:
+        return hasattr(args, "verbosity")
+
     @classmethod
     def collect(cls, args: argparse.Namespace) -> LoggingOptions:
         return cls(

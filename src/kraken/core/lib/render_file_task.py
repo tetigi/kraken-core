@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
-from kraken.core import Project, Property, Task, TaskStatus
+from kraken.core import Project, Property, Supplier, Task, TaskStatus
 from kraken.core.util.path import try_relative_to
 
 from .check_file_contents_task import as_bytes
@@ -85,9 +85,9 @@ def render_file(
     task_class: type[RenderFileTask] | None = None,
     check_task_class: type[CheckFileContentsTask] | None = None,
     *,
-    file: str | Path | Property[Path],
-    content: str | Property[str],
-    encoding: str | Property[str] = DEFAULT_ENCODING,
+    file: str | Path | Supplier[Path],
+    content: str | Supplier[str],
+    encoding: str | Supplier[str] = DEFAULT_ENCODING,
 ) -> tuple[RenderFileTask, CheckFileContentsTask | None]:
     project = project or Project.current()
     render_task = project.do(

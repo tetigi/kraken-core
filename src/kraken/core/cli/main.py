@@ -278,6 +278,7 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
     style_select = {"fillcolor": "darkgoldenrod1"}
     style_group = {"shape": "ellipse"}
     style_edge_non_strict = {"style": "dashed"}
+    style_edge_implicit = {"color": "gray"}
 
     writer.subgraph("cluster_#legend", label="Legend")
     writer.node("#task", label="task")
@@ -305,6 +306,7 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
                 predecessor.path,
                 task.path,
                 **({} if graph.get_edge(predecessor, task).strict else style_edge_non_strict),
+                **(style_edge_implicit if graph.get_edge(predecessor, task).implicit else {}),
             )
 
     writer.end()

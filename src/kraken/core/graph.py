@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclasses.dataclass
 class _Edge:
     strict: bool
+    implicit: bool
 
 
 class TaskGraph(Graph):
@@ -91,7 +92,14 @@ class TaskGraph(Graph):
             if rel.other_task.path not in self._full_graph.nodes:
                 self._add_task(rel.other_task)
             a, b = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
-            self._add_edge(a.path, b.path, rel.strict)
+            self._add_edge(a.path, b.path, rel.strict, False)
+
+            # When a group depends on another group, we implicitly create make each member of the downstream group
+            # depend on the upstream group.
+            if isinstance(task, GroupTask) and isinstance(rel.other_task, GroupTask):
+                upstream, downstream = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
+                for member in downstream.tasks:
+                    self._add_edge(upstream.path, member.path, rel.strict, True)
 
     def _get_edge(self, task_a: str, task_b: str) -> _Edge | None:
         data = self._full_graph.edges.get((task_a, task_b))
@@ -99,9 +107,10 @@ class TaskGraph(Graph):
             return None
         return cast(_Edge, data["data"])
 
-    def _add_edge(self, task_a: str, task_b: str, strict: bool) -> None:
-        edge = self._get_edge(task_a, task_b) or _Edge(strict)
+    def _add_edge(self, task_a: str, task_b: str, strict: bool, implicit: bool) -> None:
+        edge = self._get_edge(task_a, task_b) or _Edge(strict, implicit)
         edge.strict = edge.strict or strict
+        edge.implicit = edge.implicit and implicit
         self._full_graph.add_edge(task_a, task_b, data=edge)
 
     # High level internal API

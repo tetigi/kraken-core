@@ -4,7 +4,7 @@ import dataclasses
 import logging
 from typing import Iterable, Iterator, List, cast
 
-from networkx import DiGraph, restricted_view
+from networkx import DiGraph, restricted_view, transitive_reduction
 
 from kraken.core.context import Context
 from kraken.core.executor import Graph
@@ -138,6 +138,21 @@ class TaskGraph(Graph):
     def _get_ready_graph(self) -> DiGraph:
         """Updates the ready graph."""
         return restricted_view(self._target_graph, self._completed_tasks, set())
+
+    def reduce(self, keep_explicit: bool = False) -> None:
+        """Transitively reduce the graph.
+
+        :param keep_explicit: Keep explicit edges in tact."""
+
+        reduced_graph = transitive_reduction(self._full_graph)
+        reduced_graph.add_nodes_from(self._full_graph.nodes(data=True))
+        reduced_graph.add_edges_from(
+            (u, v, self._full_graph.edges[u, v])
+            for u, v in self._full_graph.edges
+            if (keep_explicit and not self._full_graph.edges[u, v]["data"].implicit) or (u, v) in reduced_graph.edges
+        )
+        self._full_graph = reduced_graph
+        self._update_target_graph()
 
     # Public API
 

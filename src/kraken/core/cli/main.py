@@ -268,6 +268,9 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
 
     from kraken.core import GroupTask
 
+    if viz_options.reduce or viz_options.reduce_keep_explicit:
+        graph.reduce(keep_explicit=viz_options.reduce_keep_explicit)
+
     buffer = io.StringIO()
     writer = GraphvizWriter(buffer if viz_options.show else sys.stdout)
     writer.digraph(fontname="monospace", rankdir="LR")

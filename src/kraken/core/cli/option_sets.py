@@ -176,15 +176,26 @@ class RunOptions:
 class VizOptions:
     all: bool
     show: bool
+    reduce: bool
+    reduce_keep_explicit: bool
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
         parser.add_argument("-a", "--all", action="store_true", help="include all tasks in the graph")
         parser.add_argument("-s", "--show", action="store_true", help="show the graph in the browser (requires dot)")
+        parser.add_argument("-R", "--reduce", action="store_true", help="fully transitively reduce the graph")
+        parser.add_argument(
+            "-r",
+            "--reduce-keep-explicit",
+            action="store_true",
+            help="transitively reduce the graph but keep explicit edges",
+        )
 
     @classmethod
     def collect(cls, args: argparse.Namespace) -> VizOptions:
         return cls(
             all=args.all,
             show=args.show,
+            reduce=args.reduce,
+            reduce_keep_explicit=args.reduce_keep_explicit,
         )

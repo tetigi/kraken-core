@@ -51,7 +51,7 @@ def _get_argument_parser(prog: str) -> argparse.ArgumentParser:
     ls = query_subparsers.add_parser("ls", description="list all tasks and task groups in the build")
     LoggingOptions.add_to_parser(ls)
     BuildOptions.add_to_parser(ls)
-    GraphOptions.add_to_parser(ls)
+    GraphOptions.add_to_parser(ls, saveable=False)
 
     describe = query_subparsers.add_parser(
         "describe",
@@ -60,12 +60,12 @@ def _get_argument_parser(prog: str) -> argparse.ArgumentParser:
     )
     LoggingOptions.add_to_parser(describe)
     BuildOptions.add_to_parser(describe)
-    GraphOptions.add_to_parser(describe)
+    GraphOptions.add_to_parser(describe, saveable=False)
 
     viz = query_subparsers.add_parser("visualize", aliases=["viz", "v"], description="generate a GraphViz of the build")
     LoggingOptions.add_to_parser(viz)
     BuildOptions.add_to_parser(viz)
-    GraphOptions.add_to_parser(viz)
+    GraphOptions.add_to_parser(viz, saveable=False)
     VizOptions.add_to_parser(viz)
 
     # This command is used by kraken-wrapper to produce a lock file.

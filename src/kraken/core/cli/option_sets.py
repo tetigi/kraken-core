@@ -121,7 +121,7 @@ class GraphOptions:
     no_save: bool
 
     @staticmethod
-    def add_to_parser(parser: argparse.ArgumentParser) -> None:
+    def add_to_parser(parser: argparse.ArgumentParser, saveable: bool = True) -> None:
         parser.add_argument("tasks", metavar="task", nargs="*", help="one or more tasks to execute")
         parser.add_argument("--resume", action="store_true", help="load previous build state")
         parser.add_argument(
@@ -129,7 +129,8 @@ class GraphOptions:
             choices=("all",),
             help="load previous build state, but discard existing results (requires --resume)",
         )
-        parser.add_argument("--no-save", action="store_true", help="do not save the new build state")
+        if saveable:
+            parser.add_argument("--no-save", action="store_true", help="do not save the new build state")
 
     @classmethod
     def collect(cls, args: argparse.Namespace) -> GraphOptions:
@@ -137,7 +138,7 @@ class GraphOptions:
             tasks=args.tasks,
             resume=args.resume,
             restart=args.restart,
-            no_save=args.no_save,
+            no_save=getattr(args, "no_save", True),
         )
 
 

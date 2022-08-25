@@ -67,7 +67,7 @@ class RenderFileTask(Task):
 
     def execute(self) -> TaskStatus:
         file = self.file.get()
-        file.parent.mkdir(exist_ok=True)
+        file.parent.mkdir(exist_ok=True, parents=True)
         content = as_bytes(self.content.get(), self.encoding.get())
         file.write_bytes(content)
         return TaskStatus.succeeded(f"write {len(content)} bytes to {try_relative_to(file)}")

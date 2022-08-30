@@ -459,7 +459,7 @@
 
 
 <h1 id="kraken-query-visualize">kraken query visualize</h1>
-<div class="highlight"><span class="filename">$ kraken query visualize --help</span><pre><span></span><code>usage: kraken query visualize [-h] [-v] [-q] [-b PATH] [-p PATH] [--resume] [--restart {all}] [-a] [-s] [-R] [-r]
+<div class="highlight"><span class="filename">$ kraken query visualize --help</span><pre><span></span><code>usage: kraken query visualize [-h] [-v] [-q] [-b PATH] [-p PATH] [-a] [--resume] [--restart {all}] [-i] [-s] [-R] [-r]
                               [task ...]
 
 generate a GraphViz of the build
@@ -473,9 +473,10 @@ options:
   -q                           decrease the log level (can be specified multiple times)
   -b PATH, --build-dir PATH    the build directory to write to [default: build]
   -p PATH, --project-dir PATH  the root project directory [default: ./]
+  -a, --all                    select all tasks
   --resume                     load previous build state
   --restart {all}              load previous build state, but discard existing results (requires --resume)
-  -a, --all                    include all tasks in the graph
+  -i, --inactive               include inactive tasks in the graph
   -s, --show                   show the graph in the browser (requires dot)
   -R, --reduce                 fully transitively reduce the graph
   -r, --reduce-keep-explicit   transitively reduce the graph but keep explicit edges

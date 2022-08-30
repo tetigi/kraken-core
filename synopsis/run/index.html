@@ -457,7 +457,7 @@
 
 
 <h1 id="kraken-run">kraken run</h1>
-<div class="highlight"><span class="filename">$ kraken run --help</span><pre><span></span><code>usage: kraken run [-h] [-v] [-q] [-b PATH] [-p PATH] [--resume] [--restart {all}] [--no-save] [-s] [-0] [-x TASK]
+<div class="highlight"><span class="filename">$ kraken run --help</span><pre><span></span><code>usage: kraken run [-h] [-v] [-q] [-b PATH] [-p PATH] [-a] [--resume] [--restart {all}] [--no-save] [-s] [-0] [-x TASK]
                   [-X TASK]
                   [task ...]
 
@@ -470,6 +470,7 @@ options:
   -q                                decrease the log level (can be specified multiple times)
   -b PATH, --build-dir PATH         the build directory to write to [default: build]
   -p PATH, --project-dir PATH       the root project directory [default: ./]
+  -a, --all                         select all tasks
   --resume                          load previous build state
   --restart {all}                   load previous build state, but discard existing results (requires --resume)
   --no-save                         do not save the new build state

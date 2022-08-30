@@ -177,13 +177,14 @@ class RunOptions:
 
 @dataclasses.dataclass(frozen=True)
 class VizOptions:
-    all: bool
+    inactive: bool
     show: bool
     reduce: bool
     reduce_keep_explicit: bool
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
+        parser.add_argument("-i", "--inactive", action="store_true", help="include inactive tasks in the graph")
         parser.add_argument("-s", "--show", action="store_true", help="show the graph in the browser (requires dot)")
         parser.add_argument("-R", "--reduce", action="store_true", help="fully transitively reduce the graph")
         parser.add_argument(
@@ -196,7 +197,7 @@ class VizOptions:
     @classmethod
     def collect(cls, args: argparse.Namespace) -> VizOptions:
         return cls(
-            all=args.all,
+            inactive=args.inactive,
             show=args.show,
             reduce=args.reduce,
             reduce_keep_explicit=args.reduce_keep_explicit,

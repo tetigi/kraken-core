@@ -277,7 +277,9 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
 
     from kraken.core import GroupTask
 
+    root = graph.root
     if viz_options.reduce or viz_options.reduce_keep_explicit:
+        root = root.reduce(keep_explicit=viz_options.reduce_keep_explicit)
         graph = graph.reduce(keep_explicit=viz_options.reduce_keep_explicit)
 
     buffer = io.StringIO()
@@ -302,10 +304,11 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
 
     writer.subgraph("cluster_#build", label="Build Graph")
 
+    main = root if viz_options.inactive else graph
     goal_tasks = set(graph.tasks(goals=True))
     selected_tasks = set(graph.tasks())
 
-    for task in graph.tasks():
+    for task in main.tasks():
         style = {}
         style.update(style_default if task.default else {})
         style.update(style_group if isinstance(task, GroupTask) else {})
@@ -313,12 +316,12 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
         style.update(style_goal if task in goal_tasks else {})
 
         writer.node(task.path, **style)
-        for predecessor in graph.get_predecessors(task, ignore_groups=False):
+        for predecessor in main.get_predecessors(task, ignore_groups=False):
             writer.edge(
                 predecessor.path,
                 task.path,
-                **({} if graph.get_edge(predecessor, task).strict else style_edge_non_strict),
-                **(style_edge_implicit if graph.get_edge(predecessor, task).implicit else {}),
+                **({} if main.get_edge(predecessor, task).strict else style_edge_non_strict),
+                **(style_edge_implicit if main.get_edge(predecessor, task).implicit else {}),
             )
 
     writer.end()

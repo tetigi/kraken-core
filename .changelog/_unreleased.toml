@@ -15,3 +15,9 @@ id = "c8ab9fbb-e4dd-4b9a-adff-e5cc48c3be82"
 type = "improvement"
 description = "add `-a,--all` option to the `kraken run` command and `kraken query` subcommands (viz already had it but the behaviour was slightly changed; we never show not selected tasks anymore)"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "d6270306-547a-4b08-9509-00e8fe1624e4"
+type = "improvement"
+description = "add `-i,--inactive` option to `kraken query viz` command, this brings back showing inactive tasks that was previously happening with the `-a,--all` flag (but the purpose of the `-a,--all` flag was changed to select all tasks)"
+author = "@NiklasRosenstein"

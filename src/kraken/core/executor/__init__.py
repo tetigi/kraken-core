@@ -22,6 +22,10 @@ class Graph(abc.ABC):
         """Return all active dependants of the given task."""
 
     @abc.abstractmethod
+    def get_task(self, task_path: str) -> Task:
+        """Return a task by its path."""
+
+    @abc.abstractmethod
     def set_status(self, task: Task, status: TaskStatus) -> None:
         """Set the result of a task. Can be called twice for the same task unless the previous call was passing
         a status with type :attr:`TaskStatusType.STARTED`."""

@@ -106,7 +106,7 @@ def _load_build_state(
         if not graph:
             raise ValueError("cannot --resume without build state")
         if graph and graph_options.restart:
-            graph.discard_statuses()
+            graph.restart()
 
     if context is None:
         context = Context(build_options.build_dir)
@@ -118,7 +118,13 @@ def _load_build_state(
     if not graph_options.no_save:
         exit_stack.callback(lambda: serialize.save_build_state(build_options.state_dir, not_none(graph)))
 
-    graph.set_targets(context.resolve_tasks(graph_options.tasks or None))
+    graph.root.results_from(graph)
+
+    if graph_options.all:
+        graph = graph.root
+    else:
+        graph = graph.root.trim(context.resolve_tasks(graph_options.tasks or None))
+
     return context, graph
 
 
@@ -172,8 +178,8 @@ def ls(graph: TaskGraph) -> None:
     from kraken.core.cli.executor import status_to_text
     from kraken.core.util.term import get_terminal_width
 
-    required_tasks = set(graph.tasks(targets_only=True))
-    longest_name = max(map(len, (t.path for t in graph.tasks(all=True)))) + 1
+    goal_tasks = set(graph.tasks(goals=True))
+    longest_name = max(map(len, (t.path for t in graph.tasks()))) + 1
 
     print()
     print(colored("Tasks", "blue", attrs=["bold", "underline"]))
@@ -184,17 +190,20 @@ def ls(graph: TaskGraph) -> None:
     def _print_task(task: Task) -> None:
         line = [task.path.ljust(longest_name)]
         remaining_width = width - len(line[0])
-        if task in required_tasks:
+        if task in goal_tasks:
             line[0] = colored(line[0], "green")
         if task.default:
             line[0] = colored(line[0], attrs=["bold"])
         status = graph.get_status(task)
         if status is not None:
             line.append(f"[{status_to_text(status)}]")
-            remaining_width -= 2 + len(status_to_text(status, colored=False)) + 1
+            status_length = 2 + len(status_to_text(status, colored=False)) + 1
+            remaining_width -= status_length
         description = task.get_description()
         if description:
             remaining_width -= 2
+            if remaining_width <= 0:
+                remaining_width = width
             for part in textwrap.wrap(
                 description,
                 remaining_width,
@@ -208,7 +217,7 @@ def ls(graph: TaskGraph) -> None:
     def sort_key(task: Task) -> str:
         return task.path
 
-    for task in sorted(graph.tasks(all=True), key=sort_key):
+    for task in sorted(graph.tasks(), key=sort_key):
         if isinstance(task, GroupTask):
             continue
         _print_task(task)
@@ -217,7 +226,7 @@ def ls(graph: TaskGraph) -> None:
     print(colored("Groups", "blue", attrs=["bold", "underline"]))
     print()
 
-    for task in sorted(graph.tasks(all=True), key=sort_key):
+    for task in sorted(graph.tasks(), key=sort_key):
         if not isinstance(task, GroupTask):
             continue
         _print_task(task)
@@ -230,7 +239,7 @@ def describe(graph: TaskGraph) -> None:
 
     from kraken.core import GroupTask
 
-    tasks = list(graph.tasks(targets_only=True))
+    tasks = list(graph.tasks(goals=True))
     print("selected", len(tasks), "task(s)")
     print()
 
@@ -269,7 +278,7 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
     from kraken.core import GroupTask
 
     if viz_options.reduce or viz_options.reduce_keep_explicit:
-        graph.reduce(keep_explicit=viz_options.reduce_keep_explicit)
+        graph = graph.reduce(keep_explicit=viz_options.reduce_keep_explicit)
 
     buffer = io.StringIO()
     writer = GraphvizWriter(buffer if viz_options.show else sys.stdout)
@@ -284,19 +293,19 @@ def visualize(graph: TaskGraph, viz_options: VizOptions) -> None:
     style_edge_implicit = {"color": "gray"}
 
     writer.subgraph("cluster_#legend", label="Legend")
-    writer.node("#task", label="task")
+    # writer.node("#task", label="task")
     writer.node("#group", label="group task", **style_group)
-    writer.node("#default", label="would run by default", **style_default)
-    writer.node("#selected", label="will run", **style_select)
+    writer.node("#default", label="runs by default", **style_default)
+    writer.node("#selected", label="task will run", **style_select)
     writer.node("#goal", label="goal task", **style_goal)
     writer.end()
 
     writer.subgraph("cluster_#build", label="Build Graph")
 
-    goal_tasks = set(graph.tasks(targets_only=True))
+    goal_tasks = set(graph.tasks(goals=True))
     selected_tasks = set(graph.tasks())
 
-    for task in graph.tasks(all=viz_options.all):
+    for task in graph.tasks():
         style = {}
         style.update(style_default if task.default else {})
         style.update(style_group if isinstance(task, GroupTask) else {})

@@ -194,8 +194,7 @@ class Context(MetadataContainer, Currentable["Context"]):
         if not tasks:
             raise ValueError("no tasks selected")
 
-        graph = TaskGraph(self)
-        graph.set_targets(tasks)
+        graph = TaskGraph(self).trim(tasks)
 
         assert graph, "TaskGraph cannot be empty"
         return graph

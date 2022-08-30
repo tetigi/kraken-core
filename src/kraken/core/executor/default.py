@@ -10,7 +10,7 @@ from typing import Callable, Iterable
 
 from kraken.core.executor import Graph, GraphExecutor, GraphExecutorObserver
 from kraken.core.executor.utils import TaskRememberer
-from kraken.core.task import Task, TaskStatus
+from kraken.core.task import GroupTask, Task, TaskStatus
 
 
 class TaskExecutor(abc.ABC):
@@ -142,6 +142,9 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         print(self.format_header("Build summary"), flush=True)
         print(flush=True)
         for task_path, status in self._status.items():
+            task = graph.get_task(task_path)
+            if isinstance(task, GroupTask) and status.is_skipped():
+                continue
             print(
                 " " * (len(self.execute_prefix) + 1) + task_path,
                 self.status_to_text(status),
@@ -165,7 +168,8 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         sys.stdout.flush()
 
     def after_execute_task(self, task: Task, status: TaskStatus) -> None:
-        print(self.execute_prefix, task.path, self.status_to_text(status), flush=True)
+        if not (isinstance(task, GroupTask) and status.is_skipped()):
+            print(self.execute_prefix, task.path, self.status_to_text(status), flush=True)
         with self._lock:
             self._status[task.path] = status
             if task.path in self._started:

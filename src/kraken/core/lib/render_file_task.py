@@ -62,7 +62,7 @@ class RenderFileTask(Task):
 
         file = self.file.get()
         if file.is_file() and file.read_bytes() == as_bytes(self.content.get(), self.encoding.get()):
-            return TaskStatus.up_to_date()
+            return TaskStatus.up_to_date(f'"{try_relative_to(file)}" is up to date')
         return TaskStatus.pending()
 
     def execute(self) -> TaskStatus:

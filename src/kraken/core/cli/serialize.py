@@ -30,7 +30,7 @@ def load_build_state(state_dir: Path) -> tuple[Context, TaskGraph] | tuple[None,
         if context is None or graph is None:
             context, graph = new_graph.context, new_graph
         else:
-            graph.update_statuses_from(new_graph)
+            graph.results_from(new_graph)
     assert context is not None and graph is not None
     return context, graph
 

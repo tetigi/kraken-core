@@ -119,10 +119,12 @@ class GraphOptions:
     resume: bool
     restart: bool
     no_save: bool
+    all: bool
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser, saveable: bool = True) -> None:
         parser.add_argument("tasks", metavar="task", nargs="*", help="one or more tasks to execute")
+        parser.add_argument("-a", "--all", action="store_true", help="select all tasks")
         parser.add_argument("--resume", action="store_true", help="load previous build state")
         parser.add_argument(
             "--restart",
@@ -139,6 +141,7 @@ class GraphOptions:
             resume=args.resume,
             restart=args.restart,
             no_save=getattr(args, "no_save", True),
+            all=args.all,
         )
 
 
@@ -174,14 +177,14 @@ class RunOptions:
 
 @dataclasses.dataclass(frozen=True)
 class VizOptions:
-    all: bool
+    inactive: bool
     show: bool
     reduce: bool
     reduce_keep_explicit: bool
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("-a", "--all", action="store_true", help="include all tasks in the graph")
+        parser.add_argument("-i", "--inactive", action="store_true", help="include inactive tasks in the graph")
         parser.add_argument("-s", "--show", action="store_true", help="show the graph in the browser (requires dot)")
         parser.add_argument("-R", "--reduce", action="store_true", help="fully transitively reduce the graph")
         parser.add_argument(
@@ -194,7 +197,7 @@ class VizOptions:
     @classmethod
     def collect(cls, args: argparse.Namespace) -> VizOptions:
         return cls(
-            all=args.all,
+            inactive=args.inactive,
             show=args.show,
             reduce=args.reduce,
             reduce_keep_explicit=args.reduce_keep_explicit,

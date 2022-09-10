@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVar, cast
 
 from kraken.core.base import Currentable, MetadataContainer
+from kraken.core.supplier import Supplier, TaskSupplier
 from kraken.core.task import GroupTask, Task
 from kraken.core.util.helpers import flatten
 
 if TYPE_CHECKING:
     from kraken.core.context import Context
+    from kraken.core.property import Property
 
 T = TypeVar("T")
 T_Task = TypeVar("T_Task", bound="Task")
@@ -81,16 +83,59 @@ class Project(MetadataContainer, Currentable["Project"]):
 
         return self.context.build_directory / self.path.replace(":", "/").lstrip("/")
 
+    def task(self, name: str) -> Task:
+        """Return a task in the project by name."""
+
+        task = self._members[name]
+        if not isinstance(task, Task):
+            raise ValueError(f"name {name!r} does not refer to a task, but {type(task).__name__}")
+        return task
+
     def tasks(self) -> Mapping[str, Task]:
         return {t.name: t for t in self._members.values() if isinstance(t, Task)}
 
     def children(self) -> Mapping[str, Project]:
         return {p.name: p for p in self._members.values() if isinstance(p, Project)}
 
-    def resolve_tasks(self, tasks: Iterable[str | Task]) -> list[Task]:
+    def resolve_tasks(self, tasks: str | Task | Iterable[str | Task]) -> list[Task]:
+        """Resolve tasks relative to the current project."""
+
+        if isinstance(tasks, (str, Task)):
+            tasks = [tasks]
+
         return list(
             flatten(self.context.resolve_tasks([task], self) if isinstance(task, str) else [task] for task in tasks)
         )
+
+    def resolve_outputs(self, tasks: str | Task | Iterable[str | Task], output_type: type[T]) -> list[T]:
+        """Resolve outputs of the given tasks and return them as a list. This should only be called after the given
+        tasks have been executed, otherwise the outputs are likely not set. Use :meth:`resolve_outputs_supplier`
+        to create a :class:`Supplier` that delegates to this method when it is retrieved.
+
+        In addition to looking at output properties, this also includes elements contained in :attr:`Task.metadata`."""
+
+        results = []
+        for task in self.resolve_tasks(tasks):
+            for property_name, property_desc in task.__schema__.items():
+                if not property_desc.is_output:
+                    continue
+                property: Property[Any] = getattr(task, property_name)
+                if property.provides(output_type):
+                    results += property.get_of_type(output_type)
+            for obj in task.metadata:
+                if isinstance(obj, output_type):
+                    results.append(obj)
+        return results
+
+    def resolve_outputs_supplier(
+        self,
+        tasks: str | Task | Iterable[str | Task],
+        output_type: type[T],
+    ) -> Supplier[list[T]]:
+        """Create a supplier for the given *output_type* in the specified *tasks*."""
+
+        tasks = self.resolve_tasks(tasks)
+        return Supplier.of_callable(lambda: self.resolve_outputs(tasks, output_type), [TaskSupplier(x) for x in tasks])
 
     def add_task(self, task: Task) -> None:
         """Adds a task to the project.

@@ -15,8 +15,9 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Optional, Sequence, TypeVar, cast
 
+from kraken.core.base import MetadataContainer
 from kraken.core.property import Object, Property
-from kraken.core.supplier import Empty
+from kraken.core.supplier import Empty, TaskSupplier
 
 if TYPE_CHECKING:
     from kraken.core.project import Project
@@ -157,7 +158,7 @@ class TaskStatus:
         )
 
 
-class Task(Object, abc.ABC):
+class Task(MetadataContainer, Object, abc.ABC):
     """A task is an isolated unit of work that is configured with properties. Every task has some common settings that
     are not treated as properties, such as it's :attr:`name`, :attr:`default` and :attr:`capture` flag. A task is a
     member of a :class:`Project` and can be uniquely identified with a path that is derived from its project and name.
@@ -175,7 +176,8 @@ class Task(Object, abc.ABC):
     logger: logging.Logger
 
     def __init__(self, name: str, project: Project) -> None:
-        super().__init__()
+        MetadataContainer.__init__(self)
+        Object.__init__(self)
         self._capture = False
         self.name = name
         self.project = project
@@ -256,6 +258,8 @@ class Task(Object, abc.ABC):
                     continue
                 if isinstance(supplier, Property) and isinstance(supplier.owner, Task) and supplier.owner is not self:
                     yield TaskRelationship(supplier.owner, True, False)
+                if isinstance(supplier, TaskSupplier):
+                    yield TaskRelationship(supplier.get(), True, False)
 
         # Manually added relationships.
         for rel in self.__relationships:
@@ -391,10 +395,11 @@ class VoidTask(Task):
     """This task does nothing and can always be skipped."""
 
     skip: Property[bool] = Property.default(True)
+    message: Property[str] = Property.default("is a VoidTask")
 
     def prepare(self) -> TaskStatus | None:
         if self.skip.get():
-            return TaskStatus.skipped("is a VoidTask")
+            return TaskStatus.skipped(self.message.get())
         return TaskStatus.pending()
 
     def execute(self) -> TaskStatus | None:

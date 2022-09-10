@@ -12,6 +12,7 @@ from kraken.core.supplier import Empty, Supplier
 from kraken.core.util.helpers import NotSet
 
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 @dataclasses.dataclass
@@ -38,7 +39,7 @@ class PropertyDescriptor:
     is_output: bool
     default: Any | NotSet
     default_factory: Callable[[], Any] | NotSet
-    accepted_types: tuple[type, ...]
+    item_type: typeapi.Hint
 
     def has_default(self) -> bool:
         return not (self.default is NotSet.Value and self.default_factory is NotSet.Value)
@@ -111,7 +112,22 @@ class Property(Supplier[T]):
 
         return PropertyConfig(False, NotSet.Value, func)
 
-    def __init__(self, owner: Object, name: str, accepted_types: tuple[type, ...]) -> None:
+    def __init__(self, owner: Object, name: str, item_type: typeapi.Hint | Any) -> None:
+        """
+        :param owner: The object that owns the property instance.
+        :param name: The name of the property.
+        :param item_type: The original inner type hint of the property (excluding the Property type itself).
+        """
+
+        # Determine the accepted types of the property.
+        item_type = item_type if isinstance(item_type, typeapi.Hint) else typeapi.of(item_type)
+        if isinstance(item_type, typeapi.Union):
+            # NOTE (NiklasRosenstein): We expect that any union member be just a type.
+            accepted_types = [cast(typeapi.Type, t).type for t in item_type.types]
+        elif isinstance(item_type, typeapi.Type):
+            accepted_types = [item_type.type]
+        else:
+            raise RuntimeError(f"Property generic parameter must be a type or union, got {item_type}")
 
         # Ensure that we have value adapters for every accepted type.
         for accepted_type in accepted_types:
@@ -123,6 +139,7 @@ class Property(Supplier[T]):
         self.owner = owner
         self.name = name
         self.accepted_types = accepted_types
+        self.item_type = item_type
         self._value: Supplier[T] = Supplier.void()
         self._derived_from: Sequence[Supplier[Any]] = ()
         self._finalized = False
@@ -214,13 +231,45 @@ class Property(Supplier[T]):
 
         if not self._finalized:
             self._finalized = True
-            # TODO (@NiklasRosenstein): Materializing the property value now will prevent it from being
-            #       bound later in the build, e.g. if an input property takes the value of an output property.
-            # derived_from = list(self.derived_from())
-            # try:
-            #     self._value = Supplier.of(self.get(), derived_from)
-            # except Empty as exc:
-            #     self._value = Supplier.void(exc, derived_from)
+
+    def provides(self, type_: type) -> bool:
+        """Returns `True` if the property may provide an instance or a sequence of the given *type_*."""
+
+        if isinstance(self.item_type, typeapi.Union):
+            types = list(self.item_type.types)
+        elif isinstance(self.item_type, typeapi.Type):
+            types = [self.item_type]
+        else:
+            assert False, self.item_type
+
+        for provided in types:
+            if not isinstance(provided, typeapi.Type):
+                continue
+            if issubclass(provided.type, type_):
+                return True
+            if issubclass(provided.type, Sequence) and provided.args and len(provided.args) == 1:
+                inner = provided.args[0]
+                if isinstance(inner, typeapi.Type) and issubclass(inner.type, type_):
+                    return True
+
+        return False
+
+    def get_of_type(self, type_: type[U]) -> list[U]:
+        """Return the inner value or values of the property as a flat list of *t*. If the property returns only a
+        a single value of the specified type, the returned list will contain only that value. If the property instead
+        provides a sequence that contains one or more objects of the provided type, only those objects will be
+        returned.
+
+        Note that this does not work with generic parametrized types."""
+
+        value = self.get()
+        if type_ != object and isinstance(value, type_):
+            return [value]
+        if isinstance(value, Sequence):
+            return [x for x in value if isinstance(x, type_)]
+        if type_ == object:
+            return [cast(U, value)]
+        return []
 
     @staticmethod
     def value_adapter(type_: type) -> Callable[[ValueAdapter], ValueAdapter]:
@@ -264,25 +313,15 @@ class Object:
 
             # Is the hint pointing to a Property type?
             if isinstance(hint, typeapi.Type) and hint.type == Property:
+                assert isinstance(hint, typeapi.Type) and hint.type == Property, hint
                 assert hint.args is not None and len(hint.args) == 1, hint
-
-                # Is the inner type a union?
-                item_type = hint.args[0]
-                if isinstance(item_type, typeapi.Union):
-                    # TODO (@NiklasRosenstein): we just expect that any union member be just a type.
-                    accepted_types = [cast(typeapi.Type, t).type for t in item_type.types]
-                elif isinstance(item_type, typeapi.Type):
-                    accepted_types = [item_type.type]
-                else:
-                    raise RuntimeError(f"Property generic parameter must be a type or union, got {item_type}")
-
                 config = config or PropertyConfig()
                 schema[key] = PropertyDescriptor(
                     name=key,
                     is_output=config.output,
                     default=config.default,
                     default_factory=config.default_factory,
-                    accepted_types=tuple(accepted_types),
+                    item_type=hint.args[0],
                 )
 
             # The attribute is annotated as an output but not actually typed as a property?
@@ -298,7 +337,7 @@ class Object:
         """Creates :class:`Properties <Property>` for every property defined in the object's schema."""
 
         for key, desc in self.__schema__.items():
-            prop = Property[Any](self, key, desc.accepted_types)
+            prop = Property[Any](self, key, desc.item_type)
             setattr(self, key, prop)
             if desc.has_default():
                 prop.setdefault(desc.get_default())
@@ -316,6 +355,8 @@ class Object:
 
         for key in property_values.keys() - additional_keys:
             prop: Property[Any] = getattr(self, key)
+            if property_values[key] is None and not prop.provides(type(None)):
+                continue
             prop.set(property_values[key])
 
     def _warn_non_existent_properties(self, keys: set[str]) -> None:

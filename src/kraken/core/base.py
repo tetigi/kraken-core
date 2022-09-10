@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 import contextlib
-from typing import Any, Callable, ClassVar, Generic, Iterator, Optional, TypeVar, cast, overload
+from typing import Any, Callable, ClassVar, Generic, Iterator, List, Optional, TypeVar, cast, overload
 
 from kraken.core.util.helpers import NotSet
 
@@ -12,7 +12,7 @@ U = TypeVar("U")
 
 class MetadataContainer:
 
-    metadata: list[Any]
+    metadata: List[Any]
 
     def __init__(self) -> None:
         self.metadata = []

@@ -4,9 +4,12 @@ calculated lazily and track provenance of such computations. """
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Generic, Iterable, Sequence, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, Iterable, Sequence, TypeVar
 
 from kraken.core.util.helpers import NotSet
+
+if TYPE_CHECKING:
+    from kraken.core.task import Task
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -180,3 +183,18 @@ class _SupplierVoid(Supplier[T]):
 
     def is_void(self) -> bool:
         return True
+
+
+class TaskSupplier(Supplier["Task"]):
+    """Internal. This is a helper class that allows us to represent a dependency on a task in the lineage of a property
+    without including an actual property of that task in it. This is a bit of a hack because the
+    :meth:`Supplier.derived_from()` API only allows to return more suppliers."""
+
+    def __init__(self, task: Task) -> None:
+        self._task = task
+
+    def get(self) -> Task:
+        return self._task
+
+    def derived_from(self) -> Iterable[Supplier[Any]]:
+        return ()

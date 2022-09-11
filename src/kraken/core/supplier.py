@@ -95,7 +95,9 @@ class Supplier(Generic[T], abc.ABC):
             stack += derived_from
 
     @staticmethod
-    def of(value: T, derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
+    def of(value: T | Supplier[T], derived_from: Sequence[Supplier[Any]] = ()) -> Supplier[T]:
+        if isinstance(value, Supplier):
+            return value
         return _SupplierOf(value, derived_from)
 
     @staticmethod

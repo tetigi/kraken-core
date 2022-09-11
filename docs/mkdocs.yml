@@ -1,6 +1,9 @@
 nav:
   - Home: index.md
   - changelog.md
+  - Documentation:
+    - docs/tasks.md
+    - docs/project.md
   - Synopsis:
     - synopsis/index.md
     - synopsis/run.md

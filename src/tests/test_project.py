@@ -11,8 +11,8 @@ class MyDescriptor:
 
 
 def test__Project__resolve_outputs__can_find_dataclass_in_metadata(kraken_project: Project) -> None:
-    kraken_project.do("carrier", VoidTask).metadata.append(MyDescriptor("foobar"))
-    assert kraken_project.resolve_outputs(":carrier", MyDescriptor) == [MyDescriptor("foobar")]
+    kraken_project.do("carrier", VoidTask).outputs.append(MyDescriptor("foobar"))
+    assert list(kraken_project.resolve_tasks(":carrier").select(MyDescriptor).all()) == [MyDescriptor("foobar")]
 
 
 def test__Project__resolve_outputs__can_find_dataclass_in_properties(kraken_project: Project) -> None:
@@ -23,7 +23,7 @@ def test__Project__resolve_outputs__can_find_dataclass_in_properties(kraken_proj
             ...
 
     kraken_project.do("carrier", MyTask, out_prop=MyDescriptor("foobar"))
-    assert kraken_project.resolve_outputs(":carrier", MyDescriptor) == [MyDescriptor("foobar")]
+    assert list(kraken_project.resolve_tasks(":carrier").select(MyDescriptor).all()) == [MyDescriptor("foobar")]
 
 
 def test__Project__resolve_outputs__can_not_find_input_property(kraken_project: Project) -> None:
@@ -34,7 +34,7 @@ def test__Project__resolve_outputs__can_not_find_input_property(kraken_project: 
             ...
 
     kraken_project.do("carrier", MyTask, out_prop=MyDescriptor("foobar"))
-    assert kraken_project.resolve_outputs(":carrier", MyDescriptor) == []
+    assert list(kraken_project.resolve_tasks(":carrier").select(MyDescriptor).all()) == []
 
 
 def test__Project__resolve_outputs_supplier(kraken_project: Project) -> None:
@@ -45,4 +45,4 @@ def test__Project__resolve_outputs_supplier(kraken_project: Project) -> None:
             ...
 
     kraken_project.do("carrier", MyTask, out_prop=MyDescriptor("foobar"))
-    assert kraken_project.resolve_outputs_supplier(":carrier", MyDescriptor).get() == [MyDescriptor("foobar")]
+    assert kraken_project.resolve_tasks(":carrier").select(MyDescriptor).supplier().get() == [MyDescriptor("foobar")]

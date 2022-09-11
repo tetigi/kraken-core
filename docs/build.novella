@@ -6,6 +6,8 @@ action "mkdocs-update-config" {
   update '$.theme.features' add: [ 'navigation.expand' ]
 }
 
-#action "preprocess-markdown" {
-#  use "pydoc"
-#}
+action "preprocess-markdown" {
+  use "pydoc" {
+    loader().packages = ["kraken.core"]
+  }
+}

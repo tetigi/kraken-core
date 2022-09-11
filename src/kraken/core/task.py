@@ -13,11 +13,24 @@ import shlex
 import sys
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ForwardRef, Generic, Iterable, List, Optional, Sequence, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Collection,
+    ForwardRef,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    TypeVar,
+    cast,
+    overload,
+)
 
-from kraken.core.base import MetadataContainer
 from kraken.core.property import Object, Property
-from kraken.core.supplier import Empty, TaskSupplier
+from kraken.core.supplier import Empty, Supplier, TaskSupplier
 
 if TYPE_CHECKING:
     from kraken.core.project import Project
@@ -158,7 +171,7 @@ class TaskStatus:
         )
 
 
-class Task(MetadataContainer, Object, abc.ABC):
+class Task(Object, abc.ABC):
     """A task is an isolated unit of work that is configured with properties. Every task has some common settings that
     are not treated as properties, such as it's :attr:`name`, :attr:`default` and :attr:`capture` flag. A task is a
     member of a :class:`Project` and can be uniquely identified with a path that is derived from its project and name.
@@ -174,14 +187,15 @@ class Task(MetadataContainer, Object, abc.ABC):
     description: Optional[str] = None
     default: bool = False
     logger: logging.Logger
+    outputs: list[Any]
 
     def __init__(self, name: str, project: Project) -> None:
-        MetadataContainer.__init__(self)
         Object.__init__(self)
         self._capture = False
         self.name = name
         self.project = project
         self.logger = logging.getLogger(f"{self.path} [{type(self).__module__}.{type(self).__qualname__}]")
+        self.outputs = []
         self.__relationships: list[_Relationship[str | Task]] = []
 
     def __repr__(self) -> str:
@@ -299,6 +313,40 @@ class Task(MetadataContainer, Object, abc.ABC):
             return self.description % _MappingProxy()
         return None
 
+    @overload
+    def get_outputs(self) -> Iterable[Any]:
+        """Iterate over all outputs of the task. This includes all outputs in :attr:`Task.outputs` and the values
+        in all properties defines as outputs. All output properties that return a sequence will be flattened.
+
+        This should be called only after the task was executed, otherwise the output properties are likely empty
+        and will error when read."""
+
+    @overload
+    def get_outputs(self, output_type: type[T]) -> Iterable[T]:
+        """Iterate over all outputs of the task of the specified *output_type*. If a property provides a sequence of
+        values of the *output_type*, that list is flattened.
+
+        This should be called only after the task was executed, otherwise the output properties are likely empty
+        and will error when read.
+
+        :param output_type: The output type to search for."""
+
+    def get_outputs(self, output_type: type[T] | type[object] = object) -> Iterable[T] | Iterable[Any]:
+        results = []
+
+        for property_name, property_desc in self.__schema__.items():
+            if not property_desc.is_output:
+                continue
+            property: Property[Any] = getattr(self, property_name)
+            if property.provides(output_type):
+                results += property.get_of_type(output_type)
+
+        for obj in self.outputs:
+            if isinstance(obj, output_type):
+                results.append(obj)
+
+        return results
+
     def finalize(self) -> None:
         """This method is called by :meth:`Context.finalize()`. It gives the task a chance update its
         configuration before the build process is executed. The default implementation finalizes all non-output
@@ -379,6 +427,13 @@ class GroupTask(Task):
             elif task not in self.tasks:
                 self.tasks.append(task)
 
+    # Task
+
+    def get_outputs(self, output_type: type[T] | type[object] = object) -> Iterable[T] | Iterable[Any]:
+        yield from super().get_outputs(output_type)
+        for task in self.tasks:
+            yield from task.get_outputs(output_type)
+
     def get_relationships(self) -> Iterable[TaskRelationship]:
         for task in self.tasks:
             yield TaskRelationship(task, True, False)
@@ -450,3 +505,53 @@ class BackgroundTask(Task):
     def teardown(self) -> None:
         self.__exit_stack.close()
         del self.__exit_stack
+
+
+class TaskSet(Collection[Task]):
+    """Represents a collection of tasks."""
+
+    def __init__(self, tasks: Iterable[Task] = ()) -> None:
+        self._tasks = set(tasks)
+
+    def __iter__(self) -> Iterator[Task]:
+        return iter(self._tasks)
+
+    def __len__(self) -> int:
+        return len(self._tasks)
+
+    def __repr__(self) -> str:
+        return f"TaskSet(length={len(self._tasks)})"
+
+    def __contains__(self, __x: object) -> bool:
+        return __x in self._tasks
+
+    def select(self, output_type: type[T]) -> TaskSetSelect[T]:
+        """Resolve outputs of the given tasks and return them as a dictionary mapping from task to the values. This
+        should only be called after the given tasks have been executed, otherwise the outputs are likely not set.
+        Use :meth:`resolve_outputs_supplier` to create a :class:`Supplier` that delegates to this method when it is
+        retrieved.
+
+        In addition to looking at output properties, this also includes elements contained in :attr:`Task.output`."""
+
+        return TaskSetSelect(self, output_type)
+
+
+class TaskSetSelect(Generic[T]):
+    """Represents a select statement of outputs from a set of tasks."""
+
+    def __init__(self, tasks: TaskSet, output_type: type[T]) -> None:
+        self._tasks = tasks
+        self._output_type = output_type
+
+    def dict(self) -> dict[Task, list[T]]:
+        results: dict[Task, list[T]] = {}
+        for task in self._tasks:
+            results[task] = list(task.get_outputs(self._output_type))
+        return results
+
+    def all(self) -> Iterable[T]:
+        for task in self._tasks:
+            yield from task.get_outputs(self._output_type)
+
+    def supplier(self) -> Supplier[list[T]]:
+        return Supplier.of_callable(lambda: list(self.all()), [TaskSupplier(x) for x in self._tasks])

@@ -41,7 +41,7 @@ types-setuptools = "^57.4.18"
 types-termcolor = "^1.1.5"
 
 [tool.poetry.extras]
-docs = ["mkdocs", "mkdocs-material", "novella==0.2.3"]
+docs = ["mkdocs", "mkdocs-material", "novella==0.2.3", "pydoc-markdown==4.6.3"]
 testing = ["pytest"]
 
 [tool.poetry.plugins."pytest11"]

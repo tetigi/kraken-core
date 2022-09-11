@@ -1,0 +1,1067 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.3">
+    
+    
+      
+        <title>Tasks - kraken-core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6b80c2a2.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.cbb835fc.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#009485">
+        
+      
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tasks" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="kraken-core" class="md-header__button md-logo" aria-label="kraken-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            kraken-core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tasks
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/kraken-build/kraken-core" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="kraken-core" class="md-nav__button md-logo" aria-label="kraken-core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    kraken-core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kraken-build/kraken-core" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Documentation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Documentation" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Documentation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Tasks
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Tasks
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-outputs" class="md-nav__link">
+    Task outputs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-documentation" class="md-nav__link">
+    API Documentation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-task" class="md-nav__link">
+    Class Task
+  </a>
+  
+    <nav class="md-nav" aria-label="Class Task">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path" class="md-nav__link">
+    path
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_relationship" class="md-nav__link">
+    add_relationship
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relationships" class="md-nav__link">
+    get_relationships
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_description" class="md-nav__link">
+    get_description
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outputs" class="md-nav__link">
+    get_outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outputs_1" class="md-nav__link">
+    get_outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finalize" class="md-nav__link">
+    finalize
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepare" class="md-nav__link">
+    prepare
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute" class="md-nav__link">
+    execute
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#teardown" class="md-nav__link">
+    teardown
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project/" class="md-nav__link">
+        Project
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../synopsis/">Synopsis</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Synopsis" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Synopsis
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synopsis/run/" class="md-nav__link">
+        kraken run
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../synopsis/query/">kraken query</a>
+          
+            <label for="__nav_4_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="kraken query" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          kraken query
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synopsis/query/ls/" class="md-nav__link">
+        kraken query ls
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synopsis/query/describe/" class="md-nav__link">
+        kraken query describe
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synopsis/query/env/" class="md-nav__link">
+        kraken query env
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synopsis/query/visualize/" class="md-nav__link">
+        kraken query visualize
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-outputs" class="md-nav__link">
+    Task outputs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-documentation" class="md-nav__link">
+    API Documentation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-task" class="md-nav__link">
+    Class Task
+  </a>
+  
+    <nav class="md-nav" aria-label="Class Task">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path" class="md-nav__link">
+    path
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_relationship" class="md-nav__link">
+    add_relationship
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relationships" class="md-nav__link">
+    get_relationships
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_description" class="md-nav__link">
+    get_description
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outputs" class="md-nav__link">
+    get_outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outputs_1" class="md-nav__link">
+    get_outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finalize" class="md-nav__link">
+    finalize
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepare" class="md-nav__link">
+    prepare
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute" class="md-nav__link">
+    execute
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#teardown" class="md-nav__link">
+    teardown
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+  <a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/content/docs/tasks.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+<h1 id="tasks">Tasks</h1>
+<h2 id="overview">Overview</h2>
+<p>Kraken describes the build graph using tasks which can have relationships and properties. Tasks are
+described in code using a subclass of <a href="#pydoc:kraken.core.task.Task">Class Task</a>.</p>
+<div class="highlight"><span class="filename">hello_task.py</span><pre><span></span><code><span class="kn">from</span> <span class="nn">kraken.core</span> <span class="kn">import</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Task</span>
+
+<span class="k">class</span> <span class="nc">HelloTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="n">subject</span><span class="p">:</span> <span class="n">Property</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello,&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+</code></pre></div>
+<p>Relationships between tasks can be formed with three methods:</p>
+<ol>
+<li>Explicitly using {@pydoc kraken.core.task.Task.add_relationship}</li>
+<li>By connecting the property of one task to that of another (using {@pydoc kraken.core.property.Property.set} or,
+   more commonly, passing them to {@pydoc kraken.core.project.Project.do})</li>
+<li>Overriding {@pydoc kraken.core.Task.get_relationships} in the task subclass</li>
+</ol>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Unlike other build systems, Kraken doesn't really care about files and does not treat that as build targets.
+An analogy to understand what Kraken does is this: If you were to build a C++ project, you will still use
+CMake or any other C++ build tool, and Kraken may invoke that build tool for you among other things.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As a side effect of this, Kraken is currently not particularly good at <em>not</em> running a task that may actually
+not need to run another time because it would not perform any new work.</p>
+</div>
+<h3 id="task-outputs">Task outputs</h3>
+<p>A task property can be marked as an output property. The task is then expected to populate its value in
+{@pydoc kraken.core.task.Task.execute} (or {@pydoc kraken.core.task.Task.prepare} if the task decides that
+it does not need to run).</p>
+<div class="highlight"><span class="filename">zip_task.py</span><pre><span></span><code><span class="kn">from</span> <span class="nn">kraken.core</span> <span class="kn">import</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="k">class</span> <span class="nc">ZipTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="n">files</span><span class="p">:</span> <span class="n">Property</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">]]</span>
+    <span class="n">output_file</span><span class="p">:</span> <span class="n">Property</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Property</span><span class="o">.</span><span class="n">output</span><span class="p">()</span>
+
+    <span class="c1"># ...</span>
+</code></pre></div>
+<p>Outputs of a task can be queried and used as inputs by other tasks. For example, if you receive a task and you only
+know that it delivers some particular type of <em>Python object</em> as an "output", you can pick it up without knowing the
+exact property.</p>
+<div class="highlight"><pre><span></span><code><span class="n">paths</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_outputs</span><span class="p">(</span><span class="n">Path</span><span class="p">)</span>
+</code></pre></div>
+<p>More commonly, this is done through the {@pydoc kraken.core.project.Project} when a task factory is called which
+accepts a list of tasks to provide a particular output.</p>
+<div class="highlight"><span class="filename">upload_task.py</span><pre><span></span><code><span class="kn">from</span> <span class="nn">kraken.core</span> <span class="kn">import</span> <span class="n">Project</span>
+
+<span class="k">def</span> <span class="nf">upload_task</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">folder_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">project</span><span class="p">:</span> <span class="n">Project</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UploadTask</span><span class="p">:</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">project</span> <span class="ow">or</span> <span class="n">Project</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">project</span><span class="o">.</span><span class="n">do</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> 
+        <span class="n">task_type</span><span class="o">=</span><span class="n">UploadTask</span><span class="p">,</span>
+        <span class="n">files</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">resolve_tasks</span><span class="p">(</span><span class="n">dependencies</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">Path</span><span class="p">)</span><span class="o">.</span><span class="n">supplier</span><span class="p">(),</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>There's a bit to unpack here.</p>
+<ol>
+<li>We use the <code>Project.current()</code> static method to retrieve the Kraken project that
+    is currently being evaluated unless an explicit project was specified.</li>
+<li>Then we use the <code>project.do()</code> method to create a new task of type <code>UploadTask</code> (which is defined
+    somewhere else, but not a component delivered by Kraken).</li>
+<li>The <code>UploadTask</code> has a property defined as <code>files: Property[Sequence[Path]]</code>, and we pass the <code>files=...</code>
+    keyword argument to populate it. As a value, we pass a "supplier" object which will return all the <code>Path</code>
+    objects in output properties of the specified <code>dependencies</code>.</li>
+</ol>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>You must keep in mind that the project is evaluated in full before any task is executed. It is therefore important
+to model the connection between the outputs of one task and the inputs of another in a lazy fashion. We could not
+successfully use <code>list(project.resolve_tasks(dependencies).select(Path).all())</code> here because the output properties
+of the <code>dependencies</code> will not have been populated yet.</p>
+</div>
+<hr />
+<h2 id="api-documentation">API Documentation</h2>
+<p><a id="kraken.core.task.Task"></a></p>
+<p><a id="pydoc:kraken.core.task.Task"></a></p>
+<h2 id="class-task">Class Task</h2>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Object</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">)</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L174">[view_source]</a></p>
+<p>A task is an isolated unit of work that is configured with properties. Every task has some common settings that
+are not treated as properties, such as it's :attr:<code>name</code>, :attr:<code>default</code> and :attr:<code>capture</code> flag. A task is a
+member of a :class:<code>Project</code> and can be uniquely identified with a path that is derived from its project and name.</p>
+<p>A task can have a relationship to any number of other tasks. Relationships are directional and the direction can
+be inverted. A strict relationship indicates that one task <em>must</em> run before the other, while a non-strict
+relationship only dictates the order of tasks if both were to be executed (and prevents the task from being
+executed in parallel).</p>
+<p><a id="kraken.core.task.Task.path"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.path"></a></p>
+<h4 id="path">path</h4>
+<div class="highlight"><pre><span></span><code><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L223">[view_source]</a></p>
+<p>Returns the path of the task.</p>
+<p><a id="kraken.core.task.Task.add_relationship"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.add_relationship"></a></p>
+<h4 id="add_relationship">add_relationship</h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_relationship</span><span class="p">(</span><span class="n">task_or_selector</span><span class="p">:</span> <span class="n">Task</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Task</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+                     <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                     <span class="n">inverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L231">[view_source]</a></p>
+<p>Add a relationship to this task that will be returned by :meth:<code>get_relationships</code>.</p>
+<p><strong>Arguments</strong>:</p>
+<ul>
+<li><code>task_or_selector</code>: A task, list of tasks or a task selector (wich may expand to multiple tasks)
+to add as a relationship to this task. If a task selector string is specified, it will be evaluated
+lazily when :meth:<code>get_relationships</code> is called.</li>
+<li><code>strict</code>: Whether the relationship is strict, i.e. informs a strong dependency in one or the other
+direction. If a relationship is not strict, it informs only order of execution and parallel
+exclusivity.</li>
+<li><code>inverse</code>: Whether to invert the relationship.</li>
+</ul>
+<p><a id="kraken.core.task.Task.get_relationships"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.get_relationships"></a></p>
+<h4 id="get_relationships">get_relationships</h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_relationships</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TaskRelationship</span><span class="p">]</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L264">[view_source]</a></p>
+<p>Iterates over the relationships to other tasks based on the property provenance.</p>
+<p><a id="kraken.core.task.Task.get_description"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.get_description"></a></p>
+<h4 id="get_description">get_description</h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_description</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L291">[view_source]</a></p>
+<p>Return the task's description. The default implementation formats the :attr:<code>description</code> string with the
+task's properties. Any Path property will be converted to a relative string to assist the reader.</p>
+<p><a id="kraken.core.task.Task.get_outputs"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.get_outputs"></a></p>
+<h4 id="get_outputs">get_outputs</h4>
+<div class="highlight"><pre><span></span><code><span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">get_outputs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L317">[view_source]</a></p>
+<p>Iterate over all outputs of the task. This includes all outputs in :attr:<code>Task.outputs</code> and the values
+in all properties defines as outputs. All output properties that return a sequence will be flattened.</p>
+<p>This should be called only after the task was executed, otherwise the output properties are likely empty
+and will error when read.</p>
+<p><a id="kraken.core.task.Task.get_outputs"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.get_outputs"></a></p>
+<h4 id="get_outputs_1">get_outputs</h4>
+<div class="highlight"><pre><span></span><code><span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">get_outputs</span><span class="p">(</span><span class="n">output_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L325">[view_source]</a></p>
+<p>Iterate over all outputs of the task of the specified <em>output_type</em>. If a property provides a sequence of</p>
+<p>values of the <em>output_type</em>, that list is flattened.</p>
+<p>This should be called only after the task was executed, otherwise the output properties are likely empty
+and will error when read.</p>
+<p><strong>Arguments</strong>:</p>
+<ul>
+<li><code>output_type</code>: The output type to search for.</li>
+</ul>
+<p><a id="kraken.core.task.Task.finalize"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.finalize"></a></p>
+<h4 id="finalize">finalize</h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L350">[view_source]</a></p>
+<p>This method is called by :meth:<code>Context.finalize()</code>. It gives the task a chance update its
+configuration before the build process is executed. The default implementation finalizes all non-output
+properties, preventing them to be further mutated.</p>
+<p><a id="kraken.core.task.Task.prepare"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.prepare"></a></p>
+<h4 id="prepare">prepare</h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">prepare</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L360">[view_source]</a></p>
+<p>Called before a task is executed. This is called from the main process to check for example if the task
+is skippable or up to date. The implementation of this method should be quick to determine the task status,
+otherwise it should be done in :meth:<code>execute</code>.</p>
+<p>This method should not return :attr:<code>TaskStatusType.SUCCEEDED</code> or :attr:<code>TaskStatusType.FAILED</code>. If <code>None</code>
+is returned, it is assumed that the task is :attr:<code>TaskStatusType.PENDING</code>.</p>
+<p><a id="kraken.core.task.Task.execute"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.execute"></a></p>
+<h4 id="execute">execute</h4>
+<div class="highlight"><pre><span></span><code><span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+<span class="k">def</span> <span class="nf">execute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L372">[view_source]</a></p>
+<p>Implements the behaviour of the task. The task can assume that all strict dependencies have been executed
+successfully. Output properties of dependency tasks that are only written by the task's execution are now
+accessible.</p>
+<p>This method should not return :attr:<code>TaskStatusType.PENDING</code>. If <code>None</code> is returned, it is assumed that the
+task is :attr:<code>TaskStatusType.SUCCEEDED</code>.</p>
+<p><a id="kraken.core.task.Task.teardown"></a></p>
+<p><a id="pydoc:kraken.core.task.Task.teardown"></a></p>
+<h4 id="teardown">teardown</h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">teardown</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L383">[view_source]</a></p>
+<p>This method is called only if the task returns :attr:<code>TaskStatusType.STARTED</code> from :meth:<code>execute</code>. It is
+called if <em>all</em> direct dependants of the task have been executed (whether successfully or not) or if no further
+task execution is queued.</p>
+
+
+
+
+              
+            </article>
+            
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="../../changelog/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Changelog" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Changelog
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../project/" class="md-footer__link md-footer__link--next" aria-label="Next: Project" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Project
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tracking", "navigation.top", "toc.follow", "navigation.expand"], "search": "../../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.2ab50757.min.js"></script>
+      
+    
+  </body>
+</html>

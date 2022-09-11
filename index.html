@@ -258,6 +258,76 @@
       
         
           
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Documentation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Documentation" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Documentation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="docs/tasks/" class="md-nav__link">
+        Tasks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="docs/project/" class="md-nav__link">
+        Project
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        
+          
             
           
         
@@ -272,14 +342,14 @@
         <div class="md-nav__link md-nav__link--index ">
           <a href="synopsis/">Synopsis</a>
           
-            <label for="__nav_3">
+            <label for="__nav_4">
               <span class="md-nav__icon md-icon"></span>
             </label>
           
         </div>
       
       <nav class="md-nav" aria-label="Synopsis" data-md-level="1">
-        <label class="md-nav__title" for="__nav_3">
+        <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Synopsis
         </label>
@@ -310,7 +380,7 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_3_3" type="checkbox" id="__nav_3_3" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" checked>
       
       
       
@@ -334,14 +404,14 @@
         <div class="md-nav__link md-nav__link--index ">
           <a href="synopsis/query/">kraken query</a>
           
-            <label for="__nav_3_3">
+            <label for="__nav_4_3">
               <span class="md-nav__icon md-icon"></span>
             </label>
           
         </div>
       
       <nav class="md-nav" aria-label="kraken query" data-md-level="2">
-        <label class="md-nav__title" for="__nav_3_3">
+        <label class="md-nav__title" for="__nav_4_3">
           <span class="md-nav__icon md-icon"></span>
           kraken query
         </label>
@@ -455,29 +525,9 @@
   </a>
 
 
+<p><img align="center" src="img/title.png"></p>
 <h1 id="welcome-to-the-kraken-core-documentation">Welcome to the <code>kraken-core</code> documentation!</h1>
-<p><strong>The Kraken build system.</strong></p>
-<p>Kraken focuses on ease of use and simplicity to model complex task orchestration workflows.</p>
-<p><strong>Reproducible build environments</strong></p>
-<p>We recommend that you use <code>krakenw</code> to invoke Kraken builds instead of the <code>kraken</code> cli directly to ensure that you
-have an isolated and reproducible build environment. Install the kraken wrapper cli via the <code>kraken-wrapper</code> package
-and define your build requirements at the top of your <code>.kraken.py</code> build script:</p>
-<div class="highlight"><pre><span></span><code># ::requirements kraken-std&gt;=0.3.0
-from kraken.std.cargo import cargo_build
-cargo_build()
-</code></pre></div>
-<p><strong>Vendored packages</strong></p>
-<p>We're vendoring a number of third party packages for the purpose of reducing the burden of package resolution
-at installation time. This is particularly relevant for using Kraken in continuous integration systems to improve
-resolve times and PEX size.</p>
-<ul>
-<li><code>networkx</code></li>
-<li><code>nr.io.graphviz</code></li>
-<li><code>nr.python.environment</code></li>
-<li><code>termcolor</code></li>
-<li><code>types-termcolor</code></li>
-<li><code>typeapi</code></li>
-</ul>
+<p>Kraken is a task orchestration system with a focus on ease of configuration and flexibility. It's main objectives are to reduce boilerplate and configuration overhead in software projects and to model and abstract complex workflows in the software development lifecycle to allow developers to focus on what really matters.</p>
 
 
 

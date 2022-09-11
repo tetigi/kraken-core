@@ -187,7 +187,7 @@ class Task(Object, abc.ABC):
     description: Optional[str] = None
     default: bool = False
     logger: logging.Logger
-    outputs: list[Any]
+    outputs: List[Any]
 
     def __init__(self, name: str, project: Project) -> None:
         Object.__init__(self)

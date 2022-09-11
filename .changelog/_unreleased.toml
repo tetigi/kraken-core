@@ -1,0 +1,5 @@
+[[entries]]
+id = "a8185add-29d4-4e52-ae7f-880b15b243af"
+type = "fix"
+description = "fix `Task.outputs` annotation"
+author = "@NiklasRosenstein"

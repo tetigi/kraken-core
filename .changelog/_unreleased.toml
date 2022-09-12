@@ -1,0 +1,5 @@
+[[entries]]
+id = "cc24bcb1-ed06-4a96-8f68-e5dfce927d31"
+type = "improvement"
+description = "export `TaskSet` class to `kraken.core`"
+author = "@NiklasRosenstein"

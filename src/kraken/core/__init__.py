@@ -7,7 +7,16 @@ from kraken.core.loader import ProjectLoader, ProjectLoaderError
 from kraken.core.project import Project
 from kraken.core.property import Property
 from kraken.core.supplier import Supplier
-from kraken.core.task import BackgroundTask, GroupTask, Task, TaskRelationship, TaskStatus, TaskStatusType, VoidTask
+from kraken.core.task import (
+    BackgroundTask,
+    GroupTask,
+    Task,
+    TaskRelationship,
+    TaskSet,
+    TaskStatus,
+    TaskStatusType,
+    VoidTask,
+)
 
 __all__ = [
     "BackgroundTask",
@@ -25,6 +34,7 @@ __all__ = [
     "Task",
     "TaskGraph",
     "TaskRelationship",
+    "TaskSet",
     "TaskStatus",
     "TaskStatusType",
     "VoidTask",

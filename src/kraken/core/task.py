@@ -17,6 +17,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Collection,
+    Dict,
     ForwardRef,
     Generic,
     Iterable,
@@ -512,6 +513,8 @@ class TaskSet(Collection[Task]):
 
     def __init__(self, tasks: Iterable[Task] = ()) -> None:
         self._tasks = set(tasks)
+        self._partition_to_task_map: dict[str, set[Task]] = {}
+        self._task_to_partition_map: dict[Task, set[str]] = {}
 
     def __iter__(self) -> Iterator[Task]:
         return iter(self._tasks)
@@ -525,6 +528,22 @@ class TaskSet(Collection[Task]):
     def __contains__(self, __x: object) -> bool:
         return __x in self._tasks
 
+    def add(self, tasks: Iterable[Task], *, partition: str | None = None) -> None:
+        """Add the given *tasks* to the set.
+
+        :param tasks: The tasks to add.
+        :param partition: If specified, this will register the *tasks* under the given string as a "partition"
+            within the set. This is used by :meth:`Project.resolve_tasks` to store which tasks were resolved
+            through which task selector string. Later, this can be used to map a task back to the selector it
+            was resolved from."""
+
+        tasks = set(tasks)
+        self._tasks.update(tasks)
+        if partition is not None:
+            self._partition_to_task_map.setdefault(partition, set()).update(tasks)
+            for task in tasks:
+                self._task_to_partition_map.setdefault(task, set()).add(partition)
+
     def select(self, output_type: type[T]) -> TaskSetSelect[T]:
         """Resolve outputs of the given tasks and return them as a dictionary mapping from task to the values. This
         should only be called after the given tasks have been executed, otherwise the outputs are likely not set.
@@ -534,6 +553,11 @@ class TaskSet(Collection[Task]):
         In addition to looking at output properties, this also includes elements contained in :attr:`Task.output`."""
 
         return TaskSetSelect(self, output_type)
+
+    def partitions(self) -> TaskSetPartitions:
+        """Return a helper class to access the partitions in the set."""
+
+        return TaskSetPartitions(self._partition_to_task_map, self._task_to_partition_map)
 
 
 class TaskSetSelect(Generic[T]):
@@ -553,5 +577,38 @@ class TaskSetSelect(Generic[T]):
         for task in self._tasks:
             yield from task.get_outputs(self._output_type)
 
+    def dict_supplier(self) -> Supplier[Dict[Task, list[T]]]:
+        return Supplier.of_callable(lambda: self.dict(), [TaskSupplier(x) for x in self._tasks])
+
     def supplier(self) -> Supplier[list[T]]:
         return Supplier.of_callable(lambda: list(self.all()), [TaskSupplier(x) for x in self._tasks])
+
+
+class TaskSetPartitions:
+    """Helper class to operate on the partitions of a task set."""
+
+    def __init__(
+        self, partitions_to_task_map: dict[str, set[Task]], task_to_partitions_map: dict[Task, set[str]]
+    ) -> None:
+        self._ptt = partitions_to_task_map
+        self._ttp = task_to_partitions_map
+
+    def __len__(self) -> int:
+        return len(self._ptt)
+
+    def __iter__(self) -> Iterable[str]:
+        return iter(self._ptt)
+
+    @overload
+    def __getitem__(self, partition: str) -> Collection[Task]:
+        ...
+
+    @overload
+    def __getitem__(self, partition: Task) -> Collection[str]:
+        ...
+
+    def __getitem__(self, partition: str | Task) -> Collection[str] | Collection[Task]:
+        if isinstance(partition, str):
+            return self._ptt.get(partition) or ()
+        else:
+            return self._ttp.get(partition) or ()

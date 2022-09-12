@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, Iterable, Mapping, Optional, Type, TypeVa
 
 from kraken.core.base import Currentable, MetadataContainer
 from kraken.core.task import GroupTask, Task, TaskSet
-from kraken.core.util.helpers import flatten
 
 if TYPE_CHECKING:
     from kraken.core.context import Context
@@ -101,9 +100,14 @@ class Project(MetadataContainer, Currentable["Project"]):
         if isinstance(tasks, (str, Task)):
             tasks = [tasks]
 
-        return TaskSet(
-            flatten(self.context.resolve_tasks([task], self) if isinstance(task, str) else [task] for task in tasks)
-        )
+        result = TaskSet()
+        for item in tasks:
+            if isinstance(item, str):
+                result.add(self.context.resolve_tasks([item], self), partition=item)
+            else:
+                result.add([item])
+
+        return result
 
     def add_task(self, task: Task) -> None:
         """Adds a task to the project.

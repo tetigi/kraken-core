@@ -47,7 +47,7 @@ class GraphExecutorObserver(abc.ABC):
     def after_prepare_task(self, task: Task, status: TaskStatus) -> None:
         ...
 
-    def before_execute_task(self, task: Task) -> None:
+    def before_execute_task(self, task: Task, status: TaskStatus) -> None:
         ...
 
     def on_task_output(self, task: Task, chunk: bytes) -> None:

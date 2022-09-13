@@ -66,7 +66,7 @@ class DefaultGraphExecutor(GraphExecutor):
                 status = task.prepare() or TaskStatus.pending()
                 observer.after_prepare_task(task, status)
                 if status.is_pending():
-                    observer.before_execute_task(task)
+                    observer.before_execute_task(task, status)
                     self._task_executor.execute_task(task, partial(execute_done, task))
                 else:
                     execute_done(task, status)
@@ -158,8 +158,8 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         else:
             return status.type.name
 
-    def before_execute_task(self, task: Task) -> None:
-        print(self.execute_prefix, task.path, flush=True)
+    def before_execute_task(self, task: Task, status: TaskStatus) -> None:
+        print(self.execute_prefix, task.path, self.status_to_text(status), flush=True)
         with self._lock:
             self._started[task.path] = time.perf_counter()
 

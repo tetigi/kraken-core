@@ -187,6 +187,7 @@ class Task(Object, abc.ABC):
     project: Project
     description: Optional[str] = None
     default: bool = False
+    selected: bool = False
     logger: logging.Logger
     outputs: List[Any]
 

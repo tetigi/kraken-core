@@ -119,11 +119,17 @@ def _load_build_state(
         exit_stack.callback(lambda: serialize.save_build_state(build_options.state_dir, not_none(graph)))
 
     graph.root.results_from(graph)
+    selected = context.resolve_tasks(graph_options.tasks or None)
 
     if graph_options.all:
         graph = graph.root
     else:
-        graph = graph.root.trim(context.resolve_tasks(graph_options.tasks or None))
+        graph = graph.root.trim(selected)
+
+    for task in graph.root.tasks():
+        task.selected = False
+    for task in selected:
+        task.selected = True
 
     return context, graph
 
@@ -239,7 +245,7 @@ def describe(graph: TaskGraph) -> None:
 
     from kraken.core import GroupTask
 
-    tasks = list(graph.tasks(goals=True))
+    tasks = list(graph.tasks())
     print("selected", len(tasks), "task(s)")
     print()
 
@@ -248,6 +254,7 @@ def describe(graph: TaskGraph) -> None:
         print("  Type:", type(task).__module__ + "." + type(task).__name__)
         print("  Type defined in:", colored(sys.modules[type(task).__module__].__file__ or "???", "cyan"))
         print("  Default:", task.default)
+        print("  Selected:", task.selected)
         print("  Capture:", task.capture)
         rels = list(task.get_relationships())
         print(colored("  Relationships", attrs=["bold"]), f"({len(rels)})")

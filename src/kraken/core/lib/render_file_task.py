@@ -47,6 +47,7 @@ class RenderFileTask(Task):
             file=self.file.value,
             content=self.content.value,
             encoding=self.encoding.value,
+            render_prepare=Supplier.of_callable(self.prepare),
         )
         task.add_relationship(self, strict=False)
         return task

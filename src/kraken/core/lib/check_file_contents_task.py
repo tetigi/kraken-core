@@ -24,12 +24,16 @@ class CheckFileContentsTask(Task):
     content: Property[Union[str, bytes]]
     encoding: Property[str]
     update_task_name: Property[str]
+    render_prepare: Property[TaskStatus]
 
     # Task
 
     def finalize(self) -> None:
         self.file.setmap(lambda path: self.project.directory / path)
         super().finalize()
+
+    def prepare(self) -> TaskStatus:
+        return self.render_prepare.get()
 
     def execute(self) -> TaskStatus | None:
         file = try_relative_to(self.file.get())

@@ -9,3 +9,9 @@ id = "9d29e87a-f6d6-4d2e-bc22-1840e6a6334c"
 type = "improvement"
 description = "print task status before execute (usually PENDING, but the status may contain a message)"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "1d6cdec2-6af7-4764-a073-06d9912eb284"
+type = "improvement"
+description = "CheckFileContentsTask now inherits the prepare() result from RenderFileTask"
+author = "@NiklasRosenstein"

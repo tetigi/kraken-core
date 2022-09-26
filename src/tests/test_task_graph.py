@@ -32,6 +32,25 @@ def test__TaskGraph__trim(kraken_project: Project) -> None:
     assert fresh_graph._digraph.edges == graph._digraph.edges
 
 
+def test__TaskGraph__trim_with_nested_groups(kraken_project: Project) -> None:
+    task_a = kraken_project.do("a", VoidTask, group="g1")
+    task_b = kraken_project.do("b", VoidTask, group="g2")
+    group_1 = kraken_project.group("g1")
+    group_2 = kraken_project.group("g2")
+    group_1.add(group_2)
+
+    graph = TaskGraph(kraken_project.context).trim([group_1, group_2])
+
+    assert set(graph.tasks()) == {group_2, group_1, task_a, task_b}
+    assert set(graph.tasks(goals=True)) == {group_1}
+
+    # Trimming should have the same result as a fresh populate.
+    fresh_graph = TaskGraph(kraken_project.context, populate=False)
+    fresh_graph.populate([group_1])
+    assert fresh_graph._digraph.nodes == graph._digraph.nodes
+    assert fresh_graph._digraph.edges == graph._digraph.edges
+
+
 def test__TaskGraph__ready_on_successful_completion(kraken_project: Project) -> None:
     """Tests if :meth:`TaskGraph.ready` and :meth:`TaskGraph.is_complete` work as expected.
 

@@ -104,15 +104,17 @@ class TaskGraph(Graph):
     def _get_required_tasks(self, goals: Iterable[Task]) -> set[str]:
         """Internal. Return the set of tasks that are required transitively from the goal tasks."""
 
-        def _recurse_task(task_path: str, visited: set[str]) -> None:
+        def _recurse_task(task_path: str, visited: set[str], path: list[str]) -> None:
+            if task_path in path:
+                raise RuntimeError(f"encountered a dependency cycle: {' → '.join(path)}")
             visited.add(task_path)
             for pred in self._digraph.predecessors(task_path):
                 if not_none(self._get_edge(pred, task_path)).strict:
-                    _recurse_task(pred, visited)
+                    _recurse_task(pred, visited, path + [task_path])
 
         active_tasks: set[str] = set()
         for task in goals:
-            _recurse_task(task.path, active_tasks)
+            _recurse_task(task.path, active_tasks, [])
 
         return active_tasks
 

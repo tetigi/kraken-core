@@ -1,0 +1,5 @@
+[[entries]]
+id = "374e8483-3ab3-4624-b8ed-de54c3a21871"
+type = "improvement"
+description = "no longer print the status of Void tasks"
+author = "@NiklasRosenstein"

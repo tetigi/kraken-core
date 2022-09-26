@@ -10,7 +10,7 @@ from typing import Callable, Iterable
 
 from kraken.core.executor import Graph, GraphExecutor, GraphExecutorObserver
 from kraken.core.executor.utils import TaskRememberer
-from kraken.core.task import GroupTask, Task, TaskStatus
+from kraken.core.task import GroupTask, Task, TaskStatus, VoidTask
 
 
 class TaskExecutor(abc.ABC):
@@ -132,6 +132,9 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         self._started: dict[str, float] = {}
         self._duration: dict[str, float] = {}
 
+    def _ask_report_task_status(self, task: Task, status: TaskStatus) -> bool:
+        return not (isinstance(task, (GroupTask, VoidTask)) and status.is_skipped())
+
     def before_execute_graph(self, graph: Graph) -> None:
         print(flush=True)
         print(self.format_header("Start build"), flush=True)
@@ -143,13 +146,12 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         print(flush=True)
         for task_path, status in self._status.items():
             task = graph.get_task(task_path)
-            if isinstance(task, GroupTask) and status.is_skipped():
-                continue
-            print(
-                " " * (len(self.execute_prefix) + 1) + task_path,
-                self.status_to_text(status),
-                self.format_duration(f"[{self._duration[task_path]:.3f}s]") if task_path in self._duration else "",
-            )
+            if self._ask_report_task_status(task, status):
+                print(
+                    " " * (len(self.execute_prefix) + 1) + task_path,
+                    self.status_to_text(status),
+                    self.format_duration(f"[{self._duration[task_path]:.3f}s]") if task_path in self._duration else "",
+                )
         print(flush=True)
 
     def default_status_to_text(self, status: TaskStatus) -> str:
@@ -168,7 +170,7 @@ class DefaultPrintingExecutorObserver(GraphExecutorObserver):
         sys.stdout.flush()
 
     def after_execute_task(self, task: Task, status: TaskStatus) -> None:
-        if not (isinstance(task, GroupTask) and status.is_skipped()):
+        if self._ask_report_task_status(task, status):
             print(self.execute_prefix, task.path, self.status_to_text(status), flush=True)
         with self._lock:
             self._status[task.path] = status

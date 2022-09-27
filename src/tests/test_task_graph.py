@@ -1,3 +1,5 @@
+import pytest
+
 from kraken.core.graph import TaskGraph
 from kraken.core.project import Project
 from kraken.core.task import TaskStatus, VoidTask
@@ -178,3 +180,41 @@ def test__TaskGraph__correct_execution_order_on_optional_intermediate_task(krake
     assert list(graph.trim([pytest, gen]).execution_order()) == [python_install, jtd_python, gen, pytest]
 
     assert list(graph.trim([pytest, build]).execution_order()) == [python_install, jtd_python, gen, build, pytest]
+
+
+@pytest.mark.parametrize("inverse", [False, True])
+def test__TaskGraph__test_inverse_group_relationship(kraken_project: Project, inverse: bool) -> None:
+    """Tests that the dependency propagation between members of task groups works as expected.
+
+    Consider two groups A and B. When B depends on A, the task graph automatically expands that dependency
+    to the members of B such that each depend on the members of A. This fact is stored on the edge using
+    the "implicit" marker (i.e. the relationship between the tasks was not explicit using direct task
+    relationships).
+
+    :param inverse: Whether the relationship between the groups should be expressed using an inverse relationship.
+        `A -> B` should yield the same result as `B <- A`.
+    """
+
+    from kraken.core.graph import _Edge
+
+    a = kraken_project.group("a")
+    b = kraken_project.group("b")
+    ta1 = kraken_project.do("ta1", VoidTask, group=a)
+    ta2 = kraken_project.do("ta2", VoidTask, group=a)
+    tb1 = kraken_project.do("tb1", VoidTask, group=b)
+
+    if inverse:
+        a.add_relationship(b, inverse=True)
+    else:
+        b.add_relationship(a)
+
+    graph = TaskGraph(kraken_project.context)
+    assert graph.get_edge(ta1, a) == _Edge(True, False)
+    assert graph.get_edge(ta2, a) == _Edge(True, False)
+    assert graph.get_edge(tb1, b) == _Edge(True, False)
+    assert graph.get_edge(a, b) == _Edge(True, False)
+
+    # Implicit propagated edges.
+    assert graph.get_edge(a, tb1) == _Edge(True, True)
+
+    assert list(graph.trim([b]).execution_order()) == [ta1, ta2, a, tb1, b]

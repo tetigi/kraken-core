@@ -92,12 +92,11 @@ class TaskGraph(Graph):
             return None
         return cast(_Edge, data["data"])
 
-    def _add_edge(self, task_a: str, task_b: str, strict: bool, implicit: bool, graph: DiGraph | None = None) -> None:
-        graph = graph or self._digraph
+    def _add_edge(self, task_a: str, task_b: str, strict: bool, implicit: bool) -> None:
         edge = self._get_edge(task_a, task_b) or _Edge(strict, implicit)
         edge.strict = edge.strict or strict
         edge.implicit = edge.implicit and implicit
-        graph.add_edge(task_a, task_b, data=edge)
+        self._digraph.add_edge(task_a, task_b, data=edge)
 
     # High level internal API
 
@@ -175,7 +174,14 @@ class TaskGraph(Graph):
 
     def populate(self, goals: Iterable[Task] | None = None) -> None:
         """Populate the graph with the tasks from the context. This need only be called if the graph was
-        not initially populated in the constructor."""
+        not initially populated in the constructor.
+
+        !!! warning "Inverse relationships"
+
+            This does not recognize inverse relationships from tasks that are not part of *goals* or
+            any of their relationships. It is therefore recommended to populate the graph with all tasks in the
+            context and use #trim() to reduce the graph.
+        """
 
         if goals is None:
             for project in self.context.iter_projects():
@@ -190,12 +196,9 @@ class TaskGraph(Graph):
     def trim(self, goals: Sequence[Task]) -> TaskGraph:
         """Returns a copy of the graph that is trimmed to execute only *goals* and their strict dependencies."""
 
-        graph = TaskGraph(self.context, populate=False, parent=self)
-        graph.populate(goals)
-
+        graph = TaskGraph(self.context, parent=self)
         unrequired_tasks = set(graph._digraph.nodes) - graph._get_required_tasks(goals)
         graph._remove_nodes_keep_transitive_edges(unrequired_tasks)
-
         return graph
 
     def reduce(self, keep_explicit: bool = False) -> TaskGraph:

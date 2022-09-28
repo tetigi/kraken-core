@@ -1,6 +1,6 @@
 __version__ = "0.10.6"
 
-from kraken.core.context import BuildError, Context
+from kraken.core.context import BuildError, Context, ContextEvent
 from kraken.core.executor import Graph, GraphExecutor, GraphExecutorObserver
 from kraken.core.graph import TaskGraph
 from kraken.core.loader import ProjectLoader, ProjectLoaderError
@@ -22,6 +22,7 @@ __all__ = [
     "BackgroundTask",
     "BuildError",
     "Context",
+    "ContextEvent",
     "Graph",
     "GraphExecutor",
     "GraphExecutorObserver",

@@ -1,7 +1,25 @@
 from __future__ import annotations
 
+import collections
+import dataclasses
+import enum
+import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Sequence, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Iterable,
+    Iterator,
+    MutableMapping,
+    Optional,
+    Sequence,
+    TypeVar,
+    overload,
+)
+
+from typing_extensions import TypeAlias
 
 from kraken.core.base import Currentable, MetadataContainer
 from kraken.core.executor import GraphExecutorObserver
@@ -13,7 +31,29 @@ if TYPE_CHECKING:
     from kraken.core.project import Project
     from kraken.core.task import Task
 
+logger = logging.getLogger(__name__)
 T = TypeVar("T")
+
+
+class ContextEventType(enum.Enum):
+    any = enum.auto()
+    on_project_init = enum.auto()  # event data type is Project
+    on_project_loaded = enum.auto()  # event data type is Project
+    on_project_begin_finalize = enum.auto()  # event data type is Project
+    on_project_finalized = enum.auto()  # event data type is Project
+    on_context_begin_finalize = enum.auto()  # event data type is Context
+    on_context_finalized = enum.auto()  # event data type is Context
+
+
+@dataclasses.dataclass
+class ContextEvent:
+
+    Type: ClassVar[TypeAlias] = ContextEventType
+    Listener = Callable[["ContextEvent"], Any]
+    T_Listener = TypeVar("T_Listener", bound=Listener)
+
+    type: Type
+    data: Any  # Depends on the event type
 
 
 class Context(MetadataContainer, Currentable["Context"]):
@@ -48,6 +88,7 @@ class Context(MetadataContainer, Currentable["Context"]):
         self.observer = observer or DefaultPrintingExecutorObserver()
         self._finalized: bool = False
         self._root_project: Optional[Project] = None
+        self._listeners: MutableMapping[ContextEvent.Type, list[ContextEvent.Listener]] = collections.defaultdict(list)
 
     @property
     def root_project(self) -> Project:
@@ -77,10 +118,12 @@ class Context(MetadataContainer, Currentable["Context"]):
         from kraken.core.project import Project
 
         project = Project(directory.name, directory, parent, self)
+        self.trigger(ContextEvent.Type.on_project_init, project)
         with self.as_current():
             if self._root_project is None:
                 self._root_project = project
             self.project_loader.load_project(project)
+        self.trigger(ContextEvent.Type.on_project_loaded, project)
         return project
 
     def iter_projects(self) -> Iterator[Project]:
@@ -169,10 +212,18 @@ class Context(MetadataContainer, Currentable["Context"]):
     def finalize(self) -> None:
         """Call :meth:`Task.finalize()` on all tasks. This should be called before a graph is created."""
 
+        if self._finalized:
+            logger.warning("Context.finalize() called more than once", stack_info=True)
+            return
+
         self._finalized = True
+        self.trigger(ContextEvent.Type.on_context_begin_finalize, self)
         for project in self.iter_projects():
+            self.trigger(ContextEvent.Type.on_project_begin_finalize, project)
             for task in project.tasks().values():
                 task.finalize()
+            self.trigger(ContextEvent.Type.on_project_finalized, project)
+        self.trigger(ContextEvent.Type.on_context_finalized, self)
 
     def get_build_graph(self, targets: Sequence[str | Task] | None) -> TaskGraph:
         """Returns the :class:`TaskGraph` that contains either all default tasks or the tasks specified with
@@ -228,6 +279,40 @@ class Context(MetadataContainer, Currentable["Context"]):
             else:
                 message = "tasks " + ", ".join(f'"{task.path}"' for task in failed_tasks) + " failed"
             raise BuildError(message)
+
+    @overload
+    def listen(
+        self, event_type: str | ContextEvent.Type
+    ) -> Callable[[ContextEvent.T_Listener], ContextEvent.T_Listener]:
+        ...
+
+    @overload
+    def listen(self, event_type: str | ContextEvent.Type, listener: ContextEvent.Listener) -> None:
+        ...
+
+    def listen(self, event_type: str | ContextEvent.Type, listener: ContextEvent.Listener | None = None) -> Any:
+        """Registers a listener to the context for the given event type."""
+
+        if isinstance(event_type, str):
+            event_type = ContextEvent.Type[event_type]
+
+        def register(listener: ContextEvent.T_Listener) -> ContextEvent.T_Listener:
+            assert callable(listener), "listener must be callable, got: %r" % listener
+            self._listeners[event_type].append(listener)
+            return listener
+
+        if listener is None:
+            return register
+
+        register(listener)
+
+    def trigger(self, event_type: ContextEvent.Type, data: Any) -> None:
+        assert isinstance(event_type, ContextEvent.Type), repr(event_type)
+        assert event_type != ContextEvent.Type.any, "cannot trigger event of type 'any'"
+        listeners = (*self._listeners.get(ContextEvent.Type.any, ()), *self._listeners.get(event_type, ()))
+        for listener in listeners:
+            # TODO(NiklasRosenstein): Should we catch errors in listeners of letting them propagate?
+            listener(ContextEvent(event_type, data))
 
 
 class BuildError(Exception):

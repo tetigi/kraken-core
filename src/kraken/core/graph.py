@@ -66,7 +66,10 @@ class TaskGraph(Graph):
         data = self._digraph.nodes.get(task_path)
         if data is None:
             return None
-        return cast(Task, data["data"])
+        try:
+            return cast(Task, data["data"])
+        except KeyError:
+            raise RuntimeError(f"An unexpected error occurred when fetching the task by address {task_path!r}.")
 
     def _add_task(self, task: Task) -> None:
         self._digraph.add_node(task.path, data=task)

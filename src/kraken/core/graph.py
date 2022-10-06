@@ -81,6 +81,8 @@ class TaskGraph(Graph):
             if isinstance(task, GroupTask) and isinstance(rel.other_task, GroupTask):
                 upstream, downstream = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
                 for member in downstream.tasks:
+                    if member.path not in self._digraph.nodes:
+                        self._add_task(member)
                     # NOTE(niklas.rosenstein): When a group is nested in another group, we would end up declaring
                     #       that the group depends on itself. That's obviously not supposed to happen. :)
                     if upstream != member:
@@ -93,6 +95,10 @@ class TaskGraph(Graph):
         return cast(_Edge, data["data"])
 
     def _add_edge(self, task_a: str, task_b: str, strict: bool, implicit: bool) -> None:
+        # add_edge() would implicitly add a node, we only want to do that once the node actually exists in
+        # the graph though.
+        assert task_a in self._digraph.nodes, f"{task_a!r} not yet in the graph"
+        assert task_b in self._digraph.nodes, f"{task_b!r} not yet in the graph"
         edge = self._get_edge(task_a, task_b) or _Edge(strict, implicit)
         edge.strict = edge.strict or strict
         edge.implicit = edge.implicit and implicit

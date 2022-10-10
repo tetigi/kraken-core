@@ -1,0 +1,5 @@
+[[entries]]
+id = "38717286-2bd2-4f3b-af27-a9eb5144440c"
+type = "fix"
+description = "fix dependency propagation of groups and group members when more than one group depended on another group"
+author = "@NiklasRosenstein"

@@ -80,12 +80,23 @@ class TaskGraph(Graph):
             self._add_edge(a.path, b.path, rel.strict, False)
 
             # When a group depends on another group, we implicitly make each member of the downstream group
-            # depend on the upstream group.
-            if isinstance(task, GroupTask) and isinstance(rel.other_task, GroupTask):
+            # depend on the upstream group. If we find more groups, we unfurl them until we're left with only
+            # tasks.
+            if (
+                isinstance(task, GroupTask)
+                and isinstance(rel.other_task, GroupTask)
+                and rel.other_task not in task.tasks
+            ):
                 upstream, downstream = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
-                for member in downstream.tasks:
+                downstream_tasks = list(downstream.tasks)
+                while downstream_tasks:
+                    member = downstream_tasks.pop(0)
                     if member.path not in self._digraph.nodes:
                         self._add_task(member)
+                    if isinstance(member, GroupTask):
+                        downstream_tasks += member.tasks
+                        continue
+
                     # NOTE(niklas.rosenstein): When a group is nested in another group, we would end up declaring
                     #       that the group depends on itself. That's obviously not supposed to happen. :)
                     if upstream != member:

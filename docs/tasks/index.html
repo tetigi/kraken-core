@@ -776,7 +776,7 @@
                 
                   
 
-  <a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/content/docs/tasks.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/kraken-build/kraken-core/blob/None/docs/content/docs/tasks.md" title="Edit this page" class="md-content__button md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
@@ -867,7 +867,7 @@ of the <code>dependencies</code> will not have been populated yet.</p>
 <h2 id="class-task">Class Task</h2>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Object</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">)</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L175">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L175">[view_source]</a></p>
 <p>A task is an isolated unit of work that is configured with properties. Every task has some common settings that
 are not treated as properties, such as it's :attr:<code>name</code>, :attr:<code>default</code> and :attr:<code>capture</code> flag. A task is a
 member of a :class:<code>Project</code> and can be uniquely identified with a path that is derived from its project and name.</p>
@@ -881,7 +881,7 @@ executed in parallel).</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@property</span>
 <span class="k">def</span> <span class="nf">path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L225">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L225">[view_source]</a></p>
 <p>Returns the path of the task.</p>
 <p><a id="kraken.core.task.Task.add_relationship"></a></p>
 <p><a id="pydoc:kraken.core.task.Task.add_relationship"></a></p>
@@ -890,7 +890,7 @@ executed in parallel).</p>
                      <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                      <span class="n">inverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L233">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L233">[view_source]</a></p>
 <p>Add a relationship to this task that will be returned by :meth:<code>get_relationships</code>.</p>
 <p><strong>Arguments</strong>:</p>
 <ul>
@@ -907,14 +907,14 @@ exclusivity.</li>
 <h4 id="get_relationships">get_relationships</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_relationships</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">TaskRelationship</span><span class="p">]</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L266">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L266">[view_source]</a></p>
 <p>Iterates over the relationships to other tasks based on the property provenance.</p>
 <p><a id="kraken.core.task.Task.get_description"></a></p>
 <p><a id="pydoc:kraken.core.task.Task.get_description"></a></p>
 <h4 id="get_description">get_description</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_description</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L293">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L293">[view_source]</a></p>
 <p>Return the task's description. The default implementation formats the :attr:<code>description</code> string with the
 task's properties. Any Path property will be converted to a relative string to assist the reader.</p>
 <p><a id="kraken.core.task.Task.get_outputs"></a></p>
@@ -923,7 +923,7 @@ task's properties. Any Path property will be converted to a relative string to a
 <div class="highlight"><pre><span></span><code><span class="nd">@overload</span>
 <span class="k">def</span> <span class="nf">get_outputs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L319">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L319">[view_source]</a></p>
 <p>Iterate over all outputs of the task. This includes all outputs in :attr:<code>Task.outputs</code> and the values
 in all properties defines as outputs. All output properties that return a sequence will be flattened.</p>
 <p>This should be called only after the task was executed, otherwise the output properties are likely empty
@@ -934,7 +934,7 @@ and will error when read.</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@overload</span>
 <span class="k">def</span> <span class="nf">get_outputs</span><span class="p">(</span><span class="n">output_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L327">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L327">[view_source]</a></p>
 <p>Iterate over all outputs of the task of the specified <em>output_type</em>. If a property provides a sequence of</p>
 <p>values of the <em>output_type</em>, that list is flattened.</p>
 <p>This should be called only after the task was executed, otherwise the output properties are likely empty
@@ -948,7 +948,7 @@ and will error when read.</p>
 <h4 id="finalize">finalize</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L352">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L352">[view_source]</a></p>
 <p>This method is called by :meth:<code>Context.finalize()</code>. It gives the task a chance update its
 configuration before the build process is executed. The default implementation finalizes all non-output
 properties, preventing them to be further mutated.</p>
@@ -957,7 +957,7 @@ properties, preventing them to be further mutated.</p>
 <h4 id="prepare">prepare</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">prepare</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span> <span class="o">|</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L362">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L362">[view_source]</a></p>
 <p>Called before a task is executed. This is called from the main process to check for example if the task
 is skippable or up to date. The implementation of this method should be quick to determine the task status,
 otherwise it should be done in :meth:<code>execute</code>.</p>
@@ -969,7 +969,7 @@ is returned, it is assumed that the task is :attr:<code>TaskStatusType.PENDING</
 <div class="highlight"><pre><span></span><code><span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
 <span class="k">def</span> <span class="nf">execute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span> <span class="o">|</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L374">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L374">[view_source]</a></p>
 <p>Implements the behaviour of the task. The task can assume that all strict dependencies have been executed
 successfully. Output properties of dependency tasks that are only written by the task's execution are now
 accessible.</p>
@@ -980,7 +980,7 @@ task is :attr:<code>TaskStatusType.SUCCEEDED</code>.</p>
 <h4 id="teardown">teardown</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">teardown</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span> <span class="o">|</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/task.py#L385">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/853b16da03fd61ef8c0f54ff337462db1edde722/docs/../src/kraken/core/task.py#L385">[view_source]</a></p>
 <p>This method is called only if the task returns :attr:<code>TaskStatusType.STARTED</code> from :meth:<code>execute</code>. It is
 called if <em>all</em> direct dependants of the task have been executed (whether successfully or not) or if no further
 task execution is queued.</p>

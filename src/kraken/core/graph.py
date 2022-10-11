@@ -79,15 +79,14 @@ class TaskGraph(Graph):
             a, b = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
             self._add_edge(a.path, b.path, rel.strict, False)
 
-            # When a group depends on another group, we implicitly make each member of the downstream group
-            # depend on the upstream group. If we find more groups, we unfurl them until we're left with only
-            # tasks.
-            if (
-                isinstance(task, GroupTask)
-                and isinstance(rel.other_task, GroupTask)
-                and rel.other_task not in task.tasks
-            ):
-                upstream, downstream = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
+            # If this relationship is one implied through group membership, we're done.
+            if isinstance(task, GroupTask) and not rel.inverse and rel.other_task in task.tasks:
+                continue
+
+            # When a group depends on some other task, we implicitly make each member of that downstream group
+            # depend on the upstream task. If we find another group, we unpack the group further.
+            upstream, downstream = (task, rel.other_task) if rel.inverse else (rel.other_task, task)
+            if isinstance(downstream, GroupTask):
                 downstream_tasks = list(downstream.tasks)
                 while downstream_tasks:
                     member = downstream_tasks.pop(0)

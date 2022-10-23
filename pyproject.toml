@@ -8,16 +8,16 @@ classifiers = []
 description = ""
 keywords = []
 license = "MIT"
-name = "kraken-core"
-packages = [{include = "kraken/core", from = "src"}]
+name = "kraken-build"
+packages = [{include = "kraken", from = "src"}]
 readme = "readme.md"
 version = "0.10.10"
 
 [tool.poetry.urls]
 # "Bug Tracker" = ""
-# Documentation = ""
-# Homepage = ""
-# Repository = ""
+Documentation = "https://kraken-build.github.io/kraken-build/"
+Homepage = "https://github.com/kraken-build"
+Repository = "https://github.com/kraken-build.git"
 
 [tool.poetry.dependencies]
 dill = ">=0.3.5"
@@ -62,7 +62,7 @@ mypy = "dmypy run src/"
 pytest = "pytest src/tests/ -vv"
 
 [tool.slap.run]
-"docs:build" = "cd docs && novella --base-url kraken-core/"
+"docs:build" = "cd docs && novella --base-url kraken-build/"
 "docs:dev" = "cd docs && novella --serve"
 fmt = "black src/ && isort src/"
 

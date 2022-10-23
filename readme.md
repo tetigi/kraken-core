@@ -9,4 +9,4 @@ Kraken is a task orchestration system with a focus on ease of configuration and 
 
 Read more about the Kraken core package in the [documentation][].
 
-  [documentation]: https://kraken-build.github.io/kraken-core/
+  [documentation]: https://kraken-build.github.io/kraken-build/

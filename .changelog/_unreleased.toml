@@ -1,0 +1,5 @@
+[[entries]]
+id = "372d4891-ecb6-4bff-a48d-a7ae41edf0fd"
+type = "improvement"
+description = "Merge kraken-std 0.4.8 into this."
+author = "@NiklasRosenstein"

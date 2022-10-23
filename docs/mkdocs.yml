@@ -13,3 +13,9 @@ nav:
       - synopsis/query/describe.md
       - synopsis/query/env.md
       - synopsis/query/visualize.md
+  - Standard Library:
+    - stdlib/index.md
+    - stdlib/cargo.md
+    - stdlib/docker.md
+    - stdlib/helm.md
+    - stdlib/python.md

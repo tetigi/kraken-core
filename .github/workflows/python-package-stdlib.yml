@@ -1,0 +1,109 @@
+name: Python application
+
+on:
+  push: { branches: [ develop ], tags: [ "*" ] }
+  pull_request: { branches: [ develop ] }
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.7"
+            test-type: lint test
+          - python-version: "3.8"
+            test-type: lint test
+          - python-version: "3.9"
+            test-type: lint test
+          - python-version: "3.10"
+            test-type: lint test
+          - python-version: "3.x"
+            test-type: lint test
+          - python-version: "3.7"
+            test-type: integrationTest
+    steps:
+    - uses: actions/checkout@v2
+      with: { fetch-depth: 0 }
+    - uses: python-slap/slap.cli@gha/install/v1
+    - uses: actions/setup-python@v2
+      with: { python-version: "${{ matrix.python-version }}" }
+    - run: pip install pipx && pipx install kraken-wrapper
+
+    # Need Poetry for integration tests.
+    - run: pipx install poetry
+
+    # Make sure we have Docker available for the ete-tests.
+    - uses: docker/setup-buildx-action@v2
+
+    # Import credentials for integration tests.
+    - name: Import Secrets
+      uses: hashicorp/vault-action@v2.4.0
+      with:
+        url: ${{ secrets.VAULT_ADDR }}
+        token: ${{ secrets.VAULT_TOKEN }}
+        secrets: |
+          kv/data/projects/github.com/kraken-build/kraken-std cloudsmith_io | CLOUDSMITH_INTEGRATION_TEST_CREDENTIALS ;
+          kv/data/projects/github.com/kraken-build/kraken-std cloudsmith_io.api_key | CLOUDSMITH_API_KEY ;
+          kv/data/projects/github.com/kraken-build/kraken-std niklasrosenstein_jfrog_io | ARTIFACTORY_INTEGRATION_TEST_CREDENTIALS ;
+          kv/data/projects/github.com/kraken-build/kraken-std niklasrosenstein_jfrog_io.password | ARTIFACTORY_PASSWORD ;
+          kv/data/projects/github.com/kraken-build/kraken-std niklasrosenstein_jfrog_io.token | ARTIFACTORY_TOKEN ;
+
+    - name: Mask secrets
+      run: |
+        echo "::add-mask::${{ env.CLOUDSMITH_API_KEY }}"
+        echo "::add-mask::${{ env.ARTIFACTORY_PASSWORD }}"
+        echo "::add-mask::${{ env.ARTIFACTORY_TOKEN }}"
+
+    - run: krakenw run ${{ matrix.test-type }} -v
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [ "test" ]
+    steps:
+    - uses: actions/checkout@v2
+      with: { fetch-depth: 0 }
+    - uses: python-slap/slap.cli@gha/install/v1
+    - uses: actions/setup-python@v2
+      with: { python-version: "${{ matrix.python-version }}" }
+    - run: pip install pipx && pipx install kraken-wrapper
+
+    # Import credentials for integration tests.
+    - name: Import Secrets
+      uses: hashicorp/vault-action@v2.4.0
+      with:
+        url: ${{ secrets.VAULT_ADDR }}
+        token: ${{ secrets.VAULT_TOKEN }}
+        secrets: |
+          kv/data/projects/github.com/kraken-build/kraken-std pypi_org.user | PYPI_USER ;
+          kv/data/projects/github.com/kraken-build/kraken-std pypi_org.password | PYPI_PASSWORD ;
+          kv/data/projects/github.com/kraken-build/kraken-std test_pypi_org.user | TESTPYPI_USER ;
+          kv/data/projects/github.com/kraken-build/kraken-std test_pypi_org.password | TESTPYPI_PASSWORD ;
+    - name: Mask secrets
+      run: |
+        echo "::add-mask::${{ env.PYPI_PASSWORD }}"
+        echo "::add-mask::${{ env.TESTPYPI_PASSWORD }}"
+
+    - run: krakenw run publish? -0 -v
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: python-slap/slap.cli@gha/install/v1
+    - run: slap venv -ac && slap install --only-extras docs
+    - run: slap run docs:build
+    - uses: actions/upload-artifact@v2
+      with: { name: docs, path: docs/_site }
+
+  docs-publish:
+    needs: [ test, docs ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with: { name: docs, path: docs/_site }
+    - uses: Cecilapp/GitHub-Pages-deploy@v3
+      env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+      with: { email: rosensteinniklas@gmail.com, build_dir: docs/_site }

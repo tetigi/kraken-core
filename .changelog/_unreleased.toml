@@ -9,3 +9,9 @@ id = "e7d545d3-0691-4f50-9037-054437492463"
 type = "feature"
 description = "Add support for writing build scripts in the Craftr DSL dialect by specifying `# :: dialect dsl` hint in the file header."
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "271ef67b-abe8-410c-8140-f75dc442a00a"
+type = "improvement"
+description = "Merge kraken-re 0.1.0* into this."
+author = "@NiklasRosenstein"

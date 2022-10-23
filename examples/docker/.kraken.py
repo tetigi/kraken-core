@@ -1,20 +1,15 @@
-from kraken.core import Project
+# ::dialect dsl
+# type: ignore
 
 from kraken.std.docker import build_docker_image
 from kraken.core.lib.render_file_task import RenderFileTask
 
-project = Project.current()
+do "docker.file" RenderFileTask
+    content: "FROM ubuntu:focal\nRUN echo Hello world\n"
+    file: build_directory / "Dockerfile"
 
-dockerfile = project.do(
-    name="dockerfile",
-    task_type=RenderFileTask,
-    content="FROM ubuntu:focal\nRUN echo Hello world\n",
-    file=project.build_directory / "Dockerfile",
-)
-
-build_docker_image(
-    name="buildDocker",
-    dockerfile=dockerfile.file,
-    tags=["kraken-example"],
-    load=True,
-)
+build_docker_image
+    name: "docker.build"
+    dockerfile: task("docker.file").file
+    tags: ["kraken-example"]
+    load: True

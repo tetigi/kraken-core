@@ -36,6 +36,7 @@ tomli-w = "^1.0.0"
 twine = "^4.0.1"
 typeapi = "^0.2.2"
 typing-extensions = ">=3.10.0.2"
+craftr-dsl = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
 "proxy.py" = "^2.4.3"

@@ -74,6 +74,7 @@ class RequirementSpec:
     extra_index_urls: tuple[str, ...] = ()
     interpreter_constraint: str | None = None
     pythonpath: tuple[str, ...] = ()
+    dialect: str | None = None
 
     def __post_init__(self) -> None:
         for req in self.requirements:
@@ -102,6 +103,9 @@ class RequirementSpec:
 
         return self.replace(pythonpath=(*self.pythonpath, *path))
 
+    def with_dialect(self, dialect: str | None) -> RequirementSpec:
+        return self.replace(dialect=dialect)
+
     def replace(
         self,
         requirements: Iterable[Requirement] | None = None,
@@ -109,6 +113,7 @@ class RequirementSpec:
         extra_index_urls: Iterable[str] | None = None,
         interpreter_constraint: str | None | NotSet = NotSet.Value,
         pythonpath: Iterable[str] | None = None,
+        dialect: str | None | NotSet = NotSet.Value,
     ) -> RequirementSpec:
         return RequirementSpec(
             requirements=self.requirements if requirements is None else tuple(requirements),
@@ -118,6 +123,7 @@ class RequirementSpec:
             if interpreter_constraint is NotSet.Value
             else interpreter_constraint,
             pythonpath=self.pythonpath if pythonpath is None else tuple(pythonpath),
+            dialect=self.dialect if dialect is NotSet.Value else dialect,
         )
 
     @staticmethod
@@ -200,6 +206,7 @@ def parse_requirements_from_python_script(file: TextIO) -> RequirementSpec:
 
     ```py
     #!/usr/bin/env python
+    # :: dialect python
     # :: requirements PyYAML
     # :: pythonpath ./build-support
     ```
@@ -210,16 +217,19 @@ def parse_requirements_from_python_script(file: TextIO) -> RequirementSpec:
 
     requirements = []
     pythonpath = []
+    dialect: str |None = None
     for line in map(str.rstrip, file):
         if not line.startswith("#"):
             break
-        match = re.match(r"#\s*::\s*(requirements|pythonpath)(.+)", line)
+        match = re.match(r"#\s*::\s*(dialect|requirements|pythonpath)(.+)", line)
         if not match:
             break
         args = shlex.split(match.group(2))
-        if match.group(1) == "requirements":
+        if match.group(1) == "dialect":
+            dialect = match.group(2).strip()
+        elif match.group(1) == "requirements":
             requirements += args
         else:
             pythonpath += args
 
-    return RequirementSpec.from_args(requirements).with_pythonpath(pythonpath)
+    return RequirementSpec.from_args(requirements).with_pythonpath(pythonpath).with_dialect(dialect)

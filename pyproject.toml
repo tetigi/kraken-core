@@ -20,7 +20,7 @@ version = "0.10.10"
 # Repository = ""
 
 [tool.poetry.dependencies]
-dill = ">=0.3.5"
+dill = ">=0.3.5,<0.3.6"  # https://github.com/uqfoundation/dill/issues/332#issuecomment-1289537575
 networkx = "~2.6.3"  # Last version compatible with Python 3.7
 "nr.io.graphviz" = "^0.1.1"
 "nr.python.environment" = "^0.1.4"

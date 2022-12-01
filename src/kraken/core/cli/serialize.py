@@ -33,15 +33,19 @@ def load_build_state(state_dirs: Iterable[Path]) -> tuple[Context, TaskGraph] | 
         pluralize("state", state_files),
         ", ".join(file.name for file in state_files),
     )
+
     context: Context | None = None
     graph: TaskGraph | None = None
+
     for state_file in sorted(state_files):
         with state_file.open("rb") as fp:
             new_graph: TaskGraph = dill.load(fp)
         if context is None or graph is None:
-            context, graph = new_graph.context, new_graph
-        else:
-            graph.results_from(new_graph)
+            # We want to retrieve the entire, original build graph.
+            context, graph = new_graph.context, new_graph.root
+        # Take the results from the final graph (only this graph contains results).
+        graph.results_from(new_graph)
+
     assert context is not None and graph is not None
     return context, graph
 

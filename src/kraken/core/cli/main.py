@@ -125,7 +125,6 @@ def _load_build_state(
             lambda: serialize.save_build_state(build_options.state_dir, build_options.state_name, not_none(graph))
         )
 
-    graph.root.results_from(graph)
     selected = context.resolve_tasks(graph_options.tasks or None)
 
     if graph_options.all:

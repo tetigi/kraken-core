@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -84,6 +85,7 @@ class BuildOptions:
     state_dir: Path
     additional_state_dirs: list[Path]
     no_load_project: bool
+    state_name: str
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
@@ -102,6 +104,12 @@ class BuildOptions:
             type=Path,
             default=DEFAULT_PROJECT_DIR,
             help="the root project directory [default: ./]",
+        )
+        parser.add_argument(
+            "--state-name",
+            metavar="NAME",
+            help="specify a name for the generated state file; if not specified, a short random ID is used",
+            default=str(uuid.uuid4())[:7],
         )
         parser.add_argument(
             "--state-dir",
@@ -126,7 +134,8 @@ class BuildOptions:
         return cls(
             build_dir=args.build_dir,
             project_dir=args.project_dir,
-            state_dir=args.state_dir or self.build_dir / BUILD_STATE_DIR,
+            state_name=args.state_name,
+            state_dir=args.state_dir or args.build_dir / BUILD_STATE_DIR,
             additional_state_dirs=args.additional_state_dir or [],
             no_load_project=args.no_load_project,
         )

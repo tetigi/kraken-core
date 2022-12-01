@@ -121,7 +121,9 @@ def _load_build_state(
 
     assert graph is not None
     if not graph_options.no_save:
-        exit_stack.callback(lambda: serialize.save_build_state(build_options.state_dir, not_none(graph)))
+        exit_stack.callback(
+            lambda: serialize.save_build_state(build_options.state_dir, build_options.state_name, not_none(graph))
+        )
 
     graph.root.results_from(graph)
     selected = context.resolve_tasks(graph_options.tasks or None)

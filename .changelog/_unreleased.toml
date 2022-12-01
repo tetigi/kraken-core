@@ -3,3 +3,9 @@ id = "e3943f03-f617-4439-9f3f-6150a9355292"
 type = "feature"
 description = "add `--state-dir`, `--additional-state-dir` and `--no-load-project` options"
 author = "@NiklasRosenstein"
+
+[[entries]]
+id = "d9331301-07f4-4171-9541-70d38c8d1ebd"
+type = "feature"
+description = "add `--state-name` option"
+author = "@NiklasRosenstein"

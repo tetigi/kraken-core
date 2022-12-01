@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 import re
-import uuid
 from pathlib import Path
+from typing import Iterable
 
 import dill  # type: ignore[import]
 
@@ -46,8 +46,8 @@ def load_build_state(state_dirs: Iterable[Path]) -> tuple[Context, TaskGraph] | 
     return context, graph
 
 
-def save_build_state(state_dir: Path, graph: TaskGraph) -> None:
-    state_file = state_dir / state_file_template.format(uuid=str(uuid.uuid4())[:7])
+def save_build_state(state_dir: Path, name: str, graph: TaskGraph) -> None:
+    state_file = state_dir / state_file_template.format(name=name)
     state_dir.mkdir(parents=True, exist_ok=True)
     with state_file.open("wb") as fp:
         dill.dump(graph, fp)

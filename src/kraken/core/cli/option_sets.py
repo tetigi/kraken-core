@@ -22,14 +22,15 @@ class LoggingOptions:
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument(
+        group = parser.add_argument_group("logging options")
+        group.add_argument(
             "-v",
             dest="verbosity",
             action="count",
             default=0,
             help="increase the log level (can be specified multiple times)",
         )
-        parser.add_argument(
+        group.add_argument(
             "-q",
             dest="quietness",
             action="count",
@@ -89,7 +90,8 @@ class BuildOptions:
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument(
+        group = parser.add_argument_group("build options")
+        group.add_argument(
             "-b",
             "--build-dir",
             metavar="PATH",
@@ -97,7 +99,7 @@ class BuildOptions:
             default=DEFAULT_BUILD_DIR,
             help="the build directory to write to [default: %(default)s]",
         )
-        parser.add_argument(
+        group.add_argument(
             "-p",
             "--project-dir",
             metavar="PATH",
@@ -105,25 +107,25 @@ class BuildOptions:
             default=DEFAULT_PROJECT_DIR,
             help="the root project directory [default: ./]",
         )
-        parser.add_argument(
+        group.add_argument(
             "--state-name",
             metavar="NAME",
             help="specify a name for the generated state file; if not specified, a short random ID is used",
             default=str(uuid.uuid4())[:7],
         )
-        parser.add_argument(
+        group.add_argument(
             "--state-dir",
             metavar="PATH",
             type=Path,
             help=f"specify the main build state directory [default: ${{--build-dir}}/{BUILD_STATE_DIR}]",
         )
-        parser.add_argument(
+        group.add_argument(
             "--additional-state-dir",
             metavar="PATH",
             type=Path,
             help="specify an additional state directory to load build state from. can be specified multiple times",
         )
-        parser.add_argument(
+        group.add_argument(
             "--no-load-project",
             action="store_true",
             help="do not load the root project. this is only useful when loading an existing build state",
@@ -151,16 +153,17 @@ class GraphOptions:
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser, saveable: bool = True) -> None:
-        parser.add_argument("tasks", metavar="task", nargs="*", help="one or more tasks to execute")
-        parser.add_argument("-a", "--all", action="store_true", help="select all tasks")
-        parser.add_argument("--resume", action="store_true", help="load previous build state")
-        parser.add_argument(
+        group = parser.add_argument_group("graph options")
+        group.add_argument("tasks", metavar="task", nargs="*", help="one or more tasks to execute")
+        group.add_argument("-a", "--all", action="store_true", help="select all tasks")
+        group.add_argument("--resume", action="store_true", help="load previous build state")
+        group.add_argument(
             "--restart",
             choices=("all",),
             help="load previous build state, but discard existing results (requires --resume)",
         )
         if saveable:
-            parser.add_argument("--no-save", action="store_true", help="do not save the new build state")
+            group.add_argument("--no-save", action="store_true", help="do not save the new build state")
 
     @classmethod
     def collect(cls, args: argparse.Namespace) -> GraphOptions:
@@ -182,10 +185,11 @@ class RunOptions:
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("-s", "--skip-build", action="store_true", help="just load the project, do not build")
-        parser.add_argument("-0", "--allow-no-tasks", action="store_true", help="don't error if no tasks got selected")
-        parser.add_argument("-x", "--exclude", metavar="TASK", action="append", help="exclude one or more tasks")
-        parser.add_argument(
+        group = parser.add_argument_group("run options")
+        group.add_argument("-s", "--skip-build", action="store_true", help="just load the project, do not build")
+        group.add_argument("-0", "--allow-no-tasks", action="store_true", help="don't error if no tasks got selected")
+        group.add_argument("-x", "--exclude", metavar="TASK", action="append", help="exclude one or more tasks")
+        group.add_argument(
             "-X",
             "--exclude-subgraph",
             action="append",
@@ -212,10 +216,11 @@ class VizOptions:
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("-i", "--inactive", action="store_true", help="include inactive tasks in the graph")
-        parser.add_argument("-s", "--show", action="store_true", help="show the graph in the browser (requires dot)")
-        parser.add_argument("-R", "--reduce", action="store_true", help="fully transitively reduce the graph")
-        parser.add_argument(
+        group = parser.add_argument_group("visualization options")
+        group.add_argument("-i", "--inactive", action="store_true", help="include inactive tasks in the graph")
+        group.add_argument("-s", "--show", action="store_true", help="show the graph in the browser (requires dot)")
+        group.add_argument("-R", "--reduce", action="store_true", help="fully transitively reduce the graph")
+        group.add_argument(
             "-r",
             "--reduce-keep-explicit",
             action="store_true",

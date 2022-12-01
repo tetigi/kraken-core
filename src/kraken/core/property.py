@@ -6,8 +6,8 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar, cast
 
-import typeapi
 from nr.stream import NotSet, Supplier
+from typeapi import AnnotatedTypeHint, ClassTypeHint, TypeHint, UnionTypeHint, get_annotations
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -37,7 +37,7 @@ class PropertyDescriptor:
     is_output: bool
     default: Any | NotSet
     default_factory: Callable[[], Any] | NotSet
-    item_type: typeapi.Hint
+    item_type: TypeHint
 
     def has_default(self) -> bool:
         return not (self.default is NotSet.Value and self.default_factory is NotSet.Value)
@@ -110,7 +110,7 @@ class Property(Supplier[T]):
 
         return PropertyConfig(False, NotSet.Value, func)
 
-    def __init__(self, owner: Object, name: str, item_type: typeapi.Hint | Any) -> None:
+    def __init__(self, owner: Object, name: str, item_type: TypeHint | Any) -> None:
         """
         :param owner: The object that owns the property instance.
         :param name: The name of the property.
@@ -118,11 +118,11 @@ class Property(Supplier[T]):
         """
 
         # Determine the accepted types of the property.
-        item_type = item_type if isinstance(item_type, typeapi.Hint) else typeapi.of(item_type)
-        if isinstance(item_type, typeapi.Union):
+        item_type = item_type if isinstance(item_type, TypeHint) else TypeHint(item_type)
+        if isinstance(item_type, UnionTypeHint):
             # NOTE (NiklasRosenstein): We expect that any union member be just a type.
-            accepted_types = [cast(typeapi.Type, t).type for t in item_type.types]
-        elif isinstance(item_type, typeapi.Type):
+            accepted_types = [cast(ClassTypeHint, t).type for t in item_type]
+        elif isinstance(item_type, ClassTypeHint):
             accepted_types = [item_type.type]
         else:
             raise RuntimeError(f"Property generic parameter must be a type or union, got {item_type}")
@@ -233,21 +233,21 @@ class Property(Supplier[T]):
     def provides(self, type_: type) -> bool:
         """Returns `True` if the property may provide an instance or a sequence of the given *type_*."""
 
-        if isinstance(self.item_type, typeapi.Union):
-            types = list(self.item_type.types)
-        elif isinstance(self.item_type, typeapi.Type):
+        if isinstance(self.item_type, UnionTypeHint):
+            types = list(self.item_type)
+        elif isinstance(self.item_type, ClassTypeHint):
             types = [self.item_type]
         else:
             assert False, self.item_type
 
         for provided in types:
-            if not isinstance(provided, typeapi.Type):
+            if not isinstance(provided, ClassTypeHint):
                 continue
             if issubclass(provided.type, type_):
                 return True
             if issubclass(provided.type, Sequence) and provided.args and len(provided.args) == 1:
                 inner = provided.args[0]
-                if isinstance(inner, typeapi.Type) and issubclass(inner.type, type_):
+                if isinstance(inner, ClassTypeHint) and issubclass(inner.type, type_):
                     return True
 
         return False
@@ -294,14 +294,14 @@ class Object:
             if issubclass(base, Object):
                 schema.update(base.__schema__)
 
-        for key, hint in typeapi.get_annotations(cls).items():
-            hint = typeapi.of(hint)
+        for key, hint in get_annotations(cls).items():
+            hint = TypeHint(hint)
             config: PropertyConfig | None = None
 
             # Unwrap annotatations, looking for a PropertyConfig annotation.
-            if isinstance(hint, typeapi.Annotated):
+            if isinstance(hint, AnnotatedTypeHint):
                 config = next((x for x in hint.metadata if isinstance(x, PropertyConfig)), None)
-                hint = hint.wrapped
+                hint = TypeHint(hint.type)
 
             # Check if :func:`output()` or :func:`default()` was used to configure the property.
             if hasattr(cls, key) and isinstance(getattr(cls, key), PropertyConfig):
@@ -310,8 +310,8 @@ class Object:
                 delattr(cls, key)
 
             # Is the hint pointing to a Property type?
-            if isinstance(hint, typeapi.Type) and hint.type == Property:
-                assert isinstance(hint, typeapi.Type) and hint.type == Property, hint
+            if isinstance(hint, ClassTypeHint) and hint.type == Property:
+                assert isinstance(hint, ClassTypeHint) and hint.type == Property, hint
                 assert hint.args is not None and len(hint.args) == 1, hint
                 config = config or PropertyConfig()
                 schema[key] = PropertyDescriptor(

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import dataclasses
+import sys
 import warnings
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar, cast
@@ -319,7 +320,7 @@ class Object:
                     is_output=config.output,
                     default=config.default,
                     default_factory=config.default_factory,
-                    item_type=hint.args[0],
+                    item_type=hint[0].evaluate(vars(sys.modules[cls.__module__])),
                 )
 
             # The attribute is annotated as an output but not actually typed as a property?

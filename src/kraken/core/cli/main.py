@@ -102,13 +102,18 @@ def _load_build_state(
 
     context: Context | None = None
     if graph_options.resume:
-        context, graph = serialize.load_build_state(build_options.state_dir)
+        context, graph = serialize.load_build_state([build_options.state_dir] + build_options.additional_state_dirs)
         if not graph:
             raise ValueError("cannot --resume without build state")
         if graph and graph_options.restart:
             graph.restart()
 
     if context is None:
+        if build_options.no_load_project:
+            raise ValueError(
+                "no existing build state was loaded; typically that would load the root project "
+                "but --no-load-project was specified."
+            )
         context = Context(build_options.build_dir)
         context.load_project(build_options.project_dir)
         context.finalize()

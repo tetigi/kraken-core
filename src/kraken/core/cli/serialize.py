@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from pathlib import Path
 
@@ -10,12 +11,22 @@ from kraken.core import Context, TaskGraph
 from kraken.core.util.text import pluralize
 
 logger = logging.getLogger(__name__)
+state_file_regex = r"^state-.*\.dill$"
+state_file_template = "state-{uuid}.dill"
 
 
-def load_build_state(state_dir: Path) -> tuple[Context, TaskGraph] | tuple[None, None]:
-    state_files = list(state_dir.iterdir()) if state_dir.is_dir() else []
+def load_build_state(state_dirs: Iterable[Path]) -> tuple[Context, TaskGraph] | tuple[None, None]:
+
+    # Find all state files that match the state filename format.
+    state_files = []
+    for state_dir in state_dirs:
+        if state_dir.is_dir():
+            for path in state_dir.iterdir():
+                if re.match(state_file_regex, path.name):
+                    state_files.append(path)
     if not state_files:
         return None, None
+
     logger.info(
         "Resuming from %d build %s (%s)",
         len(state_files),
@@ -36,7 +47,7 @@ def load_build_state(state_dir: Path) -> tuple[Context, TaskGraph] | tuple[None,
 
 
 def save_build_state(state_dir: Path, graph: TaskGraph) -> None:
-    state_file = state_dir / f"state-{str(uuid.uuid4())[:7]}.dill"
+    state_file = state_dir / state_file_template.format(uuid=str(uuid.uuid4())[:7])
     state_dir.mkdir(parents=True, exist_ok=True)
     with state_file.open("wb") as fp:
         dill.dump(graph, fp)

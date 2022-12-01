@@ -81,10 +81,9 @@ class LoggingOptions:
 class BuildOptions:
     build_dir: Path
     project_dir: Path
-
-    @property
-    def state_dir(self) -> Path:
-        return self.build_dir / BUILD_STATE_DIR
+    state_dir: Path
+    additional_state_dirs: list[Path]
+    no_load_project: bool
 
     @staticmethod
     def add_to_parser(parser: argparse.ArgumentParser) -> None:
@@ -104,12 +103,32 @@ class BuildOptions:
             default=DEFAULT_PROJECT_DIR,
             help="the root project directory [default: ./]",
         )
+        parser.add_argument(
+            "--state-dir",
+            metavar="PATH",
+            type=Path,
+            help=f"specify the main build state directory [default: ${{--build-dir}}/{BUILD_STATE_DIR}]",
+        )
+        parser.add_argument(
+            "--additional-state-dir",
+            metavar="PATH",
+            type=Path,
+            help="specify an additional state directory to load build state from. can be specified multiple times",
+        )
+        parser.add_argument(
+            "--no-load-project",
+            action="store_true",
+            help="do not load the root project. this is only useful when loading an existing build state",
+        )
 
     @classmethod
     def collect(cls, args: argparse.Namespace) -> BuildOptions:
         return cls(
             build_dir=args.build_dir,
             project_dir=args.project_dir,
+            state_dir=args.state_dir or self.build_dir / BUILD_STATE_DIR,
+            additional_state_dirs=args.additional_state_dir or [],
+            no_load_project=args.no_load_project,
         )
 
 

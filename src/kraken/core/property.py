@@ -7,9 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, ClassVar, Iterable, Mapping, Sequence, TypeVar, cast
 
 import typeapi
-
-from kraken.core.supplier import Empty, Supplier
-from kraken.core.util.helpers import NotSet
+from nr.stream import NotSet, Supplier
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -180,8 +178,8 @@ class Property(Supplier[T]):
     def get(self) -> T:
         try:
             return self._value.get()
-        except Empty:
-            raise Empty(self, self._error_message)
+        except Supplier.Empty:
+            raise Supplier.Empty(self, self._error_message)
 
     def set(self, value: T | Supplier[T], derived_from: Iterable[Supplier[Any]] = ()) -> None:
         if self._finalized:

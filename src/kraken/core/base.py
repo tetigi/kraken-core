@@ -4,7 +4,7 @@ import abc
 import contextlib
 from typing import Any, Callable, ClassVar, Generic, Iterator, List, Optional, TypeVar, cast, overload
 
-from kraken.core.util.helpers import NotSet
+from nr.stream import NotSet
 
 T = TypeVar("T")
 U = TypeVar("U")

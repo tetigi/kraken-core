@@ -30,8 +30,10 @@ from typing import (
     overload,
 )
 
+from nr.stream import Supplier
+
 from kraken.core.property import Object, Property
-from kraken.core.supplier import Empty, Supplier, TaskSupplier
+from kraken.core.supplier import TaskSupplier
 
 if TYPE_CHECKING:
     from kraken.core.project import Project
@@ -301,7 +303,7 @@ class Task(Object, abc.ABC):
                 prop = getattr(self, key)
                 try:
                     value = prop.get()
-                except Empty:
+                except Supplier.Empty:
                     return "<empty>"
                 else:
                     if isinstance(value, Path):

@@ -12,7 +12,7 @@ from kraken.core.util.text import pluralize
 
 logger = logging.getLogger(__name__)
 state_file_regex = r"^state-.*\.dill$"
-state_file_template = "state-{uuid}.dill"
+state_file_template = "state-{name}.dill"
 
 
 def load_build_state(state_dirs: Iterable[Path]) -> tuple[Context, TaskGraph] | tuple[None, None]:

@@ -533,8 +533,8 @@
 
 
 <h1 id="kraken-query-describe">kraken query describe</h1>
-<div class="highlight"><span class="filename">$ kraken query describe --help</span><pre><span></span><code>usage: kraken query describe [-h] [-v] [-q] [-b PATH] [-p PATH] [--state-dir PATH] [--additional-state-dir PATH]
-                             [--no-load-project] [-a] [--resume] [--restart {all}]
+<div class="highlight"><span class="filename">$ kraken query describe --help</span><pre><span></span><code>usage: kraken query describe [-h] [-v] [-q] [-b PATH] [-p PATH] [--state-name NAME] [--state-dir PATH]
+                             [--additional-state-dir PATH] [--no-load-project] [-a] [--resume] [--restart {all}]
                              [task ...]
 
 describe one or more tasks in detail
@@ -548,6 +548,7 @@ options:
   -q                           decrease the log level (can be specified multiple times)
   -b PATH, --build-dir PATH    the build directory to write to [default: build]
   -p PATH, --project-dir PATH  the root project directory [default: ./]
+  --state-name NAME            specify a name for the generated state file; if not specified, a short random ID is used
   --state-dir PATH             specify the main build state directory [default: ${--build-dir}/.kraken/buildenv]
   --additional-state-dir PATH  specify an additional state directory to load build state from. can be specified multiple
                                times

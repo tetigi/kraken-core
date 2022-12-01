@@ -708,7 +708,7 @@
                 
                   
 
-  <a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/content/docs/project.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/kraken-build/kraken-core/blob/None/docs/content/docs/project.md" title="Edit this page" class="md-content__button md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
@@ -722,7 +722,7 @@
 <h2 id="class-project">Class Project</h2>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">MetadataContainer</span><span class="p">,</span> <span class="n">Currentable</span><span class="p">[</span><span class="s2">&quot;Project&quot;</span><span class="p">])</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L16">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L16">[view_source]</a></p>
 <p>A project consolidates tasks related to a directory on the filesystem.</p>
 <p><a id="kraken.core.project.Project.path"></a></p>
 <p><a id="pydoc:kraken.core.project.Project.path"></a></p>
@@ -730,7 +730,7 @@
 <div class="highlight"><pre><span></span><code><span class="nd">@property</span>
 <span class="k">def</span> <span class="nf">path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L66">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L66">[view_source]</a></p>
 <p>Returns the path that uniquely identifies the project in the current build context.</p>
 <p><a id="kraken.core.project.Project.build_directory"></a></p>
 <p><a id="pydoc:kraken.core.project.Project.build_directory"></a></p>
@@ -738,7 +738,7 @@
 <div class="highlight"><pre><span></span><code><span class="nd">@property</span>
 <span class="k">def</span> <span class="nf">build_directory</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L77">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L77">[view_source]</a></p>
 <p>Returns the recommended build directory for the project; this is a directory inside the context
 build directory ammended by the project name.</p>
 <p><a id="kraken.core.project.Project.task"></a></p>
@@ -746,21 +746,21 @@ build directory ammended by the project name.</p>
 <h4 id="task">task</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">task</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Task</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L83">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L83">[view_source]</a></p>
 <p>Return a task in the project by name.</p>
 <p><a id="kraken.core.project.Project.resolve_tasks"></a></p>
 <p><a id="pydoc:kraken.core.project.Project.resolve_tasks"></a></p>
 <h4 id="resolve_tasks">resolve_tasks</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">resolve_tasks</span><span class="p">(</span><span class="n">tasks</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Task</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Task</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">TaskSet</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L97">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L97">[view_source]</a></p>
 <p>Resolve tasks relative to the current project.</p>
 <p><a id="kraken.core.project.Project.add_task"></a></p>
 <p><a id="pydoc:kraken.core.project.Project.add_task"></a></p>
 <h4 id="add_task">add_task</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L112">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L112">[view_source]</a></p>
 <p>Adds a task to the project.</p>
 <p><strong>Raises</strong>:</p>
 <ul>
@@ -771,7 +771,7 @@ build directory ammended by the project name.</p>
 <h4 id="add_child">add_child</h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_child</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L125">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L125">[view_source]</a></p>
 <p>Adds a project as a child project.</p>
 <p><strong>Raises</strong>:</p>
 <ul>
@@ -787,7 +787,7 @@ build directory ammended by the project name.</p>
        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_Task</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L138">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L138">[view_source]</a></p>
 <p>Add a task to the project under the given name, executing the specified action.</p>
 <p><strong>Arguments</strong>:</p>
 <ul>
@@ -808,7 +808,7 @@ with a warning log.</li>
           <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
           <span class="n">default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GroupTask</span>
 </code></pre></div>
-<p><a href="https://github.com/kraken-build/kraken-core/blob/develop/docs/../src/kraken/core/project.py#L174">[view_source]</a></p>
+<p><a href="https://github.com/kraken-build/kraken-core/blob/595e14fe3ac8ededc648aa24b01d4abfaf745e86/docs/../src/kraken/core/project.py#L174">[view_source]</a></p>
 <p>Create or get a group of the given name. If a task with the given name already exists, it must refer</p>
 <p>to a task of type :class:<code>GroupTask</code>, otherwise a :class:<code>RuntimeError</code> is raised.</p>
 <p><strong>Arguments</strong>:</p>
